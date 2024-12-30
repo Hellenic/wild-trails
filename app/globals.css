@@ -3,19 +3,32 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Forest theme colors */
+  --deep-forest: #1a2f25;
+  --pine-green: #2c4a3c;
+  --moss-green: #4a6741;
+  --bark-brown: #8b4513;
+  --warm-wood: #deb887;
+  --forest-mist: #e8eee7;
+  
+  /* System colors */
+  --background: var(--forest-mist);
+  --foreground: var(--deep-forest);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: var(--deep-forest);
+    --foreground: var(--forest-mist);
   }
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-bitter), serif;
 }

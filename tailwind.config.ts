@@ -11,6 +11,18 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        forest: {
+          deep: "var(--deep-forest)",
+          pine: "var(--pine-green)",
+          moss: "var(--moss-green)",
+          bark: "var(--bark-brown)",
+          wood: "var(--warm-wood)",
+          mist: "var(--forest-mist)",
+        },
+      },
+      fontFamily: {
+        sans: ["var(--font-inter)"],
+        serif: ["var(--font-bitter)"],
       },
     },
   },
