@@ -111,22 +111,38 @@ export default function CreateGame() {
           {currentStep === 1 && (
             <GameBasicInfo
               formData={formData}
-              setFormData={setFormData}
+              setFormData={(data) =>
+                setFormData({
+                  ...formData,
+                  ...data,
+                })
+              }
               onNext={handleNext}
             />
           )}
           {currentStep === 2 && (
             <GameMapSelection
               formData={formData}
-              setFormData={setFormData}
+              setFormData={(data) =>
+                setFormData({
+                  ...formData,
+                  ...data,
+                })
+              }
               onNext={handleNext}
               onBack={handleBack}
             />
           )}
           {currentStep === 3 && (
             <GameSettings
+              pending={isPending}
               formData={formData}
-              setFormData={setFormData}
+              setFormData={(data) =>
+                setFormData({
+                  ...formData,
+                  ...data,
+                })
+              }
               onBack={handleBack}
               onSubmit={handleSubmit}
             />

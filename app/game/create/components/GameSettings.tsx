@@ -1,19 +1,23 @@
 import React from "react";
 
+type GameSettingsFormData = {
+  duration: number;
+  playerCount: number;
+  gameMasterType: "player" | "ai";
+  playerRole: "playerA" | "playerB" | "gameMaster";
+  maxDistance: number;
+};
+
 type Props = {
-  formData: {
-    duration: number;
-    playerCount: number;
-    gameMasterType: "player" | "ai";
-    playerRole: "playerA" | "playerB" | "gameMaster";
-    maxDistance: number;
-  };
-  setFormData: (data: any) => void;
+  pending: boolean;
+  formData: GameSettingsFormData;
+  setFormData: (data: GameSettingsFormData) => void;
   onBack: () => void;
   onSubmit: () => void;
 };
 
 export function GameSettings({
+  pending,
   formData,
   setFormData,
   onBack,
@@ -106,7 +110,10 @@ export function GameSettings({
               value="ai"
               checked={formData.gameMasterType === "ai"}
               onChange={(e) =>
-                setFormData({ ...formData, gameMasterType: e.target.value })
+                setFormData({
+                  ...formData,
+                  gameMasterType: e.target.value as "player" | "ai",
+                })
               }
               className="form-radio"
             />
@@ -119,7 +126,10 @@ export function GameSettings({
               disabled
               checked={formData.gameMasterType === "player"}
               onChange={(e) =>
-                setFormData({ ...formData, gameMasterType: e.target.value })
+                setFormData({
+                  ...formData,
+                  gameMasterType: e.target.value as "player" | "ai",
+                })
               }
               className="form-radio"
             />
@@ -135,7 +145,13 @@ export function GameSettings({
         <select
           value={formData.playerRole}
           onChange={(e) =>
-            setFormData({ ...formData, playerRole: e.target.value })
+            setFormData({
+              ...formData,
+              playerRole: e.target.value as
+                | "playerA"
+                | "playerB"
+                | "gameMaster",
+            })
           }
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         >
@@ -159,9 +175,10 @@ export function GameSettings({
         </button>
         <button
           type="submit"
+          disabled={pending}
           className="bg-forest-pine text-forest-mist px-4 py-2 rounded-md hover:bg-forest-moss"
         >
-          Create Game
+          {pending ? "Creating..." : "Create Game"}
         </button>
       </div>
     </form>

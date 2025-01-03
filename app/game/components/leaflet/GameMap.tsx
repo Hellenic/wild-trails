@@ -3,7 +3,10 @@ import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { LatLng, LatLngBounds } from "leaflet";
 import { LatLng as CustomLatLng } from "@/utils/map";
-import { getMarkerIcon } from "@/app/game/components/leaflet/leaflet.utils";
+import {
+  getMarkerIcon,
+  toLatLngBounds,
+} from "@/app/game/components/leaflet/leaflet.utils";
 import type { GamePoint } from "@/hooks/usePoints";
 import type { Game } from "@/types/game";
 
@@ -38,10 +41,7 @@ export default function GameMap({
   );
 
   // Convert the stored coordinates back to Leaflet objects
-  const mapArea = new LatLngBounds(
-    new LatLng(bounds.southEast.lat, bounds.southEast.lng),
-    new LatLng(bounds.northWest.lat, bounds.northWest.lng)
-  );
+  const mapArea = toLatLngBounds(bounds);
 
   const center = mapArea.getCenter();
 

@@ -1,5 +1,13 @@
 import L from "leaflet";
-import type { LatLng } from "leaflet";
+import { LatLng, LatLngBounds } from "leaflet";
+import type { Game } from "@/types/game";
+
+export function toLatLngBounds(bounds: Game["bounding_box"]): LatLngBounds {
+  return new LatLngBounds(
+    new LatLng(bounds.southEast.lat, bounds.southEast.lng),
+    new LatLng(bounds.northWest.lat, bounds.northWest.lng)
+  );
+}
 
 export const getMarker = (
   point: LatLng,

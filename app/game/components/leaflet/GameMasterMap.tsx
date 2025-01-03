@@ -9,11 +9,11 @@ import {
   Popup,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { getMarkerIcon } from "./leaflet.utils";
+import { getMarkerIcon, toLatLngBounds } from "./leaflet.utils";
+import type { Game } from "@/types/game";
 
 interface MapProps {
-  center: [number, number];
-  bounds?: [[number, number], [number, number]];
+  bounds: Game["bounding_box"];
   onClick?: (position: [number, number]) => void;
   markers?: Array<{
     id: string;
@@ -39,15 +39,18 @@ function MapEvents({
 }
 
 export default function GameMasterMap({
-  center,
   bounds,
   onClick,
   markers = [],
 }: MapProps) {
+  // Convert the stored coordinates back to Leaflet objects
+  const mapArea = toLatLngBounds(bounds);
+  const center = mapArea.getCenter();
+
   return (
     <MapContainer
       center={center}
-      bounds={bounds}
+      bounds={mapArea}
       zoom={13}
       style={{ height: "100%", width: "100%" }}
       className="rounded-lg"

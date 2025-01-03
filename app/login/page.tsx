@@ -2,6 +2,7 @@
 
 import { login, signup } from "./actions";
 import Image from "next/image";
+import { LoadingButton } from "../components/LoadingButton";
 
 export default function LoginPage() {
   return (
@@ -54,18 +55,18 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-3 pt-4">
-            <button
+            <LoadingButton
               formAction={login}
               className="w-full px-6 py-3 bg-forest-pine text-forest-mist rounded-lg hover:bg-forest-moss transition-colors"
             >
               Log in
-            </button>
-            <button
+            </LoadingButton>
+            <LoadingButton
               formAction={signup}
               className="w-full px-6 py-3 bg-forest-bark text-forest-mist rounded-lg hover:bg-forest-bark/80 transition-colors"
             >
               Sign up
-            </button>
+            </LoadingButton>
           </div>
         </form>
       </div>

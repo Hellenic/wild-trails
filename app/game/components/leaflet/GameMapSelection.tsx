@@ -6,12 +6,14 @@ import { LatLngTuple } from "leaflet";
 import { LatLng as CustomLatLng } from "@/utils/map";
 import { getMarkerIcon } from "./leaflet.utils";
 
+type GameMapSelectionFormData = {
+  mapArea?: Game["bounding_box"];
+  startingPoint?: CustomLatLng;
+};
+
 type Props = {
-  formData: {
-    mapArea?: Game["bounding_box"];
-    startingPoint?: CustomLatLng;
-  };
-  setFormData: (data: any) => void;
+  formData: GameMapSelectionFormData;
+  setFormData: (data: GameMapSelectionFormData) => void;
   onNext: () => void;
   onBack: () => void;
 };

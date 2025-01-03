@@ -1,11 +1,13 @@
 import React from "react";
 
+type GameBasicInfoFormData = {
+  name: string;
+  password: string;
+};
+
 type Props = {
-  formData: {
-    name: string;
-    password: string;
-  };
-  setFormData: (data: any) => void;
+  formData: GameBasicInfoFormData;
+  setFormData: (data: GameBasicInfoFormData) => void;
   onNext: () => void;
 };
 

@@ -12,6 +12,7 @@ import { useLocationTracking } from "@/hooks/useLocationTracking";
 import { useProximityCheck } from "@/hooks/useProximityCheck";
 import { requestNotificationPermission } from "@/utils/notifications";
 import { GameMap } from "./components/GameMap";
+import { updateGameStatus } from "@/app/actions/games";
 
 type Params = {
   id: string;
@@ -55,6 +56,12 @@ export default function GameScreen() {
       }
     },
   });
+
+  const handleCompleteGame = async () => {
+    await updateGameStatus(id, "completed");
+    setGoalFound(null);
+    router.push("/");
+  };
 
   if (userLoading || gameDetailsLoading || pointsLoading) {
     return (
@@ -113,10 +120,7 @@ export default function GameScreen() {
       {goalFound && (
         <GoalFoundPopup
           content={goalFound.hint ?? ""}
-          onClose={() => {
-            setGoalFound(null);
-            router.push("/");
-          }}
+          onClose={handleCompleteGame}
         />
       )}
     </main>

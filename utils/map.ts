@@ -23,17 +23,4 @@ export class LatLng {
   equals(other: LatLng): boolean {
     return this.lat === other.lat && this.lng === other.lng;
   }
-
-  // Convert to simple object format
-  toJSON() {
-    return {
-      lat: this.lat,
-      lng: this.lng,
-    };
-  }
-
-  // Create from a simple object
-  static fromJSON(json: { lat: number; lng: number }): LatLng {
-    return new LatLng(json.lat, json.lng);
-  }
 }

@@ -21,7 +21,7 @@ export function GameMasterView({ gameDetails }: GameMasterViewProps) {
   const [selectedPointType, setSelectedPointType] = useState<
     "point_a" | "point_b" | "checkpoint"
   >("checkpoint");
-  const [saving, setSaving] = useState(false);
+  const [, setSaving] = useState(false);
 
   const handlePointAdd = async (position: [number, number]) => {
     const newPoint = {
@@ -120,14 +120,11 @@ export function GameMasterView({ gameDetails }: GameMasterViewProps) {
           </div>
         </div>
         <div className="h-[600px] relative">
-          {/*
           <GameMasterMap
-            center={gameDetails.starting_point}
             bounds={gameDetails.bounding_box}
             onClick={handlePointAdd}
             markers={points}
           />
-          */}
         </div>
       </div>
     </div>
