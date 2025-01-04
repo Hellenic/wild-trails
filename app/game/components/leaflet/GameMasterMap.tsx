@@ -1,16 +1,11 @@
 "use client";
 
 import React from "react";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  useMapEvents,
-  Popup,
-} from "react-leaflet";
+import { MapContainer, Marker, useMapEvents, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { getMarkerIcon, toLatLngBounds } from "./leaflet.utils";
 import type { Game } from "@/types/game";
+import { MapTileLayers } from "./MapTileLayers";
 
 interface MapProps {
   bounds: Game["bounding_box"];
@@ -55,10 +50,8 @@ export default function GameMasterMap({
       style={{ height: "100%", width: "100%" }}
       className="rounded-lg"
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+      <MapTileLayers />
+
       {onClick && <MapEvents onClick={onClick} />}
 
       {markers.map((marker) => (

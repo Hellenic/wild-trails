@@ -1,10 +1,11 @@
 import React from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { MapContainer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Game } from "@/types/game";
 import { LatLngTuple } from "leaflet";
 import { LatLng as CustomLatLng } from "@/utils/map";
 import { getMarkerIcon } from "./leaflet.utils";
+import { MapTileLayers } from "./MapTileLayers";
 
 type GameMapSelectionFormData = {
   mapArea?: Game["bounding_box"];
@@ -78,10 +79,7 @@ export default function GameMapSelection({
             zoom={DEFAULT_ZOOM}
             className="h-full w-full"
           >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+            <MapTileLayers />
             <MapEvents setFormData={setFormData} formData={formData} />
             {formData.startingPoint && (
               <Marker

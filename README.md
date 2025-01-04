@@ -5,6 +5,7 @@ A game of survival in the wild.
 ## TODO
 
 - [ ] Add unit tests, and E2E tests
+- [ ] Visited points
 - [ ] Start tuning the game point generation
 
 ## Getting Started

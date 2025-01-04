@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
+import { MapContainer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { LatLng, LatLngBounds } from "leaflet";
 import { LatLng as CustomLatLng } from "@/utils/map";
@@ -9,6 +9,7 @@ import {
 } from "@/app/game/components/leaflet/leaflet.utils";
 import type { GamePoint } from "@/hooks/usePoints";
 import type { Game } from "@/types/game";
+import { MapTileLayers } from "./MapTileLayers";
 
 type GameMapProps = {
   bounds: Game["bounding_box"];
@@ -54,10 +55,7 @@ export default function GameMap({
         zoomControl={false}
         style={{ height: "100%" }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <MapTileLayers />
 
         <MapController mapArea={mapArea} />
 
