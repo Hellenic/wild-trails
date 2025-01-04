@@ -107,7 +107,10 @@ export default function GameScreen() {
           bounds={gameDetails.bounding_box}
           playerLocation={playerLocation}
           showGoal={showGoal}
-          points={points}
+          points={points.map((p) => ({
+            ...p,
+            status: visitedPoints.includes(p.id) ? "visited" : "unvisited",
+          }))}
         />
       </div>
 

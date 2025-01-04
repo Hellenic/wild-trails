@@ -18,6 +18,7 @@ export type Database = {
           latitude: number
           longitude: number
           sequence_number: number
+          status: Database["public"]["Enums"]["point_status_type"]
           type: Database["public"]["Enums"]["point_type"]
           updated_at: string | null
         }
@@ -29,6 +30,7 @@ export type Database = {
           latitude: number
           longitude: number
           sequence_number: number
+          status?: Database["public"]["Enums"]["point_status_type"]
           type: Database["public"]["Enums"]["point_type"]
           updated_at?: string | null
         }
@@ -40,6 +42,7 @@ export type Database = {
           latitude?: number
           longitude?: number
           sequence_number?: number
+          status?: Database["public"]["Enums"]["point_status_type"]
           type?: Database["public"]["Enums"]["point_type"]
           updated_at?: string | null
         }
@@ -155,6 +158,7 @@ export type Database = {
       game_player_status_type: "waiting" | "ready" | "playing" | "finished"
       game_role_type: "player_a" | "player_b" | "game_master" | "ready"
       game_status_type: "setup" | "ready" | "active" | "completed"
+      point_status_type: "unvisited" | "visited"
       point_type: "start" | "end" | "clue"
     }
     CompositeTypes: {

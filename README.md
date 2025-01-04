@@ -4,7 +4,6 @@ A game of survival in the wild.
 
 ## TODO
 
-- [ ] Visited points
 - [ ] Start tuning the game point generation
 
 ## Getting Started

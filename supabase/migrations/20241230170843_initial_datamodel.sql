@@ -78,6 +78,7 @@ create policy "Users can update their own player record"
 
 
 create type point_type as enum ('start', 'end', 'clue');
+create type point_status_type as enum ('unvisited', 'visited');
 
 create table game_points (
   id uuid default uuid_generate_v4() primary key,
@@ -87,6 +88,7 @@ create table game_points (
   sequence_number integer not null,
   hint text,
   type point_type not null,
+  status point_status_type not null default 'unvisited',
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
 );

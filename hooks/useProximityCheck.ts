@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { LatLng } from "@/utils/map";
 import type { GamePoint } from "@/hooks/usePoints";
+import { updatePointStatus } from "@/app/actions/points";
 
 const TRIGGER_DISTANCE_METERS = 50; // Adjust based on game requirements
 
@@ -35,14 +36,8 @@ export function useProximityCheck({
         onPointReached(point);
 
         // Queue server sync when online
-        queueServerSync(point.id);
+        updatePointStatus(point.id, "visited");
       }
     });
   }, [playerLocation, points, onPointReached]);
-}
-
-// Helper function to queue server syncs
-function queueServerSync(pointId: string) {
-  // Use a service worker or local storage to queue updates
-  // Sync when online using background sync API
 }
