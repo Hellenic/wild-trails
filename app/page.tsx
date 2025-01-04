@@ -46,6 +46,7 @@ export default function Home() {
           {user && (
             <button
               onClick={() => supabase.auth.signOut()}
+              data-testid="signout-button"
               className="w-48 px-6 py-3 bg-forest-bark text-forest-mist rounded-lg hover:bg-forest-bark/80 transition-colors"
             >
               Sign Out

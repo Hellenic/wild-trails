@@ -34,6 +34,7 @@ export default function LoginPage() {
               name="email"
               type="email"
               required
+              data-testid="email-input"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -50,6 +51,7 @@ export default function LoginPage() {
               name="password"
               type="password"
               required
+              data-testid="password-input"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -57,12 +59,14 @@ export default function LoginPage() {
           <div className="space-y-3 pt-4">
             <LoadingButton
               formAction={login}
+              data-testid="login-button"
               className="w-full px-6 py-3 bg-forest-pine text-forest-mist rounded-lg hover:bg-forest-moss transition-colors"
             >
               Log in
             </LoadingButton>
             <LoadingButton
               formAction={signup}
+              data-testid="signup-button"
               className="w-full px-6 py-3 bg-forest-bark text-forest-mist rounded-lg hover:bg-forest-bark/80 transition-colors"
             >
               Sign up
