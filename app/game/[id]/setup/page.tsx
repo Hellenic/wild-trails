@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import { useUser } from "@/hooks/useUser";
 import { useGameDetails, isGameMaster } from "@/hooks/useGame";
@@ -15,6 +15,9 @@ export default function GameSetup() {
   const { id } = useParams<Params>();
   const { user, loading: userLoading } = useUser();
   const { gameDetails, loading: gameDetailsLoading } = useGameDetails(id);
+  const [gameMasterReady, setGameMasterReady] = useState(
+    gameDetails?.status === "setup"
+  );
 
   if (userLoading || gameDetailsLoading) {
     return (
@@ -42,8 +45,11 @@ export default function GameSetup() {
 
   return (
     <main className="min-h-screen bg-background">
-      {isGameMaster(user?.id, gameDetails) ? (
-        <GameMasterView gameDetails={gameDetails} />
+      {isGameMaster(user?.id, gameDetails) && !gameMasterReady ? (
+        <GameMasterView
+          gameDetails={gameDetails}
+          onPointsReady={() => setGameMasterReady(true)}
+        />
       ) : (
         <PlayerView
           gameDetails={gameDetails}

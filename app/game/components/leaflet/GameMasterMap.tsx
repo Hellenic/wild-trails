@@ -4,18 +4,20 @@ import React from "react";
 import { MapContainer, Marker, useMapEvents, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { getMarkerIcon, toLatLngBounds } from "./leaflet.utils";
-import type { Game } from "@/types/game";
+import type { Game, GamePoint } from "@/types/game";
 import { MapTileLayers } from "./MapTileLayers";
+
+type Marker = {
+  id: string;
+  type: GamePoint["type"];
+  position: [number, number];
+  hint?: string;
+};
 
 interface MapProps {
   bounds: Game["bounding_box"];
   onClick?: (position: [number, number]) => void;
-  markers?: Array<{
-    id: string;
-    type: "point_a" | "point_b" | "checkpoint";
-    position: [number, number];
-    hint?: string;
-  }>;
+  markers?: Marker[];
 }
 
 function MapEvents({

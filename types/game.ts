@@ -24,3 +24,5 @@ export type Game = Tables<"games"> & {
 export type GameDetails = Game & {
   players: Tables<"players">[];
 };
+
+export type GamePoint = Tables<"game_points">;

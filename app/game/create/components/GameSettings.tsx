@@ -1,10 +1,11 @@
 import React from "react";
+import type { GameMaster, GameRole } from "@/types/game";
 
 type GameSettingsFormData = {
   duration: number;
   playerCount: number;
-  gameMasterType: "player" | "ai";
-  playerRole: "playerA" | "playerB" | "gameMaster";
+  gameMasterType: GameMaster;
+  playerRole: GameRole;
   maxDistance: number;
 };
 
@@ -123,7 +124,6 @@ export function GameSettings({
             <input
               type="radio"
               value="player"
-              disabled
               checked={formData.gameMasterType === "player"}
               onChange={(e) =>
                 setFormData({
@@ -148,19 +148,19 @@ export function GameSettings({
             setFormData({
               ...formData,
               playerRole: e.target.value as
-                | "playerA"
-                | "playerB"
-                | "gameMaster",
+                | "player_a"
+                | "player_b"
+                | "game_master",
             })
           }
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         >
-          <option value="playerA">Player A (Starting Point)</option>
-          <option value="playerB" disabled>
+          <option value="player_a">Player A (Starting Point)</option>
+          <option value="player_b" disabled>
             Player B (Command Center)
           </option>
           {formData.gameMasterType === "player" && (
-            <option value="gameMaster">Game Master</option>
+            <option value="game_master">Game Master</option>
           )}
         </select>
       </div>

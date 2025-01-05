@@ -6,7 +6,7 @@ import { GameMapSelection } from "./components/GameMapSelection";
 import { GameSettings } from "./components/GameSettings";
 import { LatLng } from "@/utils/map";
 import { createGame } from "@/app/actions/games";
-import type { GameDetails } from "@/types/game";
+import type { GameDetails, GameMaster, GameRole } from "@/types/game";
 
 type FormData = {
   name: string;
@@ -16,8 +16,8 @@ type FormData = {
   duration: number;
   maxDistance: number;
   playerCount: number;
-  gameMasterType: "player" | "ai";
-  playerRole: "playerA" | "playerB" | "gameMaster";
+  gameMasterType: GameMaster;
+  playerRole: GameRole;
 };
 
 export default function CreateGame() {
@@ -29,7 +29,7 @@ export default function CreateGame() {
     duration: 2,
     playerCount: 1,
     gameMasterType: "ai",
-    playerRole: "playerA",
+    playerRole: "player_a",
     maxDistance: 10,
   });
 
@@ -60,8 +60,7 @@ export default function CreateGame() {
       max_radius: formData.maxDistance,
       player_count: formData.playerCount,
       game_mode: "single_player",
-      selected_role: "player_a",
-      // selected_role: formData.playerRole,
+      selected_role: formData.playerRole,
       game_master: formData.gameMasterType,
       starting_point: {
         lat: formData.startingPoint.lat,

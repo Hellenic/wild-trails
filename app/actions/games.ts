@@ -1,8 +1,8 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { GameDetails } from "@/types/game";
-import { redirect } from "next/navigation";
 import { processCreateGame } from "../background/background_process";
 
 export async function createGame(settings: Partial<GameDetails>) {

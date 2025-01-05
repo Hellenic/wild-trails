@@ -89,8 +89,8 @@ create table game_points (
   hint text,
   type point_type not null,
   status point_status_type not null default 'unvisited',
-  created_at timestamp with time zone default now(),
-  updated_at timestamp with time zone default now()
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
 );
 
 -- Create index for faster queries

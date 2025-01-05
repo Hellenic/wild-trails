@@ -87,6 +87,8 @@ export default function GameScreen() {
     );
   }
 
+  // TODO We should check the player info here too, and only player A should see this view
+
   const stats = {
     showOwnLocation,
     showGoal,
