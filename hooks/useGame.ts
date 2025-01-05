@@ -43,5 +43,9 @@ export const useGameDetails = (gameId: string) => {
     fetchGameDetails();
   }, [gameId]);
 
-  return { gameDetails, loading };
+  const refetch = () => {
+    fetchGameDetails();
+  };
+
+  return { gameDetails, loading, refetch };
 };

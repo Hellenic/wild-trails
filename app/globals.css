@@ -18,8 +18,17 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: var(--deep-forest);
-    --foreground: var(--forest-mist);
+    /* Adjust dark theme colors for better contrast */
+    --deep-forest: #3a7057;
+    --pine-green: #040505;
+    --moss-green: #5a7751;
+    --bark-brown: #a65d1e;
+    --warm-wood: #edc89d;
+    --forest-mist: #f0f4ef;
+    
+    /* Dark theme specific colors */
+    --background: #1a2f25;  /* Darker than deep-forest for background */
+    --foreground: #e8eee7;  /* Light color for text */
   }
 }
 

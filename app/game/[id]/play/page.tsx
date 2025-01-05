@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { TimeDisplay } from "./components/TimeDisplay";
 import { BottomPanel } from "./components/BottomPanel";
 import { GoalFoundPopup } from "./components/GoalFoundPopup";
-import { useUser } from "@/hooks/useUser";
+import { usePlayer } from "@/hooks/usePlayer";
 import { useGameDetails } from "@/hooks/useGame";
 import { usePoints, type GamePoint } from "@/hooks/usePoints";
 import { useLocationTracking } from "@/hooks/useLocationTracking";
@@ -20,7 +20,7 @@ type Params = {
 
 export default function GameScreen() {
   const { id } = useParams<Params>();
-  const { user, loading: userLoading } = useUser();
+  const { player, loading: playerLoading } = usePlayer(id);
   const { gameDetails, loading: gameDetailsLoading } = useGameDetails(id);
   const { points, loading: pointsLoading } = usePoints(id);
   const [goalFound, setGoalFound] = useState<GamePoint | null>(null);
@@ -30,7 +30,7 @@ export default function GameScreen() {
   const [showOwnLocation, setShowOwnLocation] = useState(false);
   const [showGoal, setShowGoal] = useState(false);
 
-  const playerLocation = useLocationTracking(showOwnLocation);
+  const playerLocation = useLocationTracking();
   const triggeringPoints = points.filter((p) => p.type !== "start");
 
   const router = useRouter();
@@ -44,15 +44,18 @@ export default function GameScreen() {
     points: triggeringPoints,
     onPointReached: (point) => {
       setVisitedPoints([...visitedPoints, point.id]);
-      if (Notification.permission === "granted") {
-        if (point.type === "clue") {
-          new Notification("Point discovered!", {
-            body: `Hint: ${point.hint}`,
-            icon: "/favicon-32x32.png",
-          });
-        } else if (point.type === "end") {
-          setGoalFound(point);
-        }
+      if (Notification.permission === "granted" && point.type === "clue") {
+        alert(`Hint: ${point.hint}`);
+        new Notification("Point discovered! Hint: " + point.hint);
+
+        // new Notification("Point discovered!", {
+        //   body: `Hint: ${point.hint}`,
+        //   icon: "/favicon-32x32.png",
+        // });
+      }
+
+      if (point.type === "end") {
+        setGoalFound(point);
       }
     },
   });
@@ -63,7 +66,7 @@ export default function GameScreen() {
     router.push("/");
   };
 
-  if (userLoading || gameDetailsLoading || pointsLoading) {
+  if (playerLoading || gameDetailsLoading || pointsLoading) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center text-forest-deep">Loading...</div>
@@ -71,10 +74,12 @@ export default function GameScreen() {
     );
   }
 
-  if (!user) {
+  if (!player) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center text-forest-deep">User not found</div>
+        <div className="text-center text-forest-deep">
+          You are not a player in this game.
+        </div>
       </main>
     );
   }
@@ -82,12 +87,15 @@ export default function GameScreen() {
   if (!gameDetails) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center text-forest-deep">Game not found</div>
+        <div className="text-center text-forest-deep">Game not found.</div>
       </main>
     );
   }
 
-  // TODO We should check the player info here too, and only player A should see this view
+  // TODO We should implement the other role screen here
+  if (player.role !== "player_a") {
+    console.warn("Only Player A screen has been implemented yet");
+  }
 
   const stats = {
     showOwnLocation,
@@ -98,16 +106,18 @@ export default function GameScreen() {
   };
 
   return (
-    <main className="relative h-screen w-full bg-background">
-      <TimeDisplay
-        startedAt={new Date(gameDetails.started_at ?? "")}
-        durationMinutes={gameDetails.duration}
-      />
+    <main className="relative h-screen w-full bg-background flex flex-col">
+      <div className="h-[5vh]">
+        <TimeDisplay
+          startedAt={new Date(gameDetails.started_at ?? "")}
+          durationMinutes={gameDetails.duration}
+        />
+      </div>
 
-      <div className="absolute inset-0 top-[40px] bottom-[60px] z-0">
+      <div className="flex-grow h-[80vh]">
         <GameMap
           bounds={gameDetails.bounding_box}
-          playerLocation={playerLocation}
+          playerLocation={showOwnLocation ? playerLocation : null}
           showGoal={showGoal}
           points={points.map((p) => ({
             ...p,
@@ -116,11 +126,13 @@ export default function GameScreen() {
         />
       </div>
 
-      <BottomPanel
-        stats={stats}
-        onShowOwnLocation={() => setShowOwnLocation(!showOwnLocation)}
-        onShowGoal={() => setShowGoal(!showGoal)}
-      />
+      <div className="h-[5vh]">
+        <BottomPanel
+          stats={stats}
+          onShowOwnLocation={() => setShowOwnLocation(!showOwnLocation)}
+          onShowGoal={() => setShowGoal(!showGoal)}
+        />
+      </div>
 
       {goalFound && (
         <GoalFoundPopup

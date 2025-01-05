@@ -43,7 +43,7 @@ export function TimeDisplay({ startedAt, durationMinutes }: TimeDisplayProps) {
   }, [startedAt, durationMinutes]);
 
   return (
-    <div className="absolute top-0 left-0 right-0 bg-forest-mist/80 backdrop-blur-sm p-2 text-center text-xl font-mono">
+    <div className="bg-forest-mist/80 backdrop-blur-sm p-2 text-center text-xl font-mono">
       {timeRemaining}
     </div>
   );

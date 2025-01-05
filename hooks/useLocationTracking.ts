@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { LatLng } from "@/utils/map";
 
-export function useLocationTracking(enabled: boolean) {
+export function useLocationTracking() {
   const [location, setLocation] = useState<LatLng | null>(null);
 
   useEffect(() => {
-    if (!enabled) return;
-
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
         const newLocation = new LatLng(
@@ -28,7 +26,7 @@ export function useLocationTracking(enabled: boolean) {
     return () => {
       navigator.geolocation.clearWatch(watchId);
     };
-  }, [enabled]);
+  }, []);
 
   return location;
 }

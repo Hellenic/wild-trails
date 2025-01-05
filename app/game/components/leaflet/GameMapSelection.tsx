@@ -67,10 +67,12 @@ export default function GameMapSelection({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold mb-4">Select Game Area</h2>
+        <h2 className="text-xl font-semibold text-gray-700 mb-4">
+          Select Game Area
+        </h2>
         <p className="text-gray-600 mb-4">
-          Pan and zoom the map to select the game area. Click to set the
-          starting point.
+          Pan and zoom the map to select the game area. Click to set the desired
+          approximate starting point.
         </p>
 
         <div className="h-[400px] w-full rounded-lg overflow-hidden border border-gray-300">

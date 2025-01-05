@@ -16,7 +16,7 @@ create table public.games (
   player_count integer not null,
   game_mode game_mode_type not null,
   game_master game_master_type not null,
-  selected_role game_role_type not null,
+  selected_role game_role_type,
   starting_point jsonb,
   bounding_box jsonb not null,
   status game_status_type not null default 'setup'

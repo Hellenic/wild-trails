@@ -31,7 +31,9 @@ export function GameBasicInfo({ formData, setFormData, onNext }: Props) {
           id="gameName"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md 
+            focus:outline-none focus:ring-2 focus:ring-forest-moss focus:border-transparent
+            bg-white dark:bg-forest-mist dark:text-forest-pine"
           required
         />
       </div>
@@ -50,10 +52,12 @@ export function GameBasicInfo({ formData, setFormData, onNext }: Props) {
           onChange={(e) =>
             setFormData({ ...formData, password: e.target.value })
           }
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md 
+            focus:outline-none focus:ring-2 focus:ring-forest-moss focus:border-transparent
+            bg-white dark:bg-forest-mist dark:text-forest-pine"
           required
         />
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-gray-700">
           Other players will need this password to join the game
         </p>
       </div>
@@ -61,7 +65,8 @@ export function GameBasicInfo({ formData, setFormData, onNext }: Props) {
       <div className="flex justify-end">
         <button
           type="submit"
-          className="bg-forest-pine text-forest-mist px-4 py-2 rounded-md hover:bg-forest-moss"
+          className="bg-forest-pine text-forest-mist px-4 py-2 rounded-md 
+            hover:bg-forest-moss transition-colors"
         >
           Next
         </button>

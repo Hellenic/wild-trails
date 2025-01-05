@@ -42,6 +42,15 @@ export async function createGame(settings: Partial<GameDetails>) {
 
     if (error) throw error;
 
+    // Create a player for the creator, if they've selected a role
+    if (settings.selected_role) {
+      await supabase.from("players").insert({
+        game_id: data.id,
+        user_id: user.id,
+        role: settings.selected_role,
+      });
+    }
+
     // Generate points if AI is game master
     if (settings.game_master === "ai") {
       // TODO This could be some kind of background trigger in the future

@@ -35,6 +35,12 @@ function MapEvents({
   return null;
 }
 
+function getMarkerIconForType(type: GamePoint["type"]) {
+  if (type === "start") return getMarkerIcon("start");
+  if (type === "end") return getMarkerIcon("destination");
+  if (type === "clue") return getMarkerIcon("visited");
+}
+
 export default function GameMasterMap({
   bounds,
   onClick,
@@ -60,7 +66,7 @@ export default function GameMasterMap({
         <Marker
           key={marker.id}
           position={marker.position}
-          icon={getMarkerIcon("discovered")}
+          icon={getMarkerIconForType(marker.type)}
         >
           {marker.hint && (
             <Popup>

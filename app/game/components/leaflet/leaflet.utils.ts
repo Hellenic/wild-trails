@@ -11,20 +11,20 @@ export function toLatLngBounds(bounds: Game["bounding_box"]): LatLngBounds {
 
 export const getMarker = (
   point: LatLng,
-  type: "start" | "destination" | "discovered" | "undiscovered" | "player"
+  type: "start" | "destination" | "visited" | "unvisited" | "player"
 ) =>
   L.marker([point.lat, point.lng], {
     icon: getMarkerIcon(type),
   });
 
 export const getMarkerIcon = (
-  type: "start" | "destination" | "discovered" | "undiscovered" | "player"
+  type: "start" | "destination" | "visited" | "unvisited" | "player"
 ) => {
   const colors = {
     start: "bg-green-500",
     destination: "bg-red-500",
-    discovered: "bg-blue-500",
-    undiscovered: "bg-gray-400",
+    visited: "bg-blue-500",
+    unvisited: "bg-gray-400",
     player: "bg-yellow-500",
   };
 

@@ -48,3 +48,11 @@ Idea is derived from a TV format called Ultimate Escape Finland, where another p
 
 ![Game area](./concept-map.png)
 Concept image of how a possible game area could look like. On the left there’s player A starting point, and on the right there’s the area where point B is located. In between, there are 8 locations which each have either supplies or clues about the point B location. In the image, clue points are separated by water, so the player most likely has to choose a path which to follow.
+
+----
+
+Future features:
+ - Critical line + time to get to the line
+ - Penalties for not achieving something, e.g. not reaching the critical line in time
+ - Offers: Trade time for more tips, or trade tips for more time
+ - S.E.R.E. elements?

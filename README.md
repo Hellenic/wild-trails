@@ -4,7 +4,13 @@ A game of survival in the wild.
 
 ## TODO
 
-- [ ] Start tuning the game point generation
+- Make the basics playable and excellent
+  - [ ] Better UI for play screen
+  - [ ] On game master view, draw the pointing box and requested starting point, allow putting points only to the bounding box
+  - [ ] On AI point generation, ensure that points are within the bounding box
+- Continue on the future features
+  - [ ] Start tuning the game point generation
+  - [ ] More rich events for points in addition to proximity check
 
 ## Getting Started
 
@@ -23,7 +29,6 @@ bun dev
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
 
 ## Learn More
 

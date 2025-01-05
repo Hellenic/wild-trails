@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
-import { MapContainer, Marker, useMap } from "react-leaflet";
+import React from "react";
+import { MapContainer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { LatLng, LatLngBounds } from "leaflet";
+import { LatLng } from "leaflet";
 import { LatLng as CustomLatLng } from "@/utils/map";
 import {
   getMarkerIcon,
@@ -17,17 +17,6 @@ type GameMapProps = {
   showGoal: boolean;
   points: GamePoint[];
 };
-
-// This component handles map bounds and updates
-function MapController({ mapArea }: { mapArea: LatLngBounds }) {
-  const map = useMap();
-
-  useEffect(() => {
-    map.fitBounds(mapArea);
-  }, [map, mapArea]);
-
-  return null;
-}
 
 export default function GameMap({
   bounds,
@@ -57,8 +46,6 @@ export default function GameMap({
       >
         <MapTileLayers />
 
-        <MapController mapArea={mapArea} />
-
         {/* Starting point marker */}
         {startingPoint && (
           <Marker
@@ -74,13 +61,17 @@ export default function GameMap({
           <Marker
             key={point.id}
             position={new LatLng(point.latitude, point.longitude)}
-            icon={getMarkerIcon("undiscovered")}
+            icon={getMarkerIcon(point.status)}
           />
         ))}
 
         {/* Player location marker */}
         {playerLocation && (
-          <Marker position={playerLocation} icon={getMarkerIcon("player")} />
+          <Marker
+            key="player-location"
+            position={playerLocation}
+            icon={getMarkerIcon("player")}
+          />
         )}
 
         {/* Goal marker - will be implemented later */}

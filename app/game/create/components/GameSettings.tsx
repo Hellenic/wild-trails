@@ -29,6 +29,11 @@ export function GameSettings({
     onSubmit();
   };
 
+  const inputClassName =
+    "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md \
+    focus:outline-none focus:ring-2 focus:ring-forest-moss focus:border-transparent \
+    bg-white dark:bg-forest-mist dark:text-forest-pine";
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
@@ -48,7 +53,7 @@ export function GameSettings({
           onChange={(e) =>
             setFormData({ ...formData, duration: Number(e.target.value) })
           }
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className={inputClassName}
           required
         />
       </div>
@@ -70,7 +75,7 @@ export function GameSettings({
           onChange={(e) =>
             setFormData({ ...formData, maxDistance: Number(e.target.value) })
           }
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className={inputClassName}
           required
         />
       </div>
@@ -88,7 +93,7 @@ export function GameSettings({
           onChange={(e) =>
             setFormData({ ...formData, playerCount: Number(e.target.value) })
           }
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className={inputClassName}
         >
           <option value={1}>Single Player</option>
           <option value={2} disabled>
@@ -116,9 +121,9 @@ export function GameSettings({
                   gameMasterType: e.target.value as "player" | "ai",
                 })
               }
-              className="form-radio"
+              className="form-radio text-forest-moss focus:ring-forest-moss dark:bg-forest-mist"
             />
-            <span className="ml-2">AI</span>
+            <span className="ml-2 text-gray-700">AI</span>
           </label>
           <label className="inline-flex items-center">
             <input
@@ -131,9 +136,9 @@ export function GameSettings({
                   gameMasterType: e.target.value as "player" | "ai",
                 })
               }
-              className="form-radio"
+              className="form-radio text-forest-moss focus:ring-forest-moss dark:bg-forest-mist"
             />
-            <span className="ml-2">Player</span>
+            <span className="ml-2 text-gray-700">Player</span>
           </label>
         </div>
       </div>
@@ -143,18 +148,19 @@ export function GameSettings({
           Your Role
         </label>
         <select
-          value={formData.playerRole}
+          value={formData.playerRole || "none"}
           onChange={(e) =>
             setFormData({
               ...formData,
-              playerRole: e.target.value as
-                | "player_a"
-                | "player_b"
-                | "game_master",
+              playerRole:
+                e.target.value === "none"
+                  ? null
+                  : (e.target.value as "player_a" | "player_b" | "game_master"),
             })
           }
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className={inputClassName}
         >
+          <option value="none">None</option>
           <option value="player_a">Player A (Starting Point)</option>
           <option value="player_b" disabled>
             Player B (Command Center)
@@ -169,14 +175,18 @@ export function GameSettings({
         <button
           type="button"
           onClick={onBack}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+          className="px-4 py-2 border border-gray-300 rounded-md bg-white 
+            dark:bg-forest-mist dark:text-forest-pine dark:border-forest-pine
+            hover:bg-gray-50 dark:hover:bg-forest-mist/90 transition-colors"
         >
           Back
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="bg-forest-pine text-forest-mist px-4 py-2 rounded-md hover:bg-forest-moss"
+          className={`bg-forest-pine text-forest-mist px-4 py-2 rounded-md 
+            hover:bg-forest-moss transition-colors
+            ${pending ? "opacity-50 cursor-not-allowed" : ""}`}
         >
           {pending ? "Creating..." : "Create Game"}
         </button>

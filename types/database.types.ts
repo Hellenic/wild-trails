@@ -69,7 +69,7 @@ export type Database = {
           name: string
           password: string
           player_count: number
-          selected_role: Database["public"]["Enums"]["game_role_type"]
+          selected_role: Database["public"]["Enums"]["game_role_type"] | null
           started_at: string | null
           starting_point: Json | null
           status: Database["public"]["Enums"]["game_status_type"]
@@ -86,7 +86,7 @@ export type Database = {
           name: string
           password: string
           player_count: number
-          selected_role: Database["public"]["Enums"]["game_role_type"]
+          selected_role?: Database["public"]["Enums"]["game_role_type"] | null
           started_at?: string | null
           starting_point?: Json | null
           status?: Database["public"]["Enums"]["game_status_type"]
@@ -103,7 +103,7 @@ export type Database = {
           name?: string
           password?: string
           player_count?: number
-          selected_role?: Database["public"]["Enums"]["game_role_type"]
+          selected_role?: Database["public"]["Enums"]["game_role_type"] | null
           started_at?: string | null
           starting_point?: Json | null
           status?: Database["public"]["Enums"]["game_status_type"]
@@ -156,7 +156,7 @@ export type Database = {
       game_master_type: "player" | "ai"
       game_mode_type: "single_player" | "two_player" | "multi_player"
       game_player_status_type: "waiting" | "ready" | "playing" | "finished"
-      game_role_type: "player_a" | "player_b" | "game_master" | "ready"
+      game_role_type: "player_a" | "player_b" | "game_master"
       game_status_type: "setup" | "ready" | "active" | "completed"
       point_status_type: "unvisited" | "visited"
       point_type: "start" | "end" | "clue"
