@@ -4,13 +4,8 @@ A game of survival in the wild.
 
 ## TODO
 
-- Make the basics playable and excellent
-  - [ ] Better UI for play screen
-  - [ ] On game master view, draw the pointing box and requested starting point, allow putting points only to the bounding box
-  - [ ] On AI point generation, ensure that points are within the bounding box
-- Continue on the future features
-  - [ ] Start tuning the game point generation
-  - [ ] More rich events for points in addition to proximity check
+- [ ] Start tuning the game point generation by AI
+- [ ] More rich events for points in addition to proximity check
 
 ## Getting Started
 

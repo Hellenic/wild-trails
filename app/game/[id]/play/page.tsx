@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { TimeDisplay } from "./components/TimeDisplay";
-import { BottomPanel } from "./components/BottomPanel";
 import { GoalFoundPopup } from "./components/GoalFoundPopup";
+import { DrawerMenu } from "./components/DrawerMenu";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useGameDetails } from "@/hooks/useGame";
 import { usePoints, type GamePoint } from "@/hooks/usePoints";
@@ -25,6 +25,7 @@ export default function GameScreen() {
   const { points, loading: pointsLoading } = usePoints(id);
   const [goalFound, setGoalFound] = useState<GamePoint | null>(null);
   const [visitedPoints, setVisitedPoints] = useState<string[]>([]);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Cheats, while developing the application
   const [showOwnLocation, setShowOwnLocation] = useState(false);
@@ -107,14 +108,20 @@ export default function GameScreen() {
 
   return (
     <main className="relative h-screen w-full bg-background flex flex-col">
-      <div className="h-[5vh]">
+      <div className="h-[5vh] flex justify-between items-center px-4">
         <TimeDisplay
           startedAt={new Date(gameDetails.started_at ?? "")}
           durationMinutes={gameDetails.duration}
         />
+        <button
+          className="p-2 text-forest-deep hover:bg-forest-light/10 rounded-full transition-colors z-20"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          ☰
+        </button>
       </div>
 
-      <div className="flex-grow h-[80vh]">
+      <div className="flex-grow h-[95vh]">
         <GameMap
           bounds={gameDetails.bounding_box}
           playerLocation={showOwnLocation ? playerLocation : null}
@@ -124,22 +131,22 @@ export default function GameScreen() {
             status: visitedPoints.includes(p.id) ? "visited" : "unvisited",
           }))}
         />
-      </div>
 
-      <div className="h-[5vh]">
-        <BottomPanel
-          stats={stats}
-          onShowOwnLocation={() => setShowOwnLocation(!showOwnLocation)}
-          onShowGoal={() => setShowGoal(!showGoal)}
-        />
-      </div>
+        {isMenuOpen && (
+          <DrawerMenu
+            stats={stats}
+            onShowOwnLocation={() => setShowOwnLocation(!showOwnLocation)}
+            onShowGoal={() => setShowGoal(!showGoal)}
+          />
+        )}
 
-      {goalFound && (
-        <GoalFoundPopup
-          content={goalFound.hint ?? ""}
-          onClose={handleCompleteGame}
-        />
-      )}
+        {goalFound && (
+          <GoalFoundPopup
+            content={goalFound.hint ?? ""}
+            onClose={handleCompleteGame}
+          />
+        )}
+      </div>
     </main>
   );
 }

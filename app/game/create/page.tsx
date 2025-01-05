@@ -48,7 +48,7 @@ export default function CreateGame() {
   };
 
   const handleSubmit = () => {
-    if (!formData.startingPoint || !formData.mapArea) {
+    if (!formData.mapArea) {
       console.warn("TODO Handle this");
       return;
     }
@@ -62,10 +62,12 @@ export default function CreateGame() {
       game_mode: "single_player",
       selected_role: formData.playerRole,
       game_master: formData.gameMasterType,
-      starting_point: {
-        lat: formData.startingPoint.lat,
-        lng: formData.startingPoint.lng,
-      },
+      starting_point: formData.startingPoint
+        ? {
+            lat: formData.startingPoint.lat,
+            lng: formData.startingPoint.lng,
+          }
+        : undefined,
       bounding_box: formData.mapArea,
     };
 

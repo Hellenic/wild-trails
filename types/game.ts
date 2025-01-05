@@ -1,7 +1,7 @@
 import type { Database, Tables } from "@/types/database.types";
 
 export type Game = Tables<"games"> & {
-  starting_point: {
+  starting_point?: {
     lat: number;
     lng: number;
   };

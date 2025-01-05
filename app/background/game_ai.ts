@@ -1,5 +1,14 @@
 import type { Game } from "@/types/game";
 
+const DEFAULT_MAX_RADIUS = 5; // Default to 5km if max_radius not set
+
+type BoundingBox = {
+  min_lat: number;
+  min_lng: number;
+  max_lat: number;
+  max_lng: number;
+};
+
 // Helper function to generate a random point within a radius
 function generateRandomPoint(center: [number, number], radiusInKm: number) {
   // Convert radius from kilometers to degrees (rough approximation)
@@ -19,12 +28,7 @@ function generateRandomPoint(center: [number, number], radiusInKm: number) {
 }
 
 // Helper function to generate a random point within a bounding box
-function generateRandomPointInBox(boundingBox: {
-  min_lat: number;
-  min_lng: number;
-  max_lat: number;
-  max_lng: number;
-}) {
+function generateRandomPointInBox(boundingBox: BoundingBox) {
   return {
     lat:
       boundingBox.min_lat +
@@ -72,7 +76,7 @@ export async function generateGamePoints(game: Game) {
 
   const endPoint = generateRandomPoint(
     [centerPoint.latitude, centerPoint.longitude],
-    game.max_radius || 5 // Default to 5km if max_radius not set
+    game.max_radius || DEFAULT_MAX_RADIUS
   );
 
   // Add ending point

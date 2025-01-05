@@ -1,7 +1,14 @@
 "use client";
 
 import React from "react";
-import { MapContainer, Marker, useMapEvents, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  Marker,
+  useMapEvents,
+  Popup,
+  Rectangle,
+  Circle,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { getMarkerIcon, toLatLngBounds } from "./leaflet.utils";
 import type { Game, GamePoint } from "@/types/game";
@@ -16,6 +23,8 @@ type Marker = {
 
 interface MapProps {
   bounds: Game["bounding_box"];
+  desiredStartingPoint?: [number, number];
+  desiredMaxRadius?: number;
   onClick?: (position: [number, number]) => void;
   markers?: Marker[];
 }
@@ -43,6 +52,8 @@ function getMarkerIconForType(type: GamePoint["type"]) {
 
 export default function GameMasterMap({
   bounds,
+  desiredStartingPoint,
+  desiredMaxRadius,
   onClick,
   markers = [],
 }: MapProps) {
@@ -61,6 +72,23 @@ export default function GameMasterMap({
       <MapTileLayers />
 
       {onClick && <MapEvents onClick={onClick} />}
+
+      {desiredStartingPoint && (
+        <Marker
+          position={desiredStartingPoint}
+          icon={getMarkerIcon("player")}
+        />
+      )}
+
+      {mapArea && <Rectangle bounds={mapArea} color="blue" fillOpacity={0} />}
+      {desiredMaxRadius && (
+        <Circle
+          center={center}
+          radius={desiredMaxRadius * 1000}
+          color="black"
+          fillOpacity={0.2}
+        />
+      )}
 
       {markers.map((marker) => (
         <Marker

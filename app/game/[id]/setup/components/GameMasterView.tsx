@@ -27,6 +27,12 @@ export function GameMasterView({
     "start" | "end" | "clue"
   >("start");
   const [saving, setSaving] = useState(false);
+  const desiredStartingPoint = gameDetails.starting_point
+    ? ([gameDetails.starting_point.lat, gameDetails.starting_point.lng] as [
+        number,
+        number,
+      ])
+    : undefined;
 
   const handlePointAdd = async (position: [number, number]) => {
     const newPoint = {
@@ -87,6 +93,13 @@ export function GameMasterView({
             {saving ? "Starting Game..." : "Start Game"}
           </button>
         </div>
+        <div>
+          <p>
+            Orange dot displays the desired starting point, and blue rectangle
+            is the desired game area, and blue circle is the desired maximum
+            radius, all set by the game creator.
+          </p>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-lg p-6">
@@ -97,7 +110,7 @@ export function GameMasterView({
               onClick={() => setSelectedPointType("start")}
               className={`px-4 py-2 rounded ${
                 selectedPointType === "start"
-                  ? "bg-blue-600 text-white"
+                  ? "bg-green-600 text-white"
                   : "bg-gray-100"
               }`}
             >
@@ -107,7 +120,7 @@ export function GameMasterView({
               onClick={() => setSelectedPointType("clue")}
               className={`px-4 py-2 rounded ${
                 selectedPointType === "clue"
-                  ? "bg-green-600 text-white"
+                  ? "bg-blue-600 text-white"
                   : "bg-gray-100"
               }`}
             >
@@ -127,6 +140,8 @@ export function GameMasterView({
         </div>
         <div className="h-[600px] relative">
           <GameMasterMap
+            desiredStartingPoint={desiredStartingPoint}
+            desiredMaxRadius={gameDetails.max_radius}
             bounds={gameDetails.bounding_box}
             onClick={handlePointAdd}
             markers={points}
