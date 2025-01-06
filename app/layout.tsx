@@ -16,7 +16,8 @@ const bitter = Bitter({
 
 export const metadata: Metadata = {
   title: "Wild Trails",
-  description: "Wild Trails - A Forest Adventure",
+  description:
+    "Wild Trails is a real-world adventure game that combines orienteering, puzzle-solving, and geocaching, where players navigate through wilderness using clues to find their final destination within a time limit.",
 };
 
 export default function RootLayout({

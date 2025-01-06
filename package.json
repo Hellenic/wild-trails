@@ -1,5 +1,6 @@
 {
   "name": "wild-trails",
+  "description": "Wild Trails is a real-world adventure game that combines orienteering, puzzle-solving, and geocaching, where players navigate through wilderness using clues to find their final destination within a time limit.",
   "version": "0.1.0",
   "private": true,
   "scripts": {

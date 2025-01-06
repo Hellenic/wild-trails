@@ -16,3 +16,7 @@
 8. Ne löytyvät joltakin kolmelta pohjoisimmalta varustepisteeltä.
 9. Myrskysytytin on kahdesta pohjoisimmasta varustepisteestä itäisimmällä.
 10. Lamppu ja laavu ovat samalla varustepisteellä.
+
+## Other
+
+- Puzzles could be e.g. sound clips in an odd language, where player B can somehow translate them. e.g. Player A hears numbers in other language repeatedly, and player B has mapping for each number / word.

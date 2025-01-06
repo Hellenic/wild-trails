@@ -4,6 +4,7 @@ import { useInterval } from "@/hooks/useInterval";
 import { createClient } from "@/lib/supabase/client";
 import { updatePlayerStatus } from "@/app/actions/players";
 import { updateGameStatus } from "@/app/actions/games";
+import { useGameContext } from "@/app/game/components/GameContext";
 import type { GameDetails, Player } from "@/types/game";
 
 interface PlayerViewProps {
@@ -18,6 +19,7 @@ export function PlayerView({
 }: PlayerViewProps & { isCreator: boolean; player: Player }) {
   const supabase = createClient();
   const router = useRouter();
+  const { requestPermissions } = useGameContext();
   const [isGameReady, setIsGameReady] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [players, setPlayers] = React.useState<Player[]>(
@@ -47,6 +49,11 @@ export function PlayerView({
   }, 5000); // Check every 5 seconds
 
   const handleReadyClick = async () => {
+    const granted = await requestPermissions();
+    if (!granted) {
+      alert("You will need notifications and location to play the game.");
+      return;
+    }
     await updatePlayerStatus(gameDetails.id, "ready");
     setPlayers(
       players.map((player) => ({

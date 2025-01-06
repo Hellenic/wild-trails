@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { TimeDisplay } from "./components/TimeDisplay";
 import { GoalFoundPopup } from "./components/GoalFoundPopup";
@@ -10,7 +10,6 @@ import { useGameDetails } from "@/hooks/useGame";
 import { usePoints, type GamePoint } from "@/hooks/usePoints";
 import { useLocationTracking } from "@/hooks/useLocationTracking";
 import { useProximityCheck } from "@/hooks/useProximityCheck";
-import { requestNotificationPermission } from "@/utils/notifications";
 import { GameMap } from "./components/GameMap";
 import { updateGameStatus } from "@/app/actions/games";
 
@@ -35,10 +34,6 @@ export default function GameScreen() {
   const triggeringPoints = points.filter((p) => p.type !== "start");
 
   const router = useRouter();
-
-  useEffect(() => {
-    requestNotificationPermission();
-  }, []);
 
   useProximityCheck({
     playerLocation,
