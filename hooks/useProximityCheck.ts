@@ -35,7 +35,7 @@ export function useProximityCheck({
         triggeredPoints.current.add(point.id);
         onPointReached(point);
 
-        // Queue server sync when online
+        // TODO Maybe do this in a single player only? Otherwise have the server-side handle this.
         updatePointStatus(point.id, "visited");
       }
     });

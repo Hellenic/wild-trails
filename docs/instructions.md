@@ -68,6 +68,7 @@ Here's a breakdown of how you can structure a platform to handle player location
 *   **Responsibilities:**
     *   Displaying the map and player locations.
     *   Sending location updates to the backend.
+    *   Defining triggers for when a player is near a point (using geofencing calculations).
     *   Handling UI updates based on events received from the backend.
     *   Handling user input and sending requests to the backend API.
 *   **Key Interactions:**

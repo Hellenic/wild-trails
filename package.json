@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "predeploy": "npm run test && npm run build",
     "deploy": "vercel deploy",
     "supabase": "supabase",
     "db:login": "supabase login",

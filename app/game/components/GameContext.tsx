@@ -1,17 +1,29 @@
 "use client";
+import { LatLng } from "@/utils/map";
 import React, { createContext, useContext, useState } from "react";
+import { useLocationTracking } from "@/hooks/useLocationTracking";
 
 interface GameContextType {
   requestPermissions: () => Promise<boolean>;
+  playerLocation: LatLng | null;
+  startLocationTracking: () => Promise<void>;
+  stopLocationTracking: () => void;
+  isTracking: boolean;
+  sendLocalNotification: (title: string, body: string) => void;
 }
 
 const GameContext = createContext<GameContextType | null>(null);
 
-export const useGameContext = () => {
+export const useGameContext = (startTrackingImmediately: boolean = false) => {
   const context = useContext(GameContext);
   if (!context) {
     throw new Error("useGameContext must be used within a GameContextProvider");
   }
+
+  if (startTrackingImmediately) {
+    context.startLocationTracking();
+  }
+
   return context;
 };
 
@@ -21,6 +33,23 @@ export const GameContextProvider: React.FC<{
   const [, setServiceWorkerRegistration] =
     useState<ServiceWorkerRegistration | null>(null);
   const [permissionsGranted, setPermissionsGranted] = useState(false);
+
+  const {
+    location: playerLocation,
+    startTracking,
+    stopTracking,
+    isTracking,
+  } = useLocationTracking();
+
+  const sendLocalNotification = (title: string, body: string) => {
+    navigator.serviceWorker.ready.then((registration) => {
+      registration.active?.postMessage({
+        type: "SEND_NOTIFICATION",
+        title,
+        body,
+      });
+    });
+  };
 
   const registerServiceWorker = async (): Promise<boolean> => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
@@ -85,6 +114,11 @@ export const GameContextProvider: React.FC<{
   const value = {
     permissionsGranted,
     requestPermissions,
+    playerLocation,
+    startLocationTracking: startTracking,
+    stopLocationTracking: stopTracking,
+    isTracking,
+    sendLocalNotification,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

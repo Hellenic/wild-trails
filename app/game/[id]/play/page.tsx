@@ -8,10 +8,10 @@ import { DrawerMenu } from "./components/DrawerMenu";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useGameDetails } from "@/hooks/useGame";
 import { usePoints, type GamePoint } from "@/hooks/usePoints";
-import { useLocationTracking } from "@/hooks/useLocationTracking";
 import { useProximityCheck } from "@/hooks/useProximityCheck";
 import { GameMap } from "./components/GameMap";
 import { updateGameStatus } from "@/app/actions/games";
+import { useGameContext } from "../../components/GameContext";
 
 type Params = {
   id: string;
@@ -19,35 +19,29 @@ type Params = {
 
 export default function GameScreen() {
   const { id } = useParams<Params>();
+  const router = useRouter();
   const { player, loading: playerLoading } = usePlayer(id);
   const { gameDetails, loading: gameDetailsLoading } = useGameDetails(id);
   const { points, loading: pointsLoading } = usePoints(id);
   const [goalFound, setGoalFound] = useState<GamePoint | null>(null);
   const [visitedPoints, setVisitedPoints] = useState<string[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { playerLocation, sendLocalNotification } = useGameContext(true);
 
   // Cheats, while developing the application
   const [showOwnLocation, setShowOwnLocation] = useState(false);
   const [showGoal, setShowGoal] = useState(false);
 
-  const playerLocation = useLocationTracking();
   const triggeringPoints = points.filter((p) => p.type !== "start");
-
-  const router = useRouter();
 
   useProximityCheck({
     playerLocation,
     points: triggeringPoints,
     onPointReached: (point) => {
       setVisitedPoints([...visitedPoints, point.id]);
-      if (Notification.permission === "granted" && point.type === "clue") {
-        alert(`Hint: ${point.hint}`);
-        new Notification("Point discovered! Hint: " + point.hint);
 
-        // new Notification("Point discovered!", {
-        //   body: `Hint: ${point.hint}`,
-        //   icon: "/favicon-32x32.png",
-        // });
+      if (Notification.permission === "granted" && point.type === "clue") {
+        sendLocalNotification("Point discovered!", `Hint: ${point.hint}`);
       }
 
       if (point.type === "end") {
@@ -58,7 +52,6 @@ export default function GameScreen() {
 
   const handleCompleteGame = async () => {
     await updateGameStatus(id, "completed");
-    setGoalFound(null);
     router.push("/");
   };
 

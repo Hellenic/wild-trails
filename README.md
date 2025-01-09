@@ -4,7 +4,8 @@ Wild Trails is an outdoor adventure game that transforms traditional orienteerin
 
 Player(s) start from point A and must discover the location of their destination (point B) by visiting optional waypoints that provide hints and puzzles along the way. The game can be played solo with AI assistance, with two players working together, or as a more complex experience where one player creates physical clues and challenges for others to solve in a 24-hour wilderness adventure. It combines elements of orienteering, geocaching, and puzzle-solving while testing players' outdoor navigation and survival skills.
 
-> Keywords: orienteering, geocaching, puzzle-solving, outdoor adventure, survival skills, AI assistance, treasure hunt, human vs. wilderness
+> Keywords: orienteering, geocaching, puzzle-solving, outdoor adventure, survival skills, AI assistance, treasure hunt, human vs. wilderness,
+> human vs. nature, survival & adventure, AI, gamification
 
 ## More details
 
@@ -16,6 +17,13 @@ Read the [synopsis](./synopsis.md) for more details.
 
 - [ ] Start tuning the game point generation by AI
 - [ ] More rich events for points in addition to proximity check
+- [ ] On multiplayer game, stream player A's location to the server, and listen for server-side events
+
+## Future features?
+ - Critical line + time to get to the line
+ - Penalties for not achieving something, e.g. not reaching the critical line in time
+ - Offers: Trade time for more tips, or trade tips for more time
+ - S.E.R.E. elements?
 
 ## Getting Started
 

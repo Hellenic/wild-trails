@@ -2,7 +2,8 @@
 
 Working title: Wild Trails
 
-> Keywords: Human vs. nature, survival & adventure, AI, gamification, geocaching
+> Keywords: orienteering, geocaching, puzzle-solving, outdoor adventure, survival skills, AI assistance, treasure hunt, human vs. wilderness,
+> human vs. nature, survival & adventure, AI, gamification
 
 Game is basically a more advanced version of orienteering. Each game will consist of a starting point (A) and an ending point (B). At the start of the game, the location of B is unknown. Players will have a certain amount of hours to get to point B, and direct distance between the points A and B should correlate to the amount of hours.
 
@@ -48,11 +49,3 @@ Idea is derived from a TV format called Ultimate Escape Finland, where another p
 
 ![Game area](./concept-map.png)
 Concept image of how a possible game area could look like. On the left there’s player A starting point, and on the right there’s the area where point B is located. In between, there are 8 locations which each have either supplies or clues about the point B location. In the image, clue points are separated by water, so the player most likely has to choose a path which to follow.
-
-----
-
-Future features:
- - Critical line + time to get to the line
- - Penalties for not achieving something, e.g. not reaching the critical line in time
- - Offers: Trade time for more tips, or trade tips for more time
- - S.E.R.E. elements?
