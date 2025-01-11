@@ -17,8 +17,17 @@ export const getMarker = (
     icon: getMarkerIcon(type),
   });
 
+const createClueNumberIcon = (number: number) => {
+  return L.divIcon({
+    className: "custom-div-icon",
+    html: `<div class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-white text-xs font-bold">${number}</div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  });
+};
 export const getMarkerIcon = (
-  type: "start" | "destination" | "visited" | "unvisited" | "player"
+  type: "start" | "destination" | "visited" | "unvisited" | "player",
+  index?: number
 ) => {
   const colors = {
     start: "bg-green-500",
@@ -27,6 +36,10 @@ export const getMarkerIcon = (
     unvisited: "bg-gray-400",
     player: "bg-yellow-500",
   };
+
+  if (type === "visited" || type === "unvisited") {
+    return createClueNumberIcon(index ?? 0);
+  }
 
   return L.divIcon({
     className: "bg-transparent",

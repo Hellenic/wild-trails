@@ -15,7 +15,7 @@ type PointSetup = {
   id: string;
   type: GamePoint["type"];
   position: [number, number];
-  hint?: string;
+  hint: string;
 };
 
 export function GameMasterView({
@@ -39,22 +39,28 @@ export function GameMasterView({
       id: crypto.randomUUID(),
       type: selectedPointType,
       position,
+      hint: "",
     };
 
-    // Only allow one point A and one point B
-    if (
-      selectedPointType === "start" &&
-      points.some((p) => p.type === "start")
-    ) {
-      alert("Starting point already exists");
-      return;
+    // Replace existing start/end points or add new point
+    if (selectedPointType === "start" || selectedPointType === "end") {
+      const updatedPoints = points.filter((p) => p.type !== selectedPointType);
+      setPoints(
+        [...updatedPoints, newPoint].sort((a, b) => {
+          if (a.type === "end") return 1;
+          if (b.type === "end") return -1;
+          return 0;
+        })
+      );
+    } else {
+      setPoints(
+        [...points, newPoint].sort((a, b) => {
+          if (a.type === "end") return 1;
+          if (b.type === "end") return -1;
+          return 0;
+        })
+      );
     }
-    if (selectedPointType === "end" && points.some((p) => p.type === "end")) {
-      alert("Goal already exists");
-      return;
-    }
-
-    setPoints([...points, newPoint]);
   };
 
   const handleGameStart = async () => {
@@ -70,6 +76,20 @@ export function GameMasterView({
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleHintChange = (pointId: string, hint: string) => {
+    setPoints(
+      points.map((point) => (point.id === pointId ? { ...point, hint } : point))
+    );
+  };
+
+  const handlePointRemove = (pointId: string) => {
+    const point = points.find((p) => p.id === pointId);
+    if (point?.type === "start" || point?.type === "end") {
+      return; // Don't allow removal of start/end points
+    }
+    setPoints(points.filter((p) => p.id !== pointId));
   };
 
   return (
@@ -94,10 +114,24 @@ export function GameMasterView({
           </button>
         </div>
         <div>
-          <p>
-            Orange dot displays the desired starting point, and blue rectangle
-            is the desired game area, and blue circle is the desired maximum
-            radius, all set by the game creator.
+          <p className="flex items-center gap-2 text-gray-700 flex-wrap">
+            <span className="w-4 h-4 rounded-full bg-yellow-500 border-2 border-white inline-block"></span>
+            <span>Desired starting point</span>
+            <span className="mx-2">•</span>
+            <span className="w-4 h-4 border-2 border-blue-500 inline-block"></span>
+            <span>Desired game area</span>
+            <span className="mx-2">•</span>
+            <span className="w-4 h-4 rounded-full border-2 border-blue-500 inline-block"></span>
+            <span>Maximum radius</span>
+            <span className="mx-2">•</span>
+            <span className="w-4 h-4 rounded-full bg-green-600 border-2 border-white inline-block"></span>
+            <span>Starting point</span>
+            <span className="mx-2">•</span>
+            <span className="w-4 h-4 rounded-full bg-blue-600 border-2 border-white inline-block"></span>
+            <span>Clue point</span>
+            <span className="mx-2">•</span>
+            <span className="w-4 h-4 rounded-full bg-red-600 border-2 border-white inline-block"></span>
+            <span>Goal point</span>
           </p>
         </div>
       </div>
@@ -146,6 +180,74 @@ export function GameMasterView({
             onClick={handlePointAdd}
             markers={points}
           />
+        </div>
+
+        <div className="mt-6">
+          <h3 className="text-xl font-semibold mb-4">Game Points</h3>
+          <div className="space-y-4">
+            {points.map((point, index, sortedPoints) => {
+              // Calculate clue number (only count previous clue points)
+              const clueNumber =
+                point.type === "clue"
+                  ? sortedPoints
+                      .slice(0, index)
+                      .filter((p) => p.type === "clue").length + 1
+                  : null;
+
+              return (
+                <div
+                  key={point.id}
+                  className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span
+                        className={`
+                            px-2 py-1 rounded text-sm text-white
+                            ${
+                              point.type === "start"
+                                ? "bg-green-600"
+                                : point.type === "end"
+                                  ? "bg-red-600"
+                                  : "bg-blue-600"
+                            }
+                          `}
+                      >
+                        {point.type === "start"
+                          ? "Starting Point"
+                          : point.type === "end"
+                            ? "Goal"
+                            : `Clue Point #${clueNumber}`}
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        ({point.position[0].toFixed(6)},{" "}
+                        {point.position[1].toFixed(6)})
+                      </span>
+                    </div>
+                    <textarea
+                      className="w-full p-2 border rounded-lg"
+                      placeholder={`Enter ${
+                        point.type === "clue" ? "clue" : "description"
+                      }...`}
+                      value={point.hint}
+                      onChange={(e) =>
+                        handleHintChange(point.id, e.target.value)
+                      }
+                      rows={2}
+                    />
+                  </div>
+                  {point.type === "clue" && (
+                    <button
+                      onClick={() => handlePointRemove(point.id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

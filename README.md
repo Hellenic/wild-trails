@@ -18,6 +18,7 @@ Read the [synopsis](./synopsis.md) for more details.
 - [ ] Start tuning the game point generation by AI
 - [ ] More rich events for points in addition to proximity check
 - [ ] On multiplayer game, stream player A's location to the server, and listen for server-side events
+- [ ] Curated list of games?
 
 ## Future features?
  - Critical line + time to get to the line
