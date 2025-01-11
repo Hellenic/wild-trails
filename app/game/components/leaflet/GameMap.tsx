@@ -57,11 +57,11 @@ export default function GameMap({
         )}
 
         {/* Game points */}
-        {restPoints.map((point) => (
+        {restPoints.map((point, index) => (
           <Marker
             key={point.id}
             position={new LatLng(point.latitude, point.longitude)}
-            icon={getMarkerIcon(point.status)}
+            icon={getMarkerIcon(point.status, index + 1)}
           />
         ))}
 

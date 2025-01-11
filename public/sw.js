@@ -26,6 +26,8 @@ function showNotification(title, body, icon = "/apple-touch-icon.png") {
     data: {
       timeOfArrival: Date.now(),
     },
+    renotify: true,
+    tag: "notification-" + Date.now(),
   };
-  self.registration.showNotification(title, options);
+  return self.registration.showNotification(title, options);
 }

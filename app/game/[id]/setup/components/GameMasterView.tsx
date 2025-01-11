@@ -225,7 +225,7 @@ export function GameMasterView({
                       </span>
                     </div>
                     <textarea
-                      className="w-full p-2 border rounded-lg"
+                      className="w-full p-2 border rounded-lg text-gray-900"
                       placeholder={`Enter ${
                         point.type === "clue" ? "clue" : "description"
                       }...`}

@@ -75,10 +75,11 @@ export async function updateGameStatus(
   const supabase = await createClient();
 
   const started_at = status === "active" ? new Date().toISOString() : null;
+  const ended_at = status === "completed" ? new Date().toISOString() : null;
 
   const { error } = await supabase
     .from("games")
-    .update({ status, started_at })
+    .update({ status, started_at, ended_at })
     .eq("id", gameId);
 
   if (error) {

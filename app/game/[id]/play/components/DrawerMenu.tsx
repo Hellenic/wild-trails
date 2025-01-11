@@ -45,14 +45,16 @@ export function DrawerMenu({
         <div className="space-y-4 mt-6">
           <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
             <span className="text-gray-700">Points visited</span>
-            <span className="font-medium">
+            <span className="font-medium text-forest-deep">
               {stats.pointsVisited}/{stats.totalPoints}
             </span>
           </div>
 
           <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
             <span className="text-gray-700">Distance traveled</span>
-            <span className="font-medium">{stats.distanceTraveled}</span>
+            <span className="font-medium text-forest-deep">
+              {stats.distanceTraveled}
+            </span>
           </div>
         </div>
       </div>

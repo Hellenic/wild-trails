@@ -11,20 +11,34 @@ Player(s) start from point A and must discover the location of their destination
 
 Read the [synopsis](./synopsis.md) for more details.
 
-# Developing the application
+## Upcoming features
 
-## TODO
-
-- [ ] Start tuning the game point generation by AI
+### Single player game (current focus)
 - [ ] More rich events for points in addition to proximity check
-- [ ] On multiplayer game, stream player A's location to the server, and listen for server-side events
-- [ ] Curated list of games?
+- [ ] AI game point generation strategy?
+- [ ] Finalize game creation flow; single player mode player cannot be GM. Without role, if you join game possible.
+- [ ] Curated list of games? Similar to "kiintorastit", could use existing orienteering points and/or geocaches
+- [ ] Rewards for completing games (e.g. badges, personal records, points, achievements, virtual collectibles)
+- [ ] "Feel-good" elements (e.g. "You are the first to complete this game!"), encouraging messages, visual rewards, fun facts, comparisons...
+
+### Multiplayer game
+- [ ] Stream player A's location to the server, and listen for server-side events
+- [ ] Game master view could be prepopulated with AI-generated points
 
 ## Future features?
  - Critical line + time to get to the line
  - Penalties for not achieving something, e.g. not reaching the critical line in time
  - Offers: Trade time for more tips, or trade tips for more time
  - S.E.R.E. elements?
+ - Integrate Garmin InReach or similar GPS trackers to get location updates without phone
+   - GPS tracker + map and compass on multi-player games would be neat
+
+## Interesting things
+ - Trailmap.fi, MapAnt.fi
+ - Wandrer
+ - 
+
+# Developing the application
 
 ## Getting Started
 

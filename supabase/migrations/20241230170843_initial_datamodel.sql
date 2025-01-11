@@ -8,6 +8,7 @@ create table public.games (
   id uuid default gen_random_uuid() primary key,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   started_at timestamp with time zone,
+  ended_at timestamp with time zone,
   creator_id uuid references auth.users(id) not null,
   name text not null,
   password text not null,

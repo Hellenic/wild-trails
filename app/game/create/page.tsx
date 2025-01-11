@@ -26,11 +26,11 @@ export default function CreateGame() {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     password: "",
-    duration: 2,
+    duration: 1,
     playerCount: 1,
     gameMasterType: "ai",
     playerRole: "player_a",
-    maxDistance: 10,
+    maxDistance: 3,
   });
 
   const steps = [

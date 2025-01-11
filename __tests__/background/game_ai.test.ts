@@ -18,6 +18,8 @@ jest.mock("osmtogeojson", () => {
   };
 });
 
+const BUFFER_DISTANCE = 0.0002;
+
 // Then import everything else
 import { gameAI } from "@/app/background/game_ai";
 import { RandomStrategy } from "@/app/background/strategies/random.strategy";
@@ -256,13 +258,13 @@ describe("OSMStrategy", () => {
         if (element.tags.natural === "water") {
           // Check if point is within buffer zone of the rectangular area
           const minLat =
-            Math.min(...element.geometry.map((p) => p.lat)) - 0.0001;
+            Math.min(...element.geometry.map((p) => p.lat)) - BUFFER_DISTANCE;
           const maxLat =
-            Math.max(...element.geometry.map((p) => p.lat)) + 0.0001;
+            Math.max(...element.geometry.map((p) => p.lat)) + BUFFER_DISTANCE;
           const minLon =
-            Math.min(...element.geometry.map((p) => p.lon)) - 0.0001;
+            Math.min(...element.geometry.map((p) => p.lon)) - BUFFER_DISTANCE;
           const maxLon =
-            Math.max(...element.geometry.map((p) => p.lon)) + 0.0001;
+            Math.max(...element.geometry.map((p) => p.lon)) + BUFFER_DISTANCE;
 
           return (
             point.latitude >= minLat &&

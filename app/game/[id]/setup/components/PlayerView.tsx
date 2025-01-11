@@ -89,7 +89,7 @@ export function PlayerView({
             <p className="text-gray-600 flex items-center gap-2">
               <b>Status:</b>{" "}
               {isGameReady ? (
-                "Ready to start"
+                "Ready to start ✔️"
               ) : (
                 <>
                   Game Master is preparing the game
@@ -102,6 +102,11 @@ export function PlayerView({
             </p>
             <p className="text-gray-600">
               <b>Maximum radius:</b> {gameDetails.max_radius}km
+            </p>
+            <p className="text-gray-600">
+              <b>Note:</b> Your location is only tracked when your screen is on.
+              You will not receive clue notifications and other players cannot
+              see your progress when your screen is off.
             </p>
           </div>
         </div>
