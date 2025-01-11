@@ -1,6 +1,6 @@
 // Kind of a background process manager, which in the future could actually be in the background
 import { createClient } from "@/lib/supabase/server";
-import { generateGamePoints } from "./game_ai";
+import { gameAI } from "./game_ai";
 import type { Game } from "@/types/game";
 
 export const processCreateGame = async (gameId: string) => {
@@ -17,10 +17,10 @@ export const processCreateGame = async (gameId: string) => {
     return;
   }
 
-  // Intentionally sleep for 5 seconds, to simulate a long process
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+  // Intentionally sleep for 3 seconds, to simulate a long process
+  await new Promise((resolve) => setTimeout(resolve, 3000));
 
-  const points = await generateGamePoints(data as Game);
+  const points = await gameAI.generateGamePoints(data as Game);
   await supabase.from("game_points").insert(
     points.map((p) => ({
       ...p,
