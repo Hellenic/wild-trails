@@ -1,3 +1,24 @@
+// First, mock osmtogeojson
+jest.mock("osmtogeojson", () => {
+  return function (osmData: any) {
+    return {
+      type: "FeatureCollection",
+      features: osmData.elements.map((element: any) => ({
+        type: "Feature",
+        id: element.id,
+        properties: element.tags, // Simplified: just use tags directly as properties
+        geometry: {
+          type: "Polygon",
+          coordinates: [
+            element.geometry.map((point: any) => [point.lon, point.lat]),
+          ],
+        },
+      })),
+    };
+  };
+});
+
+// Then import everything else
 import { gameAI } from "@/app/background/game_ai";
 import { RandomStrategy } from "@/app/background/strategies/random.strategy";
 import { OSMStrategy } from "@/app/background/strategies/osm.strategy";
@@ -42,8 +63,46 @@ const mockOSMResponse = {
         { lat: 61.48, lon: 23.58 },
       ],
     },
+    {
+      type: "way",
+      id: 124,
+      nodes: [5, 6, 7, 8, 5],
+      tags: { natural: "forest", name: "Birch Forest" },
+      geometry: [
+        { lat: 61.46, lon: 23.56 },
+        { lat: 61.46, lon: 23.57 },
+        { lat: 61.47, lon: 23.57 },
+        { lat: 61.47, lon: 23.56 },
+        { lat: 61.46, lon: 23.56 },
+      ],
+    },
+    {
+      type: "way",
+      id: 125,
+      nodes: [9, 10, 11, 12, 9],
+      tags: { leisure: "park", name: "City Park" },
+      geometry: [
+        { lat: 61.47, lon: 23.57 },
+        { lat: 61.47, lon: 23.58 },
+        { lat: 61.48, lon: 23.58 },
+        { lat: 61.48, lon: 23.57 },
+        { lat: 61.47, lon: 23.57 },
+      ],
+    },
   ],
 };
+
+describe("osmtogeojson mock", () => {
+  it("should properly convert OSM data to GeoJSON", () => {
+    const osmtogeojson = jest.requireMock("osmtogeojson");
+    const result = osmtogeojson(mockOSMResponse);
+
+    expect(result.type).toBe("FeatureCollection");
+    expect(result.features).toHaveLength(3);
+    expect(result.features[1].properties.name).toBe("Birch Forest");
+    expect(result.features[2].properties.name).toBe("City Park");
+  });
+});
 
 describe("GameAI", () => {
   beforeEach(() => {
@@ -122,6 +181,19 @@ describe("RandomStrategy", () => {
     const points = await strategy.generatePoints(mockGame);
     expect(points.length).toBeGreaterThanOrEqual(6);
     expect(points.length).toBeLessThanOrEqual(9);
+  });
+
+  it("should generate points with meaningful hints", async () => {
+    const points = await strategy.generatePoints(mockGame);
+
+    // Check intermediate points have distance and direction hints
+    points.slice(1, -1).forEach((point) => {
+      expect(point.hint).toMatch(/approximately \d+\.\d+ km to the [NSEW]/);
+    });
+
+    // Check start and end points have correct hints
+    expect(points[0].hint).toBe("Starting point");
+    expect(points[points.length - 1].hint).toBe("Ending point");
   });
 });
 
@@ -202,6 +274,28 @@ describe("OSMStrategy", () => {
         return false;
       });
       expect(isTooClose).toBe(false);
+    });
+  });
+
+  it("should generate meaningful hints with nearby features", async () => {
+    const points = await strategy.generatePoints(mockGame);
+
+    // Check intermediate points have detailed hints
+    points.slice(1, -1).forEach((point) => {
+      // Should include distance and direction
+      expect(point.hint).toMatch(/approximately \d+\.\d+ km to the [NSEW]/);
+
+      // Should include nearby features when available
+      if (point.hint.includes("Nearby:")) {
+        expect(point.hint).toMatch(/Nearby: [^.]+\./);
+        // Should mention specific features from our mock data
+        expect(point.hint).toMatch(/forest|park|water/);
+      }
+
+      // Should include warnings when relevant
+      if (point.hint.includes("Caution:")) {
+        expect(point.hint).toMatch(/Caution: water ahead/);
+      }
     });
   });
 });

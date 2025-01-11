@@ -17,7 +17,14 @@ import {
 
 const DEFAULT_MAX_RADIUS = 5;
 const DEFAULT_MAX_ATTEMPTS = 20;
-const BUFFER_DISTANCE = 0.0001;
+const BUFFER_DISTANCE = 0.0002;
+
+interface NearbyFeature {
+  type: string;
+  name?: string;
+  distance: number;
+  direction: string;
+}
 
 export class OSMStrategy implements PointGenerationStrategy {
   name = "osm";
@@ -174,6 +181,132 @@ export class OSMStrategy implements PointGenerationStrategy {
     };
   }
 
+  private async getNearbyFeatures(
+    point: { lat: number; lng: number },
+    osmData: FeatureCollection
+  ): Promise<NearbyFeature[]> {
+    const features: NearbyFeature[] = [];
+
+    for (const feature of osmData.features) {
+      if (feature.properties) {
+        // Calculate feature center from geometry
+        let featureCenter;
+        if (feature.geometry.type === "Polygon") {
+          // For polygons, calculate center from all coordinates
+          const coords = feature.geometry.coordinates[0];
+          const lats = coords.map((c) => c[1]);
+          const lngs = coords.map((c) => c[0]);
+          featureCenter = {
+            lat: (Math.min(...lats) + Math.max(...lats)) / 2,
+            lng: (Math.min(...lngs) + Math.max(...lngs)) / 2,
+          };
+        } else if (feature.geometry.type === "Point") {
+          featureCenter = {
+            lat: feature.geometry.coordinates[1],
+            lng: feature.geometry.coordinates[0],
+          };
+        } else {
+          continue; // Skip other geometry types for now
+        }
+
+        const distance = Math.sqrt(
+          Math.pow((point.lat - featureCenter.lat) * 111, 2) +
+            Math.pow(
+              (point.lng - featureCenter.lng) *
+                111 *
+                Math.cos((point.lat * Math.PI) / 180),
+              2
+            )
+        );
+
+        if (distance < 1) {
+          // Only include features within 1km
+          const bearing = this.calculateBearing(point, featureCenter);
+          const direction = this.getCardinalDirection(bearing);
+
+          features.push({
+            type:
+              feature.properties.natural ||
+              feature.properties.landuse ||
+              feature.properties.leisure ||
+              feature.properties.amenity ||
+              "landmark",
+            name: feature.properties.name,
+            distance,
+            direction,
+          });
+        }
+      }
+    }
+
+    return features.sort((a, b) => a.distance - b.distance).slice(0, 3);
+  }
+
+  private async generateHint(
+    point: { lat: number; lng: number },
+    endPoint: { lat: number; lng: number },
+    osmData: FeatureCollection
+  ): Promise<string> {
+    // Get basic distance and direction to goal
+    const distance = Math.sqrt(
+      Math.pow((point.lat - endPoint.lat) * 111, 2) +
+        Math.pow(
+          (point.lng - endPoint.lng) *
+            111 *
+            Math.cos((point.lat * Math.PI) / 180),
+          2
+        )
+    );
+
+    const bearing = this.calculateBearing(point, endPoint);
+    const direction = this.getCardinalDirection(bearing);
+
+    // Get nearby features
+    const nearbyFeatures = await this.getNearbyFeatures(point, osmData);
+
+    // Generate hint text
+    let hint = `The goal is approximately ${distance.toFixed(1)} km to the ${direction}.`;
+
+    if (nearbyFeatures.length > 0) {
+      // Add information about nearby features
+      const featureDescriptions = nearbyFeatures.map((feature) => {
+        const name = feature.name ? ` ${feature.name}` : "";
+        return `${feature.type}${name} ${feature.distance.toFixed(1)}km ${feature.direction}`;
+      });
+
+      hint += ` Nearby: ${featureDescriptions.join(", ")}.`;
+
+      // Add path suggestion if applicable
+      const waterFeatures = nearbyFeatures.filter((f) => f.type === "water");
+      if (waterFeatures.length > 0) {
+        hint += ` Caution: water ahead, consider going around it.`;
+      }
+    }
+
+    return hint;
+  }
+
+  private calculateBearing(
+    point1: { lat: number; lng: number },
+    point2: { lat: number; lng: number }
+  ): number {
+    const dLon = ((point2.lng - point1.lng) * Math.PI) / 180;
+    const lat1 = (point1.lat * Math.PI) / 180;
+    const lat2 = (point2.lat * Math.PI) / 180;
+    const y = Math.sin(dLon) * Math.cos(lat2);
+    const x =
+      Math.cos(lat1) * Math.sin(lat2) -
+      Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+    const bearing = (Math.atan2(y, x) * 180) / Math.PI;
+    return (bearing + 360) % 360; // Normalize to 0-360
+  }
+
+  private getCardinalDirection(bearing: number): string {
+    const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+    const index = Math.round(bearing / 45) % 8;
+    return directions[index];
+  }
+
   async generatePoints(game: Game): Promise<GamePoint[]> {
     const boundingBox = convertToBoundingBox(game);
     const osmData = await this.getOSMData(boundingBox);
@@ -234,7 +367,7 @@ export class OSMStrategy implements PointGenerationStrategy {
         latitude: point.lat,
         longitude: point.lng,
         sequence_number: i + 1,
-        hint: `This is point ${i + 1}`,
+        hint: await this.generateHint(point, endPoint, osmData),
         type: "clue",
         created_at: null,
         game_id: null,
