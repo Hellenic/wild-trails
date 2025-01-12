@@ -2,15 +2,16 @@
 
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { TimeDisplay } from "./components/TimeDisplay";
-import { GoalFoundPopup } from "./components/GoalFoundPopup";
-import { DrawerMenu } from "./components/DrawerMenu";
+import { updateGameStatus } from "@/app/actions/games";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useGameDetails } from "@/hooks/useGame";
 import { usePoints, type GamePoint } from "@/hooks/usePoints";
 import { useProximityCheck } from "@/hooks/useProximityCheck";
+import { usePlayerLocation } from "@/hooks/usePlayerLocation";
+import { TimeDisplay } from "./components/TimeDisplay";
+import { GoalFoundPopup } from "./components/GoalFoundPopup";
+import { DrawerMenu } from "./components/DrawerMenu";
 import { GameMap } from "./components/GameMap";
-import { updateGameStatus } from "@/app/actions/games";
 import { useGameContext } from "../../components/GameContext";
 
 type Params = {
@@ -22,11 +23,15 @@ export default function GameScreen() {
   const router = useRouter();
   const { player, loading: playerLoading } = usePlayer(id);
   const { gameDetails, loading: gameDetailsLoading } = useGameDetails(id);
+  const { locations } = usePlayerLocation(id);
   const { points, loading: pointsLoading } = usePoints(id);
   const [goalFound, setGoalFound] = useState<GamePoint | null>(null);
   const [visitedPoints, setVisitedPoints] = useState<string[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { playerLocation, sendLocalNotification } = useGameContext(true);
+  const { playerLocation, distanceTravelled, sendLocalNotification } =
+    useGameContext(true, id, player?.id);
+
+  const distanceInKm = (distanceTravelled / 1000).toFixed(2);
 
   // Cheats, while developing the application
   const [showOwnLocation, setShowOwnLocation] = useState(false);
@@ -84,6 +89,7 @@ export default function GameScreen() {
   // TODO We should implement the other role screen here
   if (player.role !== "player_a") {
     console.warn("Only Player A screen has been implemented yet");
+    console.log("Available locations", locations);
   }
 
   const stats = {
@@ -91,7 +97,7 @@ export default function GameScreen() {
     showGoal,
     pointsVisited: visitedPoints.length,
     totalPoints: triggeringPoints.length,
-    distanceTraveled: "-- km",
+    distanceTraveled: `~ ${distanceInKm} km`,
   };
 
   return (

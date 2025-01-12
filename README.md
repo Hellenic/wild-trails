@@ -15,7 +15,7 @@ Read the [synopsis](./synopsis.md) for more details.
 
 ### Single player game (current focus)
 - [ ] More rich events for points in addition to proximity check
-- [ ] AI game point generation strategy?
+- [ ] AI game point generation strategy? or AI validation so that each game point is accessible.
 - [ ] Finalize game creation flow; single player mode player cannot be GM. Without role, if you join game possible.
 - [ ] Curated list of games? Similar to "kiintorastit", could use existing orienteering points and/or geocaches
 - [ ] Rewards for completing games (e.g. badges, personal records, points, achievements, virtual collectibles)

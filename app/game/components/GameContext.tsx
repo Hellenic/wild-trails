@@ -6,7 +6,8 @@ import { useLocationTracking } from "@/hooks/useLocationTracking";
 interface GameContextType {
   requestPermissions: () => Promise<boolean>;
   playerLocation: LatLng | null;
-  startLocationTracking: () => Promise<void>;
+  distanceTravelled: number;
+  startLocationTracking: (gameId?: string, playerId?: string) => Promise<void>;
   stopLocationTracking: () => void;
   isTracking: boolean;
   sendLocalNotification: (title: string, body: string) => void;
@@ -14,14 +15,18 @@ interface GameContextType {
 
 const GameContext = createContext<GameContextType | null>(null);
 
-export const useGameContext = (startTrackingImmediately: boolean = false) => {
+export const useGameContext = (
+  startTrackingImmediately: boolean = false,
+  gameId?: string,
+  playerId?: string
+) => {
   const context = useContext(GameContext);
   if (!context) {
     throw new Error("useGameContext must be used within a GameContextProvider");
   }
 
   if (startTrackingImmediately) {
-    context.startLocationTracking();
+    context.startLocationTracking(gameId, playerId);
   }
 
   return context;
@@ -36,6 +41,7 @@ export const GameContextProvider: React.FC<{
 
   const {
     location: playerLocation,
+    distanceTravelled,
     startTracking,
     stopTracking,
     isTracking,
@@ -115,6 +121,7 @@ export const GameContextProvider: React.FC<{
     permissionsGranted,
     requestPermissions,
     playerLocation,
+    distanceTravelled,
     startLocationTracking: startTracking,
     stopLocationTracking: stopTracking,
     isTracking,

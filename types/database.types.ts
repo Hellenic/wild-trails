@@ -62,6 +62,7 @@ export type Database = {
           created_at: string
           creator_id: string
           duration: number
+          ended_at: string | null
           game_master: Database["public"]["Enums"]["game_master_type"]
           game_mode: Database["public"]["Enums"]["game_mode_type"]
           id: string
@@ -79,6 +80,7 @@ export type Database = {
           created_at?: string
           creator_id: string
           duration: number
+          ended_at?: string | null
           game_master: Database["public"]["Enums"]["game_master_type"]
           game_mode: Database["public"]["Enums"]["game_mode_type"]
           id?: string
@@ -96,6 +98,7 @@ export type Database = {
           created_at?: string
           creator_id?: string
           duration?: number
+          ended_at?: string | null
           game_master?: Database["public"]["Enums"]["game_master_type"]
           game_mode?: Database["public"]["Enums"]["game_mode_type"]
           id?: string
@@ -109,6 +112,63 @@ export type Database = {
           status?: Database["public"]["Enums"]["game_status_type"]
         }
         Relationships: []
+      }
+      player_locations: {
+        Row: {
+          accuracy: number | null
+          altitude: number | null
+          altitude_accuracy: number | null
+          game_id: string
+          heading: number | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          player_id: string
+          speed: number | null
+          timestamp: string
+        }
+        Insert: {
+          accuracy?: number | null
+          altitude?: number | null
+          altitude_accuracy?: number | null
+          game_id: string
+          heading?: number | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          player_id: string
+          speed?: number | null
+          timestamp?: string
+        }
+        Update: {
+          accuracy?: number | null
+          altitude?: number | null
+          altitude_accuracy?: number | null
+          game_id?: string
+          heading?: number | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          player_id?: string
+          speed?: number | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_locations_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_locations_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       players: {
         Row: {
