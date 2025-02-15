@@ -13,16 +13,18 @@ Read the [synopsis](./synopsis.md) for more details.
 
 ## Upcoming features
 
-### Single player game (current focus)
-- [ ] More rich events for points in addition to proximity check
+> Current focus: Single player game
+
+- [ ] Points don't show as visited after refresh
+- [ ] Point hints do not make sense, and do not help finding the goal. Currently it's still needle in the haystack.
+- [ ]   --[ A lot of actual testing ]--
+- [ ]   ....
+- [ ] More rich events for points in addition to proximity check (server-sent events)
 - [ ] AI game point generation strategy? or AI validation so that each game point is accessible.
 - [ ] Finalize game creation flow; single player mode player cannot be GM. Without role, if you join game possible.
 - [ ] Curated list of games? Similar to "kiintorastit", could use existing orienteering points and/or geocaches
 - [ ] Rewards for completing games (e.g. badges, personal records, points, achievements, virtual collectibles)
 - [ ] "Feel-good" elements (e.g. "You are the first to complete this game!"), encouraging messages, visual rewards, fun facts, comparisons...
-
-### Multiplayer game
-- [ ] Stream player A's location to the server, and listen for server-side events
 - [ ] Game master view could be prepopulated with AI-generated points
 
 ## Future features?
