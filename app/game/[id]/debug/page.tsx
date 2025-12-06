@@ -5,7 +5,9 @@ import { useParams } from "next/navigation";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useGameDetails } from "@/hooks/useGame";
 import { GameMasterMap } from "../setup/components/GameMasterMap";
-import { type GamePoint } from "@/app/actions/points";
+import type { Tables } from "@/types/database.types";
+
+type GamePoint = Tables<"game_points">;
 
 type Params = {
   id: string;

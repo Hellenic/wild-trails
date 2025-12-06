@@ -11,6 +11,13 @@ const customJestConfig = {
     "^@/(.*)$": "<rootDir>/$1",
   },
   testPathIgnorePatterns: ["<rootDir>/e2e/"],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+  collectCoverageFrom: [
+    "lib/api/**/*.ts",
+    "lib/game/**/*.ts",
+    "!**/*.d.ts",
+    "!**/node_modules/**",
+  ],
 };
 
 module.exports = createJestConfig(customJestConfig);

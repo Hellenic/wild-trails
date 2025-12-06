@@ -2,9 +2,11 @@
 
 import React, { useState } from "react";
 import { GameMasterMap } from "./GameMasterMap";
-import { updateGameStatus } from "@/app/actions/games";
+import { gameAPI, pointsAPI } from "@/lib/api/client";
 import type { GameDetails } from "@/types/game";
-import { saveGamePoints, type GamePoint } from "@/app/actions/points";
+import type { Tables } from "@/types/database.types";
+
+type GamePoint = Tables<"game_points">;
 
 interface GameMasterViewProps {
   gameDetails: GameDetails;
@@ -66,8 +68,8 @@ export function GameMasterView({
   const handleGameStart = async () => {
     try {
       setSaving(true);
-      await saveGamePoints(gameDetails.id, points);
-      await updateGameStatus(gameDetails.id, "ready");
+      await pointsAPI.createManual(gameDetails.id, { points });
+      await gameAPI.updateStatus(gameDetails.id, { status: "ready" });
 
       onPointsReady();
     } catch (error) {
