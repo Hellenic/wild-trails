@@ -7,10 +7,10 @@ export type GamePoint = Tables<"game_points">;
 export function usePoints(gameId: string) {
   const [points, setPoints] = useState<GamePoint[]>([]);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   useEffect(() => {
     async function loadPoints() {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from("game_points")
         .select()
@@ -18,6 +18,7 @@ export function usePoints(gameId: string) {
 
       if (error) {
         console.error("Error loading points:", error);
+        setLoading(false);
         return;
       }
 

@@ -5,10 +5,10 @@ import { useState, useEffect } from "react";
 export const usePlayer = (gameId: string) => {
   const [player, setPlayer] = useState<Tables<"players"> | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   useEffect(() => {
     async function loadPlayer() {
+      const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -26,6 +26,7 @@ export const usePlayer = (gameId: string) => {
 
       if (error) {
         console.error("Error loading player:", error);
+        setLoading(false);
         return;
       }
 

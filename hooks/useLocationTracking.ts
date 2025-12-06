@@ -48,6 +48,7 @@ function calculateDistance(
 export function useLocationTracking() {
   const [location, setLocation] = useState<LatLng | null>(null);
   const [distanceTravelled, setDistanceTravelled] = useState(0);
+  const [isTracking, setIsTracking] = useState(false);
   const watchIdRef = useRef<number | null>(null);
   const lastLocationRef = useRef<GeolocationCoordinates | null>(null);
 
@@ -122,6 +123,7 @@ export function useLocationTracking() {
         );
 
         watchIdRef.current = id;
+        setIsTracking(true);
       } catch (error) {
         console.error("Error tracking location:", error);
       }
@@ -135,6 +137,7 @@ export function useLocationTracking() {
       watchIdRef.current = null;
       lastLocationRef.current = null;
       setDistanceTravelled(0);
+      setIsTracking(false);
     }
   }, []);
 
@@ -146,7 +149,7 @@ export function useLocationTracking() {
 
   return {
     location,
-    isTracking: watchIdRef.current !== null,
+    isTracking,
     distanceTravelled, // Return the distance in meters
     startTracking,
     stopTracking,

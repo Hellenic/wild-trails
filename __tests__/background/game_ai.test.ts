@@ -1,16 +1,31 @@
 // First, mock osmtogeojson
+type OSMElement = {
+  id: number;
+  tags?: Record<string, string>;
+  geometry: Array<{ lon: number; lat: number }>;
+};
+
+type OSMData = {
+  elements: OSMElement[];
+};
+
+type GeoPoint = {
+  lon: number;
+  lat: number;
+};
+
 jest.mock("osmtogeojson", () => {
-  return function (osmData: any) {
+  return function (osmData: OSMData) {
     return {
       type: "FeatureCollection",
-      features: osmData.elements.map((element: any) => ({
+      features: osmData.elements.map((element: OSMElement) => ({
         type: "Feature",
         id: element.id,
         properties: element.tags, // Simplified: just use tags directly as properties
         geometry: {
           type: "Polygon",
           coordinates: [
-            element.geometry.map((point: any) => [point.lon, point.lat]),
+            element.geometry.map((point: GeoPoint) => [point.lon, point.lat]),
           ],
         },
       })),
