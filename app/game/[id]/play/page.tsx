@@ -2,12 +2,12 @@
 
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { updateGameStatus } from "@/app/actions/games";
+import { gameAPI } from "@/lib/api/client";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useGameDetails } from "@/hooks/useGame";
 import { usePoints, type GamePoint } from "@/hooks/usePoints";
-import { useProximityCheck } from "@/hooks/useProximityCheck";
 import { usePlayerLocation } from "@/hooks/usePlayerLocation";
+import { useProximityEvents } from "@/hooks/useProximityEvents";
 import { TimeDisplay } from "./components/TimeDisplay";
 import { GoalFoundPopup } from "./components/GoalFoundPopup";
 import { DrawerMenu } from "./components/DrawerMenu";
@@ -39,25 +39,32 @@ export default function GameScreen() {
 
   const triggeringPoints = points.filter((p) => p.type !== "start");
 
-  useProximityCheck({
-    playerLocation,
-    points: triggeringPoints,
+  // Listen for server-side proximity events
+  useProximityEvents(id, {
     onPointReached: (point) => {
-      setVisitedPoints([...visitedPoints, point.id]);
-
-      if (Notification.permission === "granted" && point.type === "clue") {
+      setVisitedPoints((prev) => {
+        if (prev.includes(point.id)) return prev;
+        return [...prev, point.id];
+      });
+    },
+    onClueDiscovered: (point) => {
+      if (Notification.permission === "granted") {
         sendLocalNotification("Point discovered!", `Hint: ${point.hint}`);
       }
-
-      if (point.type === "end") {
-        setGoalFound(point);
-      }
+    },
+    onGoalFound: (point) => {
+      setGoalFound(point);
     },
   });
 
   const handleCompleteGame = async () => {
-    await updateGameStatus(id, "completed");
-    router.push("/");
+    try {
+      await gameAPI.updateStatus(id, { status: "completed" });
+      router.push("/");
+    } catch (error) {
+      console.error("Error completing game:", error);
+      alert("Failed to complete game. Please try again.");
+    }
   };
 
   if (playerLoading || gameDetailsLoading || pointsLoading) {

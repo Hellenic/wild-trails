@@ -2,8 +2,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { useInterval } from "@/hooks/useInterval";
 import { createClient } from "@/lib/supabase/client";
-import { updatePlayerStatus } from "@/app/actions/players";
-import { updateGameStatus } from "@/app/actions/games";
+import { gameAPI, playerAPI } from "@/lib/api/client";
 import { useGameContext } from "@/app/game/components/GameContext";
 import type { GameDetails, Player } from "@/types/game";
 
@@ -54,19 +53,32 @@ export function PlayerView({
       alert("You will need notifications and location to play the game.");
       return;
     }
-    await updatePlayerStatus(gameDetails.id, "ready");
-    setPlayers(
-      players.map((player) => ({
-        ...player,
-        status: player.user_id === player.user_id ? "ready" : player.status,
-      }))
-    );
+    
+    // Update player status via API
+    try {
+      await playerAPI.updateStatus(player.id, { status: "ready" });
+      
+      setPlayers(
+        players.map((p) => ({
+          ...p,
+          status: p.id === player.id ? "ready" : p.status,
+        }))
+      );
+    } catch (error) {
+      console.error("Error updating player status:", error);
+      alert("Failed to update status. Please try again.");
+    }
   };
 
   const handleStartGame = async () => {
     setIsLoading(true);
-    // Update game status to in_progress
-    await updateGameStatus(gameDetails.id, "active");
+    try {
+      await gameAPI.updateStatus(gameDetails.id, { status: "active" });
+    } catch (error) {
+      console.error("Error starting game:", error);
+      setIsLoading(false);
+      alert("Failed to start game. Please try again.");
+    }
   };
 
   const currentPlayerReady =

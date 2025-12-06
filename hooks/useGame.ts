@@ -42,7 +42,7 @@ export const useGameDetails = (gameId: string) => {
   useEffect(() => {
     // eslint-disable-next-line
     fetchGameDetails();
-  }, [gameId]);
+  }, [gameId, fetchGameDetails]);
 
   const refetch = () => {
     fetchGameDetails();

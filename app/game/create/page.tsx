@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { GameBasicInfo } from "./components/GameBasicInfo";
 import { GameMapSelection } from "./components/GameMapSelection";
 import { GameSettings } from "./components/GameSettings";
 import { LatLng } from "@/utils/map";
-import { createGame } from "@/app/actions/games";
+import { gameAPI } from "@/lib/api/client";
 import type { GameDetails, GameMaster, GameRole } from "@/types/game";
 
 type FormData = {
@@ -21,8 +22,10 @@ type FormData = {
 };
 
 export default function CreateGame() {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [currentStep, setCurrentStep] = useState(1);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     password: "",
@@ -47,32 +50,44 @@ export default function CreateGame() {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.mapArea) {
-      console.warn("TODO Handle this");
+      setError("Please select a map area");
       return;
     }
 
-    const gameSettings: Partial<GameDetails> = {
-      name: formData.name,
-      password: formData.password,
-      duration: formData.duration * 60, // Duration, from hours to minutes
-      max_radius: formData.maxDistance,
-      player_count: formData.playerCount,
-      game_mode: "single_player",
-      selected_role: formData.playerRole,
-      game_master: formData.gameMasterType,
-      starting_point: formData.startingPoint
-        ? {
-            lat: formData.startingPoint.lat,
-            lng: formData.startingPoint.lng,
-          }
-        : undefined,
-      bounding_box: formData.mapArea,
-    };
+    setError(null);
 
-    startTransition(() => {
-      createGame(gameSettings);
+    startTransition(async () => {
+      try {
+        const game = await gameAPI.create({
+          name: formData.name,
+          password: formData.password,
+          duration: formData.duration * 60, // Duration, from hours to minutes
+          max_radius: formData.maxDistance,
+          player_count: formData.playerCount,
+          game_mode: "single_player",
+          selected_role: formData.playerRole || undefined,
+          game_master: formData.gameMasterType,
+          starting_point: formData.startingPoint
+            ? {
+                lat: formData.startingPoint.lat,
+                lng: formData.startingPoint.lng,
+              }
+            : undefined,
+          bounding_box: formData.mapArea!,  // Already checked above
+        });
+
+        // Navigate to game setup page
+        router.push(`/game/${game.id}/setup`);
+      } catch (err: unknown) {
+        console.error("Error creating game:", err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to create game. Please try again."
+        );
+      }
     });
   };
 
@@ -106,6 +121,13 @@ export default function CreateGame() {
             </div>
           ))}
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
 
         {/* Form Steps */}
         <div className="bg-white rounded-lg shadow-md p-6">

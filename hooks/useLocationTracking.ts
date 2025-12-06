@@ -1,49 +1,20 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { LatLng } from "@/utils/map";
-import { createClient } from "@/lib/supabase/client";
+import { locationAPI } from "@/lib/api/client";
+import type { LocationUpdateInput } from "@/lib/api/validation";
 
-type LocationPayload = {
-  game_id: string;
-  player_id: string;
-  latitude: number;
-  longitude: number;
-  altitude: number | null;
-  altitude_accuracy: number | null;
-  accuracy: number;
-  speed: number | null;
-  heading: number | null;
-};
-
-async function streamLocation(payload: LocationPayload) {
-  const supabase = createClient();
+async function streamLocation(payload: LocationUpdateInput) {
   try {
-    const { error } = await supabase.from("player_locations").insert(payload);
-
-    if (error) throw error;
+    const response = await locationAPI.update(payload);
+    
+    // Return proximity events if any
+    return response.proximity_events || [];
   } catch (error) {
     console.error("Failed to store location:", error);
+    return [];
   }
 }
 
-// Add helper function for distance calculation using Haversine formula
-function calculateDistance(
-  from: GeolocationCoordinates,
-  to: GeolocationCoordinates
-): number {
-  const R = 6371e3; // Earth's radius in meters
-  const φ1 = (from.latitude * Math.PI) / 180;
-  const φ2 = (to.latitude * Math.PI) / 180;
-  const Δφ = ((to.latitude - from.latitude) * Math.PI) / 180;
-  const Δλ = ((to.longitude - from.longitude) * Math.PI) / 180;
-
-  const a =
-    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c; // Distance in meters
-}
 
 export function useLocationTracking() {
   const [location, setLocation] = useState<LatLng | null>(null);
@@ -51,6 +22,7 @@ export function useLocationTracking() {
   const [isTracking, setIsTracking] = useState(false);
   const watchIdRef = useRef<number | null>(null);
   const lastLocationRef = useRef<GeolocationCoordinates | null>(null);
+  const lastUpdateTimeRef = useRef<number>(0);
 
   const startTracking = useCallback(
     async (gameId?: string, playerId?: string) => {
@@ -84,32 +56,44 @@ export function useLocationTracking() {
 
             // Calculate distance if we have a previous location
             if (lastLocationRef.current) {
-              const distance = calculateDistance(
-                lastLocationRef.current,
-                position.coords
+              const prevLocation = new LatLng(
+                lastLocationRef.current.latitude,
+                lastLocationRef.current.longitude
               );
+              const currentLocation = new LatLng(
+                position.coords.latitude,
+                position.coords.longitude
+              );
+              const distance = prevLocation.distanceTo(currentLocation);
               setDistanceTravelled((prev) => prev + distance);
             }
 
             lastLocationRef.current = position.coords;
 
             if (gameId && playerId) {
-              streamLocation({
-                latitude,
-                longitude,
-                altitude,
-                altitude_accuracy: altitudeAccuracy,
-                accuracy,
-                heading,
-                speed,
-                game_id: gameId,
-                player_id: playerId,
-              }).catch((err) => {
-                console.warn(
-                  "Error occurred while streaming location to the backend",
-                  err
-                );
-              });
+              // Throttle API calls to once per second
+              const now = Date.now();
+              const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
+              
+              if (timeSinceLastUpdate >= 1000) {
+                lastUpdateTimeRef.current = now;
+                streamLocation({
+                  latitude,
+                  longitude,
+                  altitude,
+                  altitude_accuracy: altitudeAccuracy,
+                  accuracy,
+                  heading,
+                  speed,
+                  game_id: gameId,
+                  player_id: playerId,
+                }).catch((err) => {
+                  console.warn(
+                    "Error occurred while streaming location to the backend",
+                    err
+                  );
+                });
+              }
             }
           },
           (error) => {
@@ -136,6 +120,7 @@ export function useLocationTracking() {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
       lastLocationRef.current = null;
+      lastUpdateTimeRef.current = 0;
       setDistanceTravelled(0);
       setIsTracking(false);
     }
