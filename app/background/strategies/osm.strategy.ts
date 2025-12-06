@@ -323,11 +323,11 @@ export class OSMStrategy implements PointGenerationStrategy {
       sequence_number: 0,
       hint: "Starting point",
       type: "start",
-      created_at: null,
       game_id: null,
       id: crypto.randomUUID(),
       status: "unvisited",
-      updated_at: null,
+      updated_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
     });
 
     // Generate ending point within max_radius of the center
@@ -369,11 +369,11 @@ export class OSMStrategy implements PointGenerationStrategy {
         sequence_number: i + 1,
         hint: await this.generateHint(point, endPoint, osmData),
         type: "clue",
-        created_at: null,
         game_id: null,
         id: crypto.randomUUID(),
         status: "unvisited",
-        updated_at: null,
+        updated_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
       });
     }
 
@@ -384,11 +384,11 @@ export class OSMStrategy implements PointGenerationStrategy {
       sequence_number: numPoints + 1,
       hint: "Ending point",
       type: "end",
-      created_at: null,
       game_id: null,
       id: crypto.randomUUID(),
       status: "unvisited",
-      updated_at: null,
+      updated_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
     });
 
     return points;

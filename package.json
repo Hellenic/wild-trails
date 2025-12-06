@@ -1,7 +1,7 @@
 {
   "name": "wild-trails",
   "description": "Wild Trails is a real-world adventure game that combines orienteering, puzzle-solving, and geocaching, where players navigate through wilderness using clues to find their final destination within a time limit.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -12,9 +12,9 @@
     "deploy": "vercel deploy",
     "supabase": "supabase",
     "db:login": "supabase login",
-    "db:setup": "supabase link --project-ref fmsikdisssecupfcvcqv",
+    "db:setup": "supabase link --project-ref ntksyfdomphadaqzciwd",
     "db:create-migration": "supabase migration new",
-    "db:generate-types": "supabase gen types typescript --project-id \"fmsikdisssecupfcvcqv\" --schema public > types/database.types.ts",
+    "db:generate-types": "supabase gen types typescript --project-id \"ntksyfdomphadaqzciwd\" --schema public > types/database.types.ts",
     "db:apply-migrations": "supabase db push",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -22,15 +22,15 @@
     "test:e2e": "playwright test -- e2e/"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.5.2",
-    "@supabase/supabase-js": "^2.47.10",
-    "@turf/turf": "^7.2.0",
-    "leaflet": "^1.9.4",
-    "next": "15.1.3",
-    "osmtogeojson": "^3.0.0-beta.5",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-leaflet": "^5.0.0"
+    "@supabase/ssr": "0.5.2",
+    "@supabase/supabase-js": "2.47.10",
+    "@turf/turf": "7.3.1",
+    "leaflet": "1.9.4",
+    "next": "15.4.8",
+    "osmtogeojson": "3.0.0-beta.5",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "react-leaflet": "5.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -38,16 +38,20 @@
     "@types/geojson": "^7946.0.15",
     "@types/jest": "^29.5.5",
     "@types/leaflet": "^1.9.15",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/node": "^24",
+    "@types/react": "19.2.1",
+    "@types/react-dom": "19.2.1",
     "eslint": "^9",
-    "eslint-config-next": "15.1.3",
+    "eslint-config-next": "15.4.8",
     "jest": "^29.7.0",
     "postcss": "^8",
     "prettier": "^3.4.2",
     "supabase": "^2.1.1",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vercel": "49.1.1"
+  },
+  "overrides": {
+    "@xmldom/xmldom": "0.8.4"
   }
 }

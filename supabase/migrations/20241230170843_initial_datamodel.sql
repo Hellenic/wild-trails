@@ -82,7 +82,7 @@ create type point_type as enum ('start', 'end', 'clue');
 create type point_status_type as enum ('unvisited', 'visited');
 
 create table game_points (
-  id uuid default uuid_generate_v4() primary key,
+  id uuid default gen_random_uuid() primary key,
   game_id uuid references games(id) on delete cascade,
   latitude double precision not null,
   longitude double precision not null,
@@ -91,7 +91,7 @@ create table game_points (
   type point_type not null,
   status point_status_type not null default 'unvisited',
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
 -- Create index for faster queries
