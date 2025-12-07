@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { GameBasicInfo } from "./components/GameBasicInfo";
 import { GameMapSelection } from "./components/GameMapSelection";
 import { GameSettings } from "./components/GameSettings";
+import { ChatGameCreation } from "@/app/components/ChatGameCreation";
 import { LatLng } from "@/utils/map";
 import { gameAPI } from "@/lib/api/client";
 import type { GameDetails, GameMaster, GameRole } from "@/types/game";
@@ -26,6 +27,7 @@ export default function CreateGame() {
   const [isPending, startTransition] = useTransition();
   const [currentStep, setCurrentStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"chat" | "form">("chat");
   const [formData, setFormData] = useState<FormData>({
     name: "",
     password: "",
@@ -35,6 +37,21 @@ export default function CreateGame() {
     playerRole: "player_a",
     maxDistance: 3,
   });
+
+  // Load user's preferred mode from localStorage
+  useEffect(() => {
+    const savedMode = localStorage.getItem("gameCreationMode") as "chat" | "form" | null;
+    if (savedMode) {
+      // eslint-disable-next-line
+      setMode(savedMode);
+    }
+  }, []);
+
+  // Save mode preference
+  const handleModeChange = (newMode: "chat" | "form") => {
+    setMode(newMode);
+    localStorage.setItem("gameCreationMode", newMode);
+  };
 
   const steps = [
     { number: 1, title: "Basic Info" },
@@ -98,8 +115,44 @@ export default function CreateGame() {
           Create Game
         </h1>
 
-        {/* Stepper */}
-        <div className="flex justify-between mb-8">
+        {/* Mode Toggle */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex rounded-lg border border-forest-moss/30 bg-white p-1">
+            <button
+              onClick={() => handleModeChange("chat")}
+              className={`px-6 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                mode === "chat"
+                  ? "bg-forest-pine text-forest-mist"
+                  : "text-forest-deep hover:text-forest-pine"
+              }`}
+            >
+              💬 Chat Mode
+            </button>
+            <button
+              onClick={() => handleModeChange("form")}
+              className={`px-6 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                mode === "form"
+                  ? "bg-forest-pine text-forest-mist"
+                  : "text-forest-deep hover:text-forest-pine"
+              }`}
+            >
+              📋 Form Mode
+            </button>
+          </div>
+        </div>
+
+        {/* Chat Mode */}
+        {mode === "chat" && (
+          <div className="mb-4">
+            <ChatGameCreation />
+          </div>
+        )}
+
+        {/* Form Mode */}
+        {mode === "form" && (
+          <>
+            {/* Stepper */}
+            <div className="flex justify-between mb-8">
           {steps.map((step) => (
             <div key={step.number} className="flex items-center">
               <div
@@ -122,55 +175,57 @@ export default function CreateGame() {
           ))}
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                {error}
+              </div>
+            )}
 
-        {/* Form Steps */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          {currentStep === 1 && (
-            <GameBasicInfo
-              formData={formData}
-              setFormData={(data) =>
-                setFormData({
-                  ...formData,
-                  ...data,
-                })
-              }
-              onNext={handleNext}
-            />
-          )}
-          {currentStep === 2 && (
-            <GameMapSelection
-              formData={formData}
-              setFormData={(data) =>
-                setFormData({
-                  ...formData,
-                  ...data,
-                })
-              }
-              onNext={handleNext}
-              onBack={handleBack}
-            />
-          )}
-          {currentStep === 3 && (
-            <GameSettings
-              pending={isPending}
-              formData={formData}
-              setFormData={(data) =>
-                setFormData({
-                  ...formData,
-                  ...data,
-                })
-              }
-              onBack={handleBack}
-              onSubmit={handleSubmit}
-            />
-          )}
-        </div>
+            {/* Form Steps */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              {currentStep === 1 && (
+                <GameBasicInfo
+                  formData={formData}
+                  setFormData={(data) =>
+                    setFormData({
+                      ...formData,
+                      ...data,
+                    })
+                  }
+                  onNext={handleNext}
+                />
+              )}
+              {currentStep === 2 && (
+                <GameMapSelection
+                  formData={formData}
+                  setFormData={(data) =>
+                    setFormData({
+                      ...formData,
+                      ...data,
+                    })
+                  }
+                  onNext={handleNext}
+                  onBack={handleBack}
+                />
+              )}
+              {currentStep === 3 && (
+                <GameSettings
+                  pending={isPending}
+                  formData={formData}
+                  setFormData={(data) =>
+                    setFormData({
+                      ...formData,
+                      ...data,
+                    })
+                  }
+                  onBack={handleBack}
+                  onSubmit={handleSubmit}
+                />
+              )}
+            </div>
+          </>
+        )}
       </div>
     </main>
   );
