@@ -22,8 +22,15 @@ export function TimeDisplay({ startedAt, durationMinutes }: TimeDisplayProps) {
 
   useEffect(() => {
     const updateTime = () => {
-      const now = new Date();
       const gameStart = new Date(startedAt);
+      
+      // Handle invalid date
+      if (isNaN(gameStart.getTime())) {
+        setTimeRemaining("--:--:--");
+        return;
+      }
+
+      const now = new Date();
       const totalSeconds = durationMinutes * 60;
       const elapsedSeconds = Math.floor(
         (now.getTime() - gameStart.getTime()) / 1000

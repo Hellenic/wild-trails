@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { GameDetails } from "@/types/game";
 
@@ -16,7 +16,7 @@ export const useGameDetails = (gameId: string) => {
   const [gameDetails, setGameDetails] = useState<GameDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function fetchGameDetails() {
+  const fetchGameDetails = useCallback(async () => {
     const supabase = createClient();
 
     const { data, error } = await supabase
@@ -37,16 +37,11 @@ export const useGameDetails = (gameId: string) => {
 
     setGameDetails(data as GameDetails);
     setLoading(false);
-  }
+  }, [gameId]);
 
   useEffect(() => {
-    // eslint-disable-next-line
     fetchGameDetails();
-  }, [gameId, fetchGameDetails]);
+  }, [fetchGameDetails]);
 
-  const refetch = () => {
-    fetchGameDetails();
-  };
-
-  return { gameDetails, loading, refetch };
+  return { gameDetails, loading, refetch: fetchGameDetails };
 };

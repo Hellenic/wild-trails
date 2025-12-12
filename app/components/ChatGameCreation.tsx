@@ -88,17 +88,11 @@ export function ChatGameCreation() {
             
             if (output.success && output.game_id) {
               const gameId = output.game_id;
-              const role = output.selected_role;
               
-              // Navigate based on role after a brief delay
+              // Always navigate to setup page first
+              // User can start the game from there once waypoints are generated
               const timer = setTimeout(() => {
-                if (role === "player_a" || role === "player_b") {
-                  // Player wants to play - go to play page
-                  router.push(`/game/${gameId}/play`);
-                } else {
-                  // Game master or no role - go to setup page
-                  router.push(`/game/${gameId}/setup`);
-                }
+                router.push(`/game/${gameId}/setup`);
               }, 2000);
               return () => clearTimeout(timer);
             }

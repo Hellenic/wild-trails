@@ -9,10 +9,11 @@ type PlayerLocationsMap = Record<string, PlayerLocation>;
 
 export function usePlayerLocation(gameId: string) {
   const [locations, setLocations] = useState<PlayerLocationsMap>({});
-  const supabase = createClient();
 
   useEffect(() => {
     if (!gameId) return;
+
+    const supabase = createClient();
 
     const channel = supabase
       .channel("player_locations")
@@ -62,7 +63,7 @@ export function usePlayerLocation(gameId: string) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [gameId, supabase]);
+  }, [gameId]);
 
   return { locations, loading: false };
 }

@@ -28,7 +28,7 @@ export default function GameScreen() {
   const [goalFound, setGoalFound] = useState<GamePoint | null>(null);
   const [visitedPoints, setVisitedPoints] = useState<string[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { playerLocation, distanceTravelled, sendLocalNotification } =
+  const { playerLocation, distanceTravelled, locationError, sendLocalNotification } =
     useGameContext(true, id, player?.id);
 
   const distanceInKm = (distanceTravelled / 1000).toFixed(2);
@@ -93,6 +93,30 @@ export default function GameScreen() {
     );
   }
 
+  // Redirect to setup if game hasn't started yet
+  if (gameDetails.status !== "active" || !gameDetails.started_at) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="text-forest-deep mb-4">
+            <h2 className="text-2xl font-bold mb-2">Game Not Started</h2>
+            <p className="text-forest-deep/70">
+              {gameDetails.status === "setup" && gameDetails.game_master === "ai"
+                ? "The AI is currently generating waypoints for your adventure. This usually takes a few moments."
+                : "This game hasn't been started yet. Please wait for the game master to start the game."}
+            </p>
+          </div>
+          <button
+            onClick={() => router.push(`/game/${id}/setup`)}
+            className="mt-4 px-6 py-2 bg-forest-pine text-forest-mist rounded-lg hover:bg-forest-deep transition-colors"
+          >
+            Go to Setup
+          </button>
+        </div>
+      </main>
+    );
+  }
+
   // TODO We should implement the other role screen here
   if (player.role !== "player_a") {
     console.warn("Only Player A screen has been implemented yet");
@@ -121,6 +145,19 @@ export default function GameScreen() {
           ☰
         </button>
       </div>
+
+      {/* Location Error Banner */}
+      {locationError && (
+        <div className="absolute top-[5vh] left-0 right-0 z-30 px-4 py-2">
+          <div className="bg-amber-100 border border-amber-400 text-amber-800 px-4 py-3 rounded-lg shadow-lg flex items-start space-x-2">
+            <span className="text-lg">⚠️</span>
+            <div className="flex-1">
+              <p className="text-sm font-medium">GPS Issue</p>
+              <p className="text-xs mt-1">{locationError}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex-grow h-[95vh]">
         <GameMap

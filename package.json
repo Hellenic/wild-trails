@@ -1,7 +1,7 @@
 {
   "name": "wild-trails",
   "description": "Wild Trails is a real-world adventure game that combines orienteering, puzzle-solving, and geocaching, where players navigate through wilderness using clues to find their final destination within a time limit.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -28,7 +28,7 @@
     "@turf/turf": "7.3.1",
     "ai": "5.0.108",
     "leaflet": "1.9.4",
-    "next": "16.0.7",
+    "next": "16.0.10",
     "osmtogeojson": "3.0.0-beta.5",
     "react": "19.2.1",
     "react-dom": "19.2.1",
@@ -44,7 +44,7 @@
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "eslint": "^9",
-    "eslint-config-next": "16.0.7",
+    "eslint-config-next": "16.0.10",
     "jest": "29.7.0",
     "postcss": "^8",
     "prettier": "^3.4.2",
