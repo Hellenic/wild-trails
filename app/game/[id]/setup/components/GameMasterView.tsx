@@ -29,6 +29,7 @@ export function GameMasterView({
     "start" | "end" | "clue"
   >("start");
   const [saving, setSaving] = useState(false);
+  
   const desiredStartingPoint = gameDetails.starting_point
     ? ([gameDetails.starting_point.lat, gameDetails.starting_point.lng] as [
         number,
@@ -102,7 +103,7 @@ export function GameMasterView({
         </h1>
         <div className="flex justify-between items-center mb-6">
           <div>
-            <p className="text-gray-600">Game Master: You</p>
+            <p className="text-gray-600">Game Master: {gameDetails.game_master === 'ai' ? 'AI' : 'You'}</p>
             <p className="text-gray-600">Players: {gameDetails.player_count}</p>
           </div>
           <button

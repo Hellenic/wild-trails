@@ -1,7 +1,17 @@
 {
+  "crons": [{
+    "path": "/api/cron/process-games",
+    "schedule": "0 2 * * *"
+  }],
   "functions": {
     "app/actions/**/*": {
       "maxDuration": 30
+    },
+    "app/api/chat/route": {
+      "maxDuration": 60
+    },
+    "app/api/cron/process-games/route": {
+      "maxDuration": 60
     }
   }
 }

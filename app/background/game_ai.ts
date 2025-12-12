@@ -13,7 +13,15 @@ export class GameAI {
     game: Game,
     strategy: keyof typeof this.strategies = "osm"
   ): Promise<GamePoint[]> {
-    return this.strategies[strategy].generatePoints(game);
+    console.log(`[GameAI] Generating points using '${strategy}' strategy for game ${game.id}`);
+    try {
+      const points = await this.strategies[strategy].generatePoints(game);
+      console.log(`[GameAI] Successfully generated ${points.length} points using '${strategy}' strategy`);
+      return points;
+    } catch (error) {
+      console.error(`[GameAI] Error generating points with '${strategy}' strategy:`, error);
+      throw error;
+    }
   }
 
   // You could add methods to combine strategies

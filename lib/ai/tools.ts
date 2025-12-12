@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { processCreateGame } from "@/app/background/background_process";
 import type { CreateGameInput } from "@/lib/api/validation";
 import type { User } from "@supabase/supabase-js";
 
@@ -117,13 +116,8 @@ point generation will start automatically in the background.`,
           }
         }
 
-        // Generate points if AI is game master
-        if (params.game_master === "ai") {
-          // Trigger point generation in the background
-          processCreateGame(game.id).catch((error) => {
-            console.error("Error while processing the game:", error);
-          });
-        }
+        // Note: Point generation for AI games will be triggered by the setup page
+        // to avoid serverless function timeout issues
 
         return {
           success: true,

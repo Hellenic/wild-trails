@@ -4,8 +4,8 @@ import { wildTrailsTools } from "@/lib/ai/tools";
 import { GAME_CREATION_SYSTEM_PROMPT } from "@/lib/ai/prompts";
 import { requireAuth, handleApiError } from "@/lib/api/auth";
 
-// Configuration
-export const maxDuration = 30; // Allow up to 30 seconds for streaming responses
+// Configuration  
+export const maxDuration = 60; // Allow up to 60 seconds for chat + background processing
 const GEMINI_MODEL = "gemini-2.5-flash";
 
 export async function POST(req: Request) {

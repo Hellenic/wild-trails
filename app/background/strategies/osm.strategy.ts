@@ -33,6 +33,8 @@ export class OSMStrategy implements PointGenerationStrategy {
     boundingBox: BoundingBox
   ): Promise<FeatureCollection> {
     try {
+      console.log("[OSM] Fetching OSM data for bounding box:", boundingBox);
+      
       const query = `
         [out:json][timeout:25];
         (
@@ -56,23 +58,29 @@ export class OSMStrategy implements PointGenerationStrategy {
         out geom;
       `;
 
+      console.log("[OSM] Sending request to Overpass API...");
       const response = await fetch(
         `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`
       );
 
       if (!response.ok) {
+        console.error("[OSM] API error:", response.status, response.statusText);
         throw new Error(`OSM API error: ${response.statusText}`);
       }
 
       const contentType = response.headers.get("content-type");
       if (!contentType?.includes("json")) {
+        console.error("[OSM] Unexpected content type:", contentType);
         throw new Error("Expected JSON response from OSM API");
       }
 
       const osmData = await response.json();
-      return osmtogeojson(osmData) as FeatureCollection;
+      const geoJSON = osmtogeojson(osmData) as FeatureCollection;
+      console.log(`[OSM] Successfully fetched ${geoJSON.features.length} features`);
+      
+      return geoJSON;
     } catch (error) {
-      console.error("Error fetching OSM data:", error);
+      console.error("[OSM] Error fetching OSM data:", error);
       return {
         type: "FeatureCollection",
         features: [],
@@ -154,19 +162,26 @@ export class OSMStrategy implements PointGenerationStrategy {
     osmData: FeatureCollection,
     maxAttempts: number = DEFAULT_MAX_ATTEMPTS
   ): Promise<{ lat: number; lng: number }> {
+    console.log(`[OSM] Generating random point near [${center}] with radius ${radiusInKm}km`);
+    
     for (let i = 0; i < maxAttempts; i++) {
       const point = this.generateRandomPointBasic(center, radiusInKm);
       if (await this.isAccessiblePoint(point, osmData)) {
+        console.log(`[OSM] Found accessible point on attempt ${i + 1}: [${point.lat}, ${point.lng}]`);
         return point;
       }
     }
 
+    console.log(`[OSM] No accessible point found after ${maxAttempts} attempts, trying larger radius`);
+    
     // If we can't find a point after max attempts, try with a larger radius
     const point = this.generateRandomPointBasic(center, radiusInKm * 1.5);
     if (await this.isAccessiblePoint(point, osmData)) {
+      console.log(`[OSM] Found accessible point with larger radius: [${point.lat}, ${point.lng}]`);
       return point;
     }
 
+    console.error("[OSM] Could not find accessible point after maximum attempts");
     throw new Error("Could not find accessible point after maximum attempts");
   }
 
@@ -308,14 +323,26 @@ export class OSMStrategy implements PointGenerationStrategy {
   }
 
   async generatePoints(game: Game): Promise<GamePoint[]> {
+    console.log(`[OSM] Starting point generation for game ${game.id}`);
+    console.log(`[OSM] Game details:`, {
+      max_radius: game.max_radius,
+      bounding_box: game.bounding_box,
+      starting_point: game.starting_point
+    });
+    
     const boundingBox = convertToBoundingBox(game);
+    console.log(`[OSM] Converted bounding box:`, boundingBox);
+    
     const osmData = await this.getOSMData(boundingBox);
     const numPoints = Math.floor(Math.random() * 4) + 4; // 4-7 points
+    console.log(`[OSM] Will generate ${numPoints} intermediate points`);
+    
     const points: GamePoint[] = [];
 
     // Generate starting point if not defined
     const startingPoint =
       game.starting_point ?? this.generateRandomPointInBox(boundingBox);
+    console.log(`[OSM] Starting point:`, startingPoint);
 
     points.push({
       latitude: startingPoint.lat,
@@ -335,12 +362,15 @@ export class OSMStrategy implements PointGenerationStrategy {
       latitude: (boundingBox.min_lat + boundingBox.max_lat) / 2,
       longitude: (boundingBox.min_lng + boundingBox.max_lng) / 2,
     };
+    console.log(`[OSM] Center point:`, centerPoint);
 
+    console.log(`[OSM] Generating end point...`);
     const endPoint = await this.generateRandomPoint(
       [centerPoint.latitude, centerPoint.longitude],
       game.max_radius || DEFAULT_MAX_RADIUS,
       osmData
     );
+    console.log(`[OSM] End point generated:`, endPoint);
 
     // Calculate center point between start and end
     const centerLat = (startingPoint.lat + endPoint.lat) / 2;
@@ -352,9 +382,13 @@ export class OSMStrategy implements PointGenerationStrategy {
         Math.pow(startingPoint.lat - endPoint.lat, 2) +
           Math.pow(startingPoint.lng - endPoint.lng, 2)
       ) * 111; // Convert to kilometers
+    console.log(`[OSM] Distance between start and end: ${distance.toFixed(2)}km`);
 
     // Generate intermediate points
+    console.log(`[OSM] Generating ${numPoints} intermediate points...`);
     for (let i = 0; i < numPoints; i++) {
+      console.log(`[OSM] Generating intermediate point ${i + 1}/${numPoints}`);
+      
       // Generate points with increasing spread as we get further from start
       const spreadFactor = (i + 1) / numPoints; // 0.2 to 1.0
       const point = await this.generateRandomPoint(
@@ -363,11 +397,15 @@ export class OSMStrategy implements PointGenerationStrategy {
         osmData
       );
 
+      console.log(`[OSM] Generating hint for point ${i + 1}...`);
+      const hint = await this.generateHint(point, endPoint, osmData);
+      console.log(`[OSM] Hint generated: "${hint}"`);
+
       points.push({
         latitude: point.lat,
         longitude: point.lng,
         sequence_number: i + 1,
-        hint: await this.generateHint(point, endPoint, osmData),
+        hint,
         type: "clue",
         game_id: null,
         id: crypto.randomUUID(),
@@ -378,6 +416,7 @@ export class OSMStrategy implements PointGenerationStrategy {
     }
 
     // Add ending point
+    console.log(`[OSM] Adding ending point`);
     points.push({
       latitude: endPoint.lat,
       longitude: endPoint.lng,
@@ -391,6 +430,7 @@ export class OSMStrategy implements PointGenerationStrategy {
       created_at: new Date().toISOString(),
     });
 
+    console.log(`[OSM] Point generation complete! Generated ${points.length} points total`);
     return points;
   }
 }

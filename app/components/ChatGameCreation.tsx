@@ -232,7 +232,7 @@ export function ChatGameCreation() {
             Send
           </button>
         </div>
-        <p className="text-xs text-forest-deep/60 mt-2">
+        <p className="text-xs text-forest-deep/80 mt-2 font-medium">
           💡 Tip: Describe your ideal adventure, and I&apos;ll help you set it up!
         </p>
       </form>

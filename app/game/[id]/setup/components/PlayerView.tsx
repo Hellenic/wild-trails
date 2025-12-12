@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useInterval } from "@/hooks/useInterval";
 import { createClient } from "@/lib/supabase/client";
@@ -102,6 +102,11 @@ export function PlayerView({
               <b>Status:</b>{" "}
               {isGameReady ? (
                 "Ready to start ✔️"
+              ) : gameDetails.status === "setup" && gameDetails.game_master === "ai" ? (
+                <>
+                  Waiting for AI generation...
+                  <span className="inline-block w-4 h-4 border-2 border-forest-pine border-t-transparent rounded-full animate-spin" />
+                </>
               ) : (
                 <>
                   Game Master is preparing the game

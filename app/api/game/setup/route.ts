@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireAuth, handleApiError } from "@/lib/api/auth";
 import { createGameSchema } from "@/lib/api/validation";
-import { processCreateGame } from "@/app/background/background_process";
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,14 +56,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Generate points if AI is game master
-    if (validatedData.game_master === "ai") {
-      // Trigger point generation in the background
-      // Don't await to avoid blocking the response
-      processCreateGame(game.id).catch((error) => {
-        console.error("Error while processing the game:", error);
-      });
-    }
+    // Note: AI game point generation is handled by the cron job (/api/cron/process-games)
+    // The cron runs every minute and processes all games with status="setup" and game_master="ai"
 
     return NextResponse.json(game, { status: 201 });
   } catch (error: unknown) {
