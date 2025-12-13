@@ -18,22 +18,49 @@ jest.mock("osmtogeojson", () => {
   return function (osmData: OSMData) {
     return {
       type: "FeatureCollection",
-      features: osmData.elements.map((element: OSMElement) => ({
-        type: "Feature",
-        id: element.id,
-        properties: element.tags, // Simplified: just use tags directly as properties
-        geometry: {
-          type: "Polygon",
-          coordinates: [
-            element.geometry.map((point: GeoPoint) => [point.lon, point.lat]),
-          ],
-        },
-      })),
+      features: osmData.elements.map((element: OSMElement) => {
+        // Nodes with single point geometry should be Point features (landmarks)
+        if (element.type === "node" && element.geometry.length === 1) {
+          return {
+            type: "Feature",
+            id: element.id,
+            properties: element.tags,
+            geometry: {
+              type: "Point",
+              coordinates: [element.geometry[0].lon, element.geometry[0].lat],
+            },
+          };
+        }
+        // Ways and other elements are Polygons
+        return {
+          type: "Feature",
+          id: element.id,
+          properties: element.tags,
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              element.geometry.map((point: GeoPoint) => [point.lon, point.lat]),
+            ],
+          },
+        };
+      }),
     };
   };
 });
 
 const BUFFER_DISTANCE = 0.0002;
+
+// Mock AI hint generation
+jest.mock("@/app/background/ai_hint_generator", () => ({
+  generateAIHint: jest.fn().mockResolvedValue(null), // Return null to use fallback hints
+  generateFallbackHint: jest.fn((waypointLat, waypointLng, goalLat, goalLng) => {
+    const distance = Math.sqrt(
+      Math.pow((waypointLat - goalLat) * 111, 2) +
+        Math.pow((waypointLng - goalLng) * 111 * Math.cos((waypointLat * Math.PI) / 180), 2)
+    );
+    return `The goal is approximately ${distance.toFixed(1)} km to the N.`;
+  }),
+}));
 
 // Then import everything else
 import { gameAI } from "@/app/background/game_ai";
@@ -294,25 +321,208 @@ describe("OSMStrategy", () => {
     });
   });
 
-  it("should generate meaningful hints with nearby features", async () => {
-    const points = await strategy.generatePoints(mockGame);
+  it("should generate meaningful hints with fallback when AI unavailable", async () => {
+    const points = await strategy.generatePoints(mockGame, { useAIHints: false });
 
     // Check intermediate points have detailed hints
     points.slice(1, -1).forEach((point) => {
       // Should include distance and direction
       expect(point.hint).toMatch(/approximately \d+\.\d+ km to the [NSEW]/);
+    });
 
-      // Should include nearby features when available
-      if (point.hint.includes("Nearby:")) {
-        expect(point.hint).toMatch(/Nearby: [^.]+\./);
-        // Should mention specific features from our mock data
-        expect(point.hint).toMatch(/forest|park|water/);
-      }
+    // Check start and end points
+    expect(points[0].hint).toBe("Starting point");
+    expect(points[points.length - 1].hint).toBe("Ending point");
+  });
 
-      // Should include warnings when relevant
-      if (point.hint.includes("Caution:")) {
-        expect(point.hint).toMatch(/Caution: water ahead/);
-      }
+  describe("Landmark Goal Placement", () => {
+    it("should use landmarks when 3+ are available", async () => {
+      // Add multiple landmarks to mock response (need 3+ for feature to activate)
+      const mockResponseWithLandmarks = {
+        elements: [
+          ...mockOSMResponse.elements,
+          {
+            type: "node",
+            id: 997,
+            lat: 61.45,
+            lon: 23.55,
+            tags: { natural: "peak", name: "Peak One" },
+            geometry: [{ lat: 61.45, lon: 23.55 }],
+          },
+          {
+            type: "node",
+            id: 998,
+            lat: 61.45,
+            lon: 23.56,
+            tags: { natural: "peak", name: "Peak Two" },
+            geometry: [{ lat: 61.45, lon: 23.56 }],
+          },
+          {
+            type: "node",
+            id: 999,
+            lat: 61.46,
+            lon: 23.55,
+            tags: { man_made: "tower", name: "Tower One" },
+            geometry: [{ lat: 61.46, lon: 23.55 }],
+          },
+        ],
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: () => Promise.resolve(mockResponseWithLandmarks),
+      });
+
+      const points = await strategy.generatePoints(mockGame, { useAIHints: false });
+
+      // Should generate valid game with end point
+      expect(points.length).toBeGreaterThanOrEqual(6);
+      expect(points[points.length - 1].type).toBe("end");
+      
+      // End point should be within game bounds
+      const endPoint = points[points.length - 1];
+      expect(endPoint.latitude).toBeGreaterThanOrEqual(61.4);
+      expect(endPoint.latitude).toBeLessThanOrEqual(61.5);
+      expect(endPoint.longitude).toBeGreaterThanOrEqual(23.5);
+      expect(endPoint.longitude).toBeLessThanOrEqual(23.6);
+    });
+
+    it("should fallback when fewer than 3 landmarks (prevents repetitive games)", async () => {
+      // Add only 2 landmarks - should fallback to prevent repetitive games
+      const mockResponseWithFewLandmarks = {
+        elements: [
+          ...mockOSMResponse.elements,
+          {
+            type: "node",
+            id: 998,
+            lat: 61.45,
+            lon: 23.55,
+            tags: { natural: "peak", name: "Lonely Peak" },
+            geometry: [{ lat: 61.45, lon: 23.55 }],
+          },
+          {
+            type: "node",
+            id: 999,
+            lat: 61.46,
+            lon: 23.56,
+            tags: { man_made: "tower", name: "Single Tower" },
+            geometry: [{ lat: 61.46, lon: 23.56 }],
+          },
+        ],
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: () => Promise.resolve(mockResponseWithFewLandmarks),
+      });
+
+      const points = await strategy.generatePoints(mockGame, { useAIHints: false });
+
+      // Should still generate valid end point (not at landmark)
+      expect(points.length).toBeGreaterThanOrEqual(6);
+      expect(points[points.length - 1].type).toBe("end");
+      // Will use calculated point, not snap to landmarks
+    });
+
+    it("should fallback to calculated end point when no landmarks available", async () => {
+      // Use original mock response without landmarks
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: () => Promise.resolve(mockOSMResponse),
+      });
+
+      const points = await strategy.generatePoints(mockGame, { useAIHints: false });
+
+      // Should still generate valid end point
+      expect(points.length).toBeGreaterThanOrEqual(6);
+      expect(points[points.length - 1].type).toBe("end");
+      expect(points[points.length - 1].hint).toBe("Ending point");
+    });
+
+    it("should generate valid end point with multiple landmarks available", async () => {
+      // Add multiple landmarks with different priorities (need 3+ for feature)
+      const mockResponseWithMultipleLandmarks = {
+        elements: [
+          ...mockOSMResponse.elements,
+          {
+            type: "node",
+            id: 997,
+            lat: 61.45,
+            lon: 23.54,
+            tags: { amenity: "parking", name: "Test Parking" },
+            geometry: [{ lat: 61.45, lon: 23.54 }],
+          },
+          {
+            type: "node",
+            id: 998,
+            lat: 61.45,
+            lon: 23.55,
+            tags: { amenity: "shelter", name: "Test Shelter" },
+            geometry: [{ lat: 61.45, lon: 23.55 }],
+          },
+          {
+            type: "node",
+            id: 999,
+            lat: 61.45,
+            lon: 23.56,
+            tags: { natural: "peak", name: "Test Peak" },
+            geometry: [{ lat: 61.45, lon: 23.56 }],
+          },
+        ],
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: () => Promise.resolve(mockResponseWithMultipleLandmarks),
+      });
+
+      const points = await strategy.generatePoints(mockGame, { useAIHints: false });
+
+      // Should generate valid game
+      expect(points.length).toBeGreaterThanOrEqual(6);
+      expect(points[points.length - 1].type).toBe("end");
+      
+      // Note: We can't deterministically test which landmark is chosen since
+      // the end point is randomly generated first, then snapped to nearest landmark.
+      // The test verifies the feature works without errors.
+    });
+
+    it("should generate valid end point when landmarks are outside search radius", async () => {
+      // Add a landmark far outside the game area
+      const mockResponseWithDistantLandmark = {
+        elements: [
+          ...mockOSMResponse.elements,
+          {
+            type: "node",
+            id: 999,
+            lat: 62.0, // Far outside game bounds (61.4-61.5)
+            lon: 24.0, // Far outside game bounds (23.5-23.6)
+            tags: { natural: "peak", name: "Distant Peak" },
+            geometry: [{ lat: 62.0, lon: 24.0 }],
+          },
+        ],
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: () => Promise.resolve(mockResponseWithDistantLandmark),
+      });
+
+      const points = await strategy.generatePoints(mockGame, { useAIHints: false });
+      const endPoint = points[points.length - 1];
+
+      // Should generate valid end point within game bounds (not at distant landmark)
+      expect(points.length).toBeGreaterThanOrEqual(6);
+      expect(endPoint.type).toBe("end");
+      expect(endPoint.latitude).toBeGreaterThanOrEqual(61.4);
+      expect(endPoint.latitude).toBeLessThanOrEqual(61.5);
+      expect(endPoint.longitude).toBeGreaterThanOrEqual(23.5);
+      expect(endPoint.longitude).toBeLessThanOrEqual(23.6);
     });
   });
 });

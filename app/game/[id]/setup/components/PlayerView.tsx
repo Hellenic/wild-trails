@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { useInterval } from "@/hooks/useInterval";
 import { createClient } from "@/lib/supabase/client";

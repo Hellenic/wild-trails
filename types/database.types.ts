@@ -70,6 +70,7 @@ export type Database = {
           ended_at: string | null
           game_master: Database["public"]["Enums"]["game_master_type"]
           game_mode: Database["public"]["Enums"]["game_mode_type"]
+          gave_up: boolean | null
           id: string
           last_processing_error: string | null
           max_radius: number
@@ -91,6 +92,7 @@ export type Database = {
           ended_at?: string | null
           game_master: Database["public"]["Enums"]["game_master_type"]
           game_mode: Database["public"]["Enums"]["game_mode_type"]
+          gave_up?: boolean | null
           id?: string
           last_processing_error?: string | null
           max_radius: number
@@ -112,6 +114,7 @@ export type Database = {
           ended_at?: string | null
           game_master?: Database["public"]["Enums"]["game_master_type"]
           game_mode?: Database["public"]["Enums"]["game_mode_type"]
+          gave_up?: boolean | null
           id?: string
           last_processing_error?: string | null
           max_radius?: number

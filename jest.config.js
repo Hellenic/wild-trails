@@ -7,6 +7,7 @@ const createJestConfig = nextJest({
 
 const customJestConfig = {
   testEnvironment: "node",
+  silent: true, // Suppress console output during tests
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/$1",
   },
@@ -15,6 +16,7 @@ const customJestConfig = {
   collectCoverageFrom: [
     "lib/api/**/*.ts",
     "lib/game/**/*.ts",
+    "app/background/**/*.ts",
     "!**/*.d.ts",
     "!**/node_modules/**",
   ],

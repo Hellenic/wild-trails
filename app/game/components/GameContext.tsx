@@ -8,6 +8,7 @@ interface GameContextType {
   playerLocation: LatLng | null;
   distanceTravelled: number;
   locationError: string | null;
+  locationAccuracy: number | null;
   startLocationTracking: (gameId?: string, playerId?: string) => Promise<void>;
   stopLocationTracking: () => void;
   isTracking: boolean;
@@ -44,6 +45,7 @@ export const GameContextProvider: React.FC<{
     location: playerLocation,
     distanceTravelled,
     locationError,
+    accuracy: locationAccuracy,
     startTracking,
     stopTracking,
     isTracking,
@@ -125,6 +127,7 @@ export const GameContextProvider: React.FC<{
     playerLocation,
     distanceTravelled,
     locationError,
+    locationAccuracy,
     startLocationTracking: startTracking,
     stopLocationTracking: stopTracking,
     isTracking,

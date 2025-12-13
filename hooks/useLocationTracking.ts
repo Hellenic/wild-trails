@@ -21,6 +21,7 @@ export function useLocationTracking() {
   const [distanceTravelled, setDistanceTravelled] = useState(0);
   const [isTracking, setIsTracking] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [accuracy, setAccuracy] = useState<number | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const lastLocationRef = useRef<GeolocationCoordinates | null>(null);
   const lastUpdateTimeRef = useRef<number>(0);
@@ -73,6 +74,7 @@ export function useLocationTracking() {
           } = position.coords;
           const newLocation = new LatLng(latitude, longitude);
           setLocation(newLocation);
+          setAccuracy(accuracy);
 
           // Calculate distance if we have a previous location
           if (lastLocationRef.current) {
@@ -231,6 +233,7 @@ export function useLocationTracking() {
       setDistanceTravelled(0);
       setIsTracking(false);
       setLocationError(null);
+      setAccuracy(null);
     }
 
     // Clear any pending retry timeout
@@ -251,6 +254,7 @@ export function useLocationTracking() {
     isTracking,
     distanceTravelled, // Return the distance in meters
     locationError, // Return any location errors
+    accuracy, // Return GPS accuracy in meters
     startTracking,
     stopTracking,
   };

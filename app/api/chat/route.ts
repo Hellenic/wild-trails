@@ -49,7 +49,7 @@ export async function POST(req: Request) {
       messages: modelMessages,
       tools: wildTrailsTools(user), // Pass user to tool factory
       temperature: 0.7, // Balanced creativity and consistency
-      onFinish: async ({ text, toolCalls, toolResults, finishReason }) => {
+      onFinish: async ({ text, toolCalls, finishReason }) => {
         // Log completion for debugging
         console.log("=== Chat completion ===");
         console.log("Text length:", text.length);

@@ -1,104 +1,203 @@
 # Wild Trails Test Suite
 
-This directory contains the test suite for the Wild Trails API-first architecture.
+## Overview
+
+This directory contains unit tests for the Wild Trails application.
 
 ## Test Structure
 
 ```
 __tests__/
-├── api/                   # API testing documentation
-│   └── README.md         # Why API tests aren't included
-├── lib/                  # Library/utility tests (✅ ACTIVE)
-│   ├── api/             # API utilities
-│   │   ├── validation.test.ts
-│   │   └── auth.test.ts
-│   └── game/            # Game logic
+├── api/                    # API endpoint tests
+├── background/             # Background processing tests
+│   ├── game_ai.test.ts
+│   └── geo-utils.test.ts
+├── lib/                    # Library/utility tests
+│   ├── api/
+│   │   ├── auth.test.ts
+│   │   └── validation.test.ts
+│   ├── audio/              # Sound system tests (NEW in Phase 1A)
+│   │   └── sounds.test.ts
+│   └── game/
 │       └── proximity.test.ts
-└── background/          # Background job tests (✅ ACTIVE)
-    └── game_ai.test.ts  # AI point generation tests
+└── utils/                  # Utility function tests (NEW in Phase 1A)
+    └── distance-estimation.test.ts
 ```
 
 ## Running Tests
 
+### All Tests
 ```bash
-# Run all tests
 npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm test -- --coverage
-
-# Run specific test file
-npm test -- __tests__/lib/api/validation.test.ts
-
-# Run tests matching a pattern
-npm test -- --testNamePattern="proximity"
+# or
+bun test
 ```
 
-## Test Categories
+### Watch Mode
+```bash
+npm test -- --watch
+# or
+bun test --watch
+```
 
-### Unit Tests (✅ Active)
-- **Validation Tests** (`lib/api/validation.test.ts`): Test Zod schemas for API request/response validation
-- **Auth Tests** (`lib/api/auth.test.ts`): Test authentication and authorization utilities  
-- **Proximity Tests** (`lib/game/proximity.test.ts`): Test distance calculations using LatLng utility
-- **AI Tests** (`background/game_ai.test.ts`): Test AI point generation strategies
+### Coverage
+```bash
+npm test -- --coverage
+# or
+bun test --coverage
+```
 
-### API Integration Tests (Not Implemented)
-- See `__tests__/api/README.md` for why these aren't included and recommended alternatives
+### Specific Test File
+```bash
+npm test geo-utils.test.ts
+# or
+bun test geo-utils.test.ts
+```
+
+## Phase 1A Test Coverage
+
+### New Tests Added
+1. **Sound System** (`lib/audio/sounds.test.ts`)
+   - User preference management (localStorage)
+   - Enable/disable functionality
+   - Haptic feedback triggering (navigator.vibrate)
+   - Graceful handling of missing APIs
+
+2. **Distance Estimation** (`utils/distance-estimation.test.ts`)
+   - Distance calculation accuracy
+   - Error margin logic (20% with 500m minimum)
+   - Edge cases (same point, negative coordinates)
+
+### Existing Tests Enhanced
+The existing geo-utils tests already cover:
+- `calculateBearing()` - Used by compass
+- `getCardinalDirection()` - Used by compass
+- `calculateDistance()` - Used by distance estimates
+
+## Test Configuration
+
+- **Test Runner**: Jest with Next.js preset
+- **Environment**: Node (default) or jsdom (per-test override)
+- **Coverage**: Collected from `lib/`, `app/background/`
+- **Mock Setup**: Browser APIs (localStorage, navigator.vibrate) are mocked
+
+### Test Environments
+
+Most tests use Node environment (faster, no DOM overhead):
+- API tests
+- Utility function tests
+- Algorithm tests
+
+Some tests require jsdom (browser APIs):
+- Sound system tests (uses `navigator.vibrate`)
+- Tests using `window`, `document`, `localStorage`
+
+Use the `@jest-environment jsdom` docblock comment to override on a per-file basis:
+```typescript
+/**
+ * @jest-environment jsdom
+ */
+```
+
+## Testing Philosophy
+
+We focus on **unit testing business logic** rather than component testing:
+- ✅ Core algorithms and calculations
+- ✅ Utility functions and helpers
+- ✅ Data transformations
+- ❌ Component rendering (covered by E2E tests)
+- ❌ UI interactions (covered by field testing)
 
 ## Mocking Strategy
 
-### External API Mocking
-Tests that would call external APIs (OSM, AI services) should:
-1. Mock the service at the module level
-2. Return predictable test data
-3. Verify the service was called with correct parameters
+### Browser APIs
+- **localStorage**: Mocked in sound tests
+- **navigator.vibrate**: Mocked for haptic feedback
+- **navigator.geolocation**: Mocked in location tracking tests
 
-Example:
-```typescript
-jest.mock("@/app/background/background_process", () => ({
-  triggerAiGeneration: jest.fn(),
-}));
+### External Dependencies
+- Geo-utils functions mocked in compass tests
+- Supabase client mocked where needed
+- Next.js router mocked in navigation tests
+
+## Coverage Goals
+
+Current coverage targets:
+- **lib/**: 80%+ line coverage
+- **app/background/**: 70%+ line coverage
+- **components/**: 60%+ line coverage (new components)
+
+## What's NOT Tested (Yet)
+
+### E2E/Integration Tests
+- Full game flows (create → play → complete)
+- Real GPS tracking
+- Supabase Realtime events
+- Map rendering and interactions
+
+These will be covered by:
+1. Playwright E2E tests (in `e2e/` directory)
+2. Field testing in Phase 1B
+
+### Not Unit Tested (Covered by E2E/Field Testing)
+- **React Components**: Better tested through E2E with Playwright
+- **Page flows**: Game list, results, onboarding, profile
+- **Supabase integration**: Real database interactions
+- **UI interactions**: Click handlers, form submissions
+
+**Rationale**: Unit tests focus on pure logic; integration/E2E tests handle the rest.
+
+## Running Specific Test Suites
+
+### Core Functionality
+```bash
+npm test geo-utils
+npm test proximity
 ```
 
-## Test Coverage Goals
+### Phase 1A Features
+```bash
+npm test sounds
+npm test distance-estimation
+```
 
-We aim for:
-- **API Routes**: 80%+ coverage
-- **Business Logic** (`lib/game/`, `lib/api/`): 90%+ coverage
-- **Validation Schemas**: 100% coverage (all branches)
+### All New Tests
+```bash
+npm test -- lib/audio/ utils/
+```
 
-## Writing New Tests
+## Adding New Tests
 
-### For New Utilities
+When adding new features, create tests following this pattern:
 
-1. Create test file in `__tests__/lib/[category]/[utility].test.ts`
-2. Import the utility functions
-3. Test edge cases, error handling, and expected behavior
+```typescript
+import { render, screen } from "@testing-library/react";
+import { YourComponent } from "@/path/to/component";
 
-## CI/CD Integration
+describe("YourComponent", () => {
+  it("should do something", () => {
+    render(<YourComponent />);
+    expect(screen.getByText("Expected")).toBeInTheDocument();
+  });
+});
+```
 
-Tests run automatically:
-- On every commit (pre-commit hook via `npm run predeploy`)
-- On pull requests
-- Before deployment
+## Continuous Integration
 
-## Best Practices
+Tests run automatically on:
+- Pre-commit hooks (if configured)
+- Pull request creation
+- Main branch pushes
 
-1. **Isolate tests**: Each test should be independent and not rely on others
-2. **Mock external dependencies**: Never make real API calls in unit tests
-3. **Test error cases**: Test both success and failure paths
-4. **Use descriptive names**: Test names should clearly describe what's being tested
-5. **Keep tests fast**: Unit tests should run in milliseconds
-6. **Follow AAA pattern**: Arrange, Act, Assert
+---
 
-## Future Improvements
+## Phase 1B Testing
 
-- [ ] Add E2E tests with Playwright for critical user flows
-- [ ] Add performance benchmarks for proximity calculations
-- [ ] Add integration tests with test database
-- [ ] Add contract tests for API endpoints
-- [ ] Set up test coverage reporting in CI
+Field testing (Phase 1B) will focus on:
+- Real-world GPS accuracy
+- Battery consumption
+- User experience in various terrains
+- Duration estimate accuracy
+- Bug discovery and fixes
 
+Unit tests help ensure code correctness, but field testing validates real-world usability.

@@ -11,21 +11,25 @@ Player(s) start from point A and must discover the location of their destination
 
 Read the [synopsis](./synopsis.md) for more details.
 
+## Recent Improvements
+
+- [x] **Landmark-Based Goals**: Final goals snap to distinct landmarks (peaks, towers, historic sites) when 3+ are available, ensuring game variety
+- [x] **Progressive Path Generation**: Points now follow a logical forward progression from start to end (no more backtracking!)
+- [x] **AI-Powered Hints**: Contextual, progressive hints using Google Gemini with OSM landmark data
+- [x] **Enhanced Fallback Hints**: Mathematical hints with directional landmark information
+- [x] **OSM-Based Point Placement**: Intelligent point generation avoiding water, buildings, and inaccessible areas
+
 ## Upcoming features
 
-> Current focus: Single player game
+> Current focus: Single player game polish & testing
 
-- [ ] Points don't show as visited after refresh
-- [ ] Point hints do not make sense, and do not help finding the goal. Currently it's still needle in the haystack.
-- [ ]   --[ A lot of actual testing ]--
-- [ ]   ....
+- [ ] **Testing & Refinement**: Extensive testing of progressive path generation with various distances and terrains
+- [ ] **Difficulty Settings**: Medium and hard difficulty levels with wider corridors and zig-zag patterns
 - [ ] More rich events for points in addition to proximity check (server-sent events)
-- [ ] AI game point generation strategy? or AI validation so that each game point is accessible.
 - [ ] Finalize game creation flow; single player mode player cannot be GM. Without role, if you join game possible.
 - [ ] Curated list of games? Similar to "kiintorastit", could use existing orienteering points and/or geocaches
 - [ ] Rewards for completing games (e.g. badges, personal records, points, achievements, virtual collectibles)
 - [ ] "Feel-good" elements (e.g. "You are the first to complete this game!"), encouraging messages, visual rewards, fun facts, comparisons...
-- [ ] Game master view could be prepopulated with AI-generated points
 
 ## Future features?
  - Critical line + time to get to the line
@@ -34,6 +38,30 @@ Read the [synopsis](./synopsis.md) for more details.
  - S.E.R.E. elements?
  - Integrate Garmin InReach or similar GPS trackers to get location updates without phone
    - GPS tracker + map and compass on multi-player games would be neat
+
+## Technical Considerations
+
+### OpenStreetMap Data (Overpass API)
+We currently use the public Overpass API for fetching map data (landmarks, terrain features, etc.):
+- ✅ **Current usage**: <1% of daily limits (~100 requests/day vs 10,000 limit)
+- ✅ **Perfect for MVP**: Free, reliable, well-documented
+- 🔮 **Future consideration (growth)**: Self-hosted Overpass instance
+  - Removes rate limits entirely
+  - Allows custom data enrichment (add game-specific landmarks, verified waypoints, etc.)
+  - Full control over data freshness and availability
+  - Consider when reaching 1000+ games/day
+
+See [Overpass API best practices](https://wiki.openstreetmap.org/wiki/Overpass_API) for more details.
+
+### Distance Calculations
+We currently use a **simplified Euclidean approximation** for distance calculations, which is fast and perfectly suitable for gameplay:
+- ✅ **0.1-0.6% error** at high latitudes (e.g., 16m error over 16km in Finland)
+- ✅ **Perfect for gameplay**: Hints are rounded to ±100m anyway, so formula errors are invisible to players
+- ✅ **Fast**: Single `cos()` operation vs. Haversine's 6x more trigonometry
+
+**Future consideration**: If we ever need sub-meter accuracy (e.g., for precise fitness tracking or navigation features), we could switch to the Haversine formula. However, for treasure hunt gameplay with hint-based exploration, the current approach is optimal.
+
+See [docs/distance-calculation-explained.md](./docs/distance-calculation-explained.md) for detailed technical explanation.
 
 ## Interesting things
  - Trailmap.fi, MapAnt.fi

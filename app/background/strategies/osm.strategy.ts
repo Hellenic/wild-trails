@@ -11,20 +11,67 @@ import { booleanPointInPolygon, buffer } from "@turf/turf";
 import osmtogeojson from "osmtogeojson";
 import {
   PointGenerationStrategy,
+  PointGenerationOptions,
   BoundingBox,
   convertToBoundingBox,
 } from "./base.strategy";
+import { generateAIHint, generateFallbackHint } from "../ai_hint_generator";
+import { calculateDistance, calculatePerpendicularPoint } from "../geo-utils";
 
 const DEFAULT_MAX_RADIUS = 5;
 const DEFAULT_MAX_ATTEMPTS = 20;
 const BUFFER_DISTANCE = 0.0002;
 
-interface NearbyFeature {
-  type: string;
-  name?: string;
-  distance: number;
-  direction: string;
+// Path generation constants for corridor-based progressive paths
+const CORRIDOR_WIDTH_EASY = 0.10; // ±10% of total distance
+const CORRIDOR_WIDTH_MEDIUM = 0.25; // ±25% (future)
+const CORRIDOR_WIDTH_HARD = 0.50; // ±50% (future)
+const MIN_PROGRESS = 0.1; // Don't place points too close to start (10%)
+const MAX_PROGRESS = 0.9; // Don't place points too close to end (90%)
+
+// Landmark goal placement configuration
+const MIN_LANDMARKS_FOR_GOAL = 3; // Require at least 3 landmarks to avoid repetitive games
+const LANDMARK_SEARCH_RADIUS = 0.5; // 500m search radius for landmarks
+
+// Landmark interface for goal placement
+interface Landmark {
+  type: string;        // 'peak', 'tower', 'historic', etc.
+  name?: string;       // Name if available
+  position: {
+    lat: number;
+    lng: number;
+  };
+  priority: number;    // 1 (best) - 3 (acceptable)
+  distance: number;    // Distance from target point in km
 }
+
+// Landmark type priority tiers for goal placement
+const LANDMARK_PRIORITIES: Record<string, number> = {
+  // Tier 1: Most distinct, easily identifiable (priority 1)
+  'peak': 1,
+  'tower': 1,
+  'historic_monument': 1,
+  'historic_memorial': 1,
+  'historic_ruins': 1,
+  'tourism_viewpoint': 1,
+  
+  // Tier 2: Good landmarks (priority 2)
+  'rock': 2,
+  'stone': 2,
+  'tourism_attraction': 2,
+  'amenity_shelter': 2,
+  'historic_castle': 2,
+  'historic_archaeological_site': 2,
+  'mast': 2,
+  
+  // Tier 3: Acceptable landmarks (priority 3)
+  'church': 3,
+  'chapel': 3,
+  'amenity_parking': 3,
+  'tree': 3,
+  'tourism_information': 3,
+  'historic': 3, // Generic historic
+};
 
 export class OSMStrategy implements PointGenerationStrategy {
   name = "osm";
@@ -54,6 +101,21 @@ export class OSMStrategy implements PointGenerationStrategy {
           way["natural"="wetland"](${boundingBox.min_lat},${boundingBox.min_lng},${boundingBox.max_lat},${boundingBox.max_lng});
           way["landuse"="cemetery"](${boundingBox.min_lat},${boundingBox.min_lng},${boundingBox.max_lat},${boundingBox.max_lng});
           way["leisure"="garden"](${boundingBox.min_lat},${boundingBox.min_lng},${boundingBox.max_lat},${boundingBox.max_lng});
+          
+          // Landmarks for goal placement (distinct, identifiable features)
+          node["natural"="peak"](${boundingBox.min_lat},${boundingBox.min_lng},${boundingBox.max_lat},${boundingBox.max_lng});
+          node["natural"="rock"](${boundingBox.min_lat},${boundingBox.min_lng},${boundingBox.max_lat},${boundingBox.max_lng});
+          node["natural"="stone"](${boundingBox.min_lat},${boundingBox.min_lng},${boundingBox.max_lat},${boundingBox.max_lng});
+          node["natural"="tree"][name](${boundingBox.min_lat},${boundingBox.min_lng},${boundingBox.max_lat},${boundingBox.max_lng});
+          way["historic"](${boundingBox.min_lat},${boundingBox.min_lng},${boundingBox.max_lat},${boundingBox.max_lng});
+          node["historic"](${boundingBox.min_lat},${boundingBox.min_lng},${boundingBox.max_lat},${boundingBox.max_lng});
+          way["tourism"](${boundingBox.min_lat},${boundingBox.min_lng},${boundingBox.max_lat},${boundingBox.max_lng});
+          node["tourism"](${boundingBox.min_lat},${boundingBox.min_lng},${boundingBox.max_lat},${boundingBox.max_lng});
+          way["amenity"~"shelter|parking"](${boundingBox.min_lat},${boundingBox.min_lng},${boundingBox.max_lat},${boundingBox.max_lng});
+          node["amenity"~"shelter|parking"](${boundingBox.min_lat},${boundingBox.min_lng},${boundingBox.max_lat},${boundingBox.max_lng});
+          node["man_made"="tower"](${boundingBox.min_lat},${boundingBox.min_lng},${boundingBox.max_lat},${boundingBox.max_lng});
+          node["man_made"="mast"](${boundingBox.min_lat},${boundingBox.min_lng},${boundingBox.max_lat},${boundingBox.max_lng});
+          way["building"~"church|chapel"](${boundingBox.min_lat},${boundingBox.min_lng},${boundingBox.max_lat},${boundingBox.max_lng});
         );
         out geom;
       `;
@@ -196,134 +258,250 @@ export class OSMStrategy implements PointGenerationStrategy {
     };
   }
 
-  private async getNearbyFeatures(
-    point: { lat: number; lng: number },
-    osmData: FeatureCollection
-  ): Promise<NearbyFeature[]> {
-    const features: NearbyFeature[] = [];
+  /**
+   * Find an accessible point near a target location
+   * Searches in progressively larger circles around the target until an accessible point is found
+   * 
+   * @param target Target location to search near
+   * @param osmData OSM feature data for accessibility validation
+   * @param maxSearchRadius Maximum search radius in kilometers
+   * @param maxAttempts Maximum number of attempts per search radius
+   * @returns Accessible point near the target
+   */
+  private async findAccessiblePointNear(
+    target: { lat: number; lng: number },
+    osmData: FeatureCollection,
+    maxSearchRadius: number,
+    maxAttempts: number = 10
+  ): Promise<{ lat: number; lng: number }> {
+    // First, check if the target itself is accessible
+    if (await this.isAccessiblePoint(target, osmData)) {
+      console.log(`[OSM] Target point is accessible: [${target.lat}, ${target.lng}]`);
+      return target;
+    }
 
-    for (const feature of osmData.features) {
-      if (feature.properties) {
-        // Calculate feature center from geometry
-        let featureCenter;
-        if (feature.geometry.type === "Polygon") {
-          // For polygons, calculate center from all coordinates
-          const coords = feature.geometry.coordinates[0];
-          const lats = coords.map((c) => c[1]);
-          const lngs = coords.map((c) => c[0]);
-          featureCenter = {
-            lat: (Math.min(...lats) + Math.max(...lats)) / 2,
-            lng: (Math.min(...lngs) + Math.max(...lngs)) / 2,
-          };
-        } else if (feature.geometry.type === "Point") {
-          featureCenter = {
-            lat: feature.geometry.coordinates[1],
-            lng: feature.geometry.coordinates[0],
-          };
-        } else {
-          continue; // Skip other geometry types for now
-        }
+    // Try progressively larger search radii
+    const searchRadii = [
+      maxSearchRadius * 0.25, // 25% of max
+      maxSearchRadius * 0.50, // 50% of max
+      maxSearchRadius * 0.75, // 75% of max
+      maxSearchRadius,         // 100% of max
+    ];
 
-        const distance = Math.sqrt(
-          Math.pow((point.lat - featureCenter.lat) * 111, 2) +
-            Math.pow(
-              (point.lng - featureCenter.lng) *
-                111 *
-                Math.cos((point.lat * Math.PI) / 180),
-              2
-            )
+    for (const searchRadius of searchRadii) {
+      console.log(`[OSM] Searching for accessible point within ${searchRadius.toFixed(3)}km of target`);
+      
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        // Generate random point within search radius
+        const candidatePoint = this.generateRandomPointBasic(
+          [target.lat, target.lng],
+          searchRadius
         );
 
-        if (distance < 1) {
-          // Only include features within 1km
-          const bearing = this.calculateBearing(point, featureCenter);
-          const direction = this.getCardinalDirection(bearing);
-
-          features.push({
-            type:
-              feature.properties.natural ||
-              feature.properties.landuse ||
-              feature.properties.leisure ||
-              feature.properties.amenity ||
-              "landmark",
-            name: feature.properties.name,
-            distance,
-            direction,
-          });
+        if (await this.isAccessiblePoint(candidatePoint, osmData)) {
+          console.log(`[OSM] Found accessible point at [${candidatePoint.lat}, ${candidatePoint.lng}] (${searchRadius.toFixed(3)}km radius, attempt ${attempt + 1})`);
+          return candidatePoint;
         }
       }
     }
 
-    return features.sort((a, b) => a.distance - b.distance).slice(0, 3);
+    // If no accessible point found, return the target anyway (last resort)
+    console.warn(`[OSM] Could not find accessible point near target, using target anyway: [${target.lat}, ${target.lng}]`);
+    return target;
   }
 
-  private async generateHint(
-    point: { lat: number; lng: number },
-    endPoint: { lat: number; lng: number },
-    osmData: FeatureCollection
-  ): Promise<string> {
-    // Get basic distance and direction to goal
-    const distance = Math.sqrt(
-      Math.pow((point.lat - endPoint.lat) * 111, 2) +
-        Math.pow(
-          (point.lng - endPoint.lng) *
-            111 *
-            Math.cos((point.lat * Math.PI) / 180),
-          2
-        )
-    );
+  /**
+   * Find the nearest distinct landmark to use as a goal point
+   * Searches for identifiable features like peaks, towers, historic sites within search radius
+   * 
+   * @param targetPoint The calculated end point position
+   * @param osmData OSM feature data containing landmarks
+   * @param maxDistanceKm Maximum search radius in kilometers
+   * @returns Landmark object if found, null otherwise
+   */
+  private findNearestDistinctLandmark(
+    targetPoint: { lat: number; lng: number },
+    osmData: FeatureCollection,
+    maxDistanceKm: number
+  ): Landmark | null {
+    console.log(`[OSM] Searching for landmarks within ${maxDistanceKm}km of end point [${targetPoint.lat.toFixed(5)}, ${targetPoint.lng.toFixed(5)}]`);
+    
+    const landmarks: Landmark[] = [];
 
-    const bearing = this.calculateBearing(point, endPoint);
-    const direction = this.getCardinalDirection(bearing);
+    for (const feature of osmData.features) {
+      if (!feature.properties) continue;
 
-    // Get nearby features
-    const nearbyFeatures = await this.getNearbyFeatures(point, osmData);
+      // Extract landmark type and determine priority
+      let landmarkType: string | null = null;
+      let priority: number = 999; // Default: not a landmark
 
-    // Generate hint text
-    let hint = `The goal is approximately ${distance.toFixed(1)} km to the ${direction}.`;
-
-    if (nearbyFeatures.length > 0) {
-      // Add information about nearby features
-      const featureDescriptions = nearbyFeatures.map((feature) => {
-        const name = feature.name ? ` ${feature.name}` : "";
-        return `${feature.type}${name} ${feature.distance.toFixed(1)}km ${feature.direction}`;
-      });
-
-      hint += ` Nearby: ${featureDescriptions.join(", ")}.`;
-
-      // Add path suggestion if applicable
-      const waterFeatures = nearbyFeatures.filter((f) => f.type === "water");
-      if (waterFeatures.length > 0) {
-        hint += ` Caution: water ahead, consider going around it.`;
+      // Check natural features
+      if (feature.properties.natural) {
+        const natural = feature.properties.natural;
+        if (natural === 'peak') {
+          landmarkType = 'peak';
+          priority = LANDMARK_PRIORITIES['peak'];
+        } else if (natural === 'rock') {
+          landmarkType = 'rock';
+          priority = LANDMARK_PRIORITIES['rock'];
+        } else if (natural === 'stone') {
+          landmarkType = 'stone';
+          priority = LANDMARK_PRIORITIES['stone'];
+        } else if (natural === 'tree' && feature.properties.name) {
+          landmarkType = 'tree';
+          priority = LANDMARK_PRIORITIES['tree'];
+        }
       }
+
+      // Check historic features
+      if (feature.properties.historic) {
+        const historic = feature.properties.historic;
+        if (historic === 'monument') {
+          landmarkType = 'historic_monument';
+          priority = LANDMARK_PRIORITIES['historic_monument'];
+        } else if (historic === 'memorial') {
+          landmarkType = 'historic_memorial';
+          priority = LANDMARK_PRIORITIES['historic_memorial'];
+        } else if (historic === 'ruins') {
+          landmarkType = 'historic_ruins';
+          priority = LANDMARK_PRIORITIES['historic_ruins'];
+        } else if (historic === 'castle') {
+          landmarkType = 'historic_castle';
+          priority = LANDMARK_PRIORITIES['historic_castle'];
+        } else if (historic === 'archaeological_site') {
+          landmarkType = 'historic_archaeological_site';
+          priority = LANDMARK_PRIORITIES['historic_archaeological_site'];
+        } else {
+          landmarkType = 'historic';
+          priority = LANDMARK_PRIORITIES['historic'];
+        }
+      }
+
+      // Check tourism features
+      if (feature.properties.tourism) {
+        const tourism = feature.properties.tourism;
+        if (tourism === 'viewpoint') {
+          landmarkType = 'tourism_viewpoint';
+          priority = LANDMARK_PRIORITIES['tourism_viewpoint'];
+        } else if (tourism === 'attraction') {
+          landmarkType = 'tourism_attraction';
+          priority = LANDMARK_PRIORITIES['tourism_attraction'];
+        } else if (tourism === 'information') {
+          landmarkType = 'tourism_information';
+          priority = LANDMARK_PRIORITIES['tourism_information'];
+        }
+      }
+
+      // Check amenity features
+      if (feature.properties.amenity) {
+        const amenity = feature.properties.amenity;
+        if (amenity === 'shelter') {
+          landmarkType = 'amenity_shelter';
+          priority = LANDMARK_PRIORITIES['amenity_shelter'];
+        } else if (amenity === 'parking') {
+          landmarkType = 'amenity_parking';
+          priority = LANDMARK_PRIORITIES['amenity_parking'];
+        }
+      }
+
+      // Check man_made features
+      if (feature.properties.man_made) {
+        const manMade = feature.properties.man_made;
+        if (manMade === 'tower') {
+          landmarkType = 'tower';
+          priority = LANDMARK_PRIORITIES['tower'];
+        } else if (manMade === 'mast') {
+          landmarkType = 'mast';
+          priority = LANDMARK_PRIORITIES['mast'];
+        }
+      }
+
+      // Check building features (churches, chapels)
+      if (feature.properties.building) {
+        const building = feature.properties.building;
+        if (building === 'church') {
+          landmarkType = 'church';
+          priority = LANDMARK_PRIORITIES['church'];
+        } else if (building === 'chapel') {
+          landmarkType = 'chapel';
+          priority = LANDMARK_PRIORITIES['chapel'];
+        }
+      }
+
+      // Skip if not a landmark type we care about
+      if (!landmarkType || priority === 999) continue;
+
+      // Get landmark position
+      let landmarkLat: number, landmarkLng: number;
+
+      if (feature.geometry.type === 'Point') {
+        landmarkLng = feature.geometry.coordinates[0];
+        landmarkLat = feature.geometry.coordinates[1];
+      } else if (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') {
+        // For polygons, use centroid
+        const coords = feature.geometry.type === 'Polygon' 
+          ? feature.geometry.coordinates[0] 
+          : feature.geometry.coordinates[0][0];
+        const lats = coords.map((c) => c[1]);
+        const lngs = coords.map((c) => c[0]);
+        landmarkLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+        landmarkLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
+      } else {
+        continue;
+      }
+
+      // Calculate distance from target point
+      const distance = calculateDistance(targetPoint, { lat: landmarkLat, lng: landmarkLng });
+
+      // Only consider landmarks within search radius
+      if (distance > maxDistanceKm) continue;
+
+      landmarks.push({
+        type: landmarkType,
+        name: feature.properties.name,
+        position: {
+          lat: landmarkLat,
+          lng: landmarkLng,
+        },
+        priority,
+        distance,
+      });
     }
 
-    return hint;
+    if (landmarks.length === 0) {
+      console.log('[OSM] No landmarks found within search radius');
+      return null;
+    }
+
+    console.log(`[OSM] Found ${landmarks.length} potential landmark(s) within search radius`);
+
+    // Check if we have enough landmarks to avoid repetitive games
+    if (landmarks.length < MIN_LANDMARKS_FOR_GOAL) {
+      console.log(`[OSM] Only ${landmarks.length} landmark(s) found, need at least ${MIN_LANDMARKS_FOR_GOAL} to use landmark goals`);
+      console.log('[OSM] This prevents repetitive games in areas with few landmarks');
+      return null;
+    }
+
+    // Sort by priority (1 = best) then by distance (closest first)
+    landmarks.sort((a, b) => {
+      if (a.priority !== b.priority) {
+        return a.priority - b.priority; // Lower priority number = better
+      }
+      return a.distance - b.distance; // Closer = better
+    });
+
+    const bestLandmark = landmarks[0];
+    console.log(`[OSM] Sufficient landmarks available (${landmarks.length} >= ${MIN_LANDMARKS_FOR_GOAL})`);
+    console.log(`[OSM] Selected landmark: ${bestLandmark.name || bestLandmark.type} (priority ${bestLandmark.priority}, distance ${bestLandmark.distance.toFixed(2)}km)`);
+
+    return bestLandmark;
   }
 
-  private calculateBearing(
-    point1: { lat: number; lng: number },
-    point2: { lat: number; lng: number }
-  ): number {
-    const dLon = ((point2.lng - point1.lng) * Math.PI) / 180;
-    const lat1 = (point1.lat * Math.PI) / 180;
-    const lat2 = (point2.lat * Math.PI) / 180;
-    const y = Math.sin(dLon) * Math.cos(lat2);
-    const x =
-      Math.cos(lat1) * Math.sin(lat2) -
-      Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-    const bearing = (Math.atan2(y, x) * 180) / Math.PI;
-    return (bearing + 360) % 360; // Normalize to 0-360
-  }
-
-  private getCardinalDirection(bearing: number): string {
-    const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-    const index = Math.round(bearing / 45) % 8;
-    return directions[index];
-  }
-
-  async generatePoints(game: Game): Promise<GamePoint[]> {
+  async generatePoints(game: Game, options?: PointGenerationOptions): Promise<GamePoint[]> {
+    const useAIHints = options?.useAIHints ?? true; // Default to true
+    
     console.log(`[OSM] Starting point generation for game ${game.id}`);
+    console.log(`[OSM] Options:`, { useAIHints });
     console.log(`[OSM] Game details:`, {
       max_radius: game.max_radius,
       bounding_box: game.bounding_box,
@@ -365,41 +543,95 @@ export class OSMStrategy implements PointGenerationStrategy {
     console.log(`[OSM] Center point:`, centerPoint);
 
     console.log(`[OSM] Generating end point...`);
-    const endPoint = await this.generateRandomPoint(
+    let endPoint = await this.generateRandomPoint(
       [centerPoint.latitude, centerPoint.longitude],
       game.max_radius || DEFAULT_MAX_RADIUS,
       osmData
     );
-    console.log(`[OSM] End point generated:`, endPoint);
+    console.log(`[OSM] Initial end point generated:`, endPoint);
 
-    // Calculate center point between start and end
-    const centerLat = (startingPoint.lat + endPoint.lat) / 2;
-    const centerLng = (startingPoint.lng + endPoint.lng) / 2;
+    // Try to snap end point to a nearby landmark for better player experience
+    // Only use landmarks if there are enough to provide variety (prevents repetitive games)
+    const landmark = this.findNearestDistinctLandmark(endPoint, osmData, LANDMARK_SEARCH_RADIUS);
+    if (landmark) {
+      console.log(`[OSM] Snapping end point to landmark: ${landmark.name || landmark.type} (${landmark.distance.toFixed(2)}km away)`);
+      endPoint = landmark.position;
+      console.log(`[OSM] Final end point (at landmark):`, endPoint);
+    } else {
+      console.log(`[OSM] Using calculated end point (no suitable landmarks or insufficient variety)`);
+    }
 
-    // Calculate distance between start and end points
-    const distance =
-      Math.sqrt(
-        Math.pow(startingPoint.lat - endPoint.lat, 2) +
-          Math.pow(startingPoint.lng - endPoint.lng, 2)
-      ) * 111; // Convert to kilometers
-    console.log(`[OSM] Distance between start and end: ${distance.toFixed(2)}km`);
+    // Calculate total journey distance for corridor-based generation
+    const totalDistance = calculateDistance(startingPoint, endPoint);
+    console.log(`[OSM] Distance between start and end: ${totalDistance.toFixed(2)}km`);
 
-    // Generate intermediate points
-    console.log(`[OSM] Generating ${numPoints} intermediate points...`);
+    // Determine corridor width based on difficulty (currently only 'easy' implemented)
+    const difficulty = options?.difficulty ?? 'easy';
+    const corridorWidth = totalDistance * CORRIDOR_WIDTH_EASY;
+    console.log(`[OSM] Using corridor width: ${corridorWidth.toFixed(2)}km (${(CORRIDOR_WIDTH_EASY * 100).toFixed(0)}% of distance) for '${difficulty}' difficulty`);
+
+    // Generate intermediate points using corridor-based progressive path
+    console.log(`[OSM] Generating ${numPoints} intermediate points along corridor...`);
     for (let i = 0; i < numPoints; i++) {
       console.log(`[OSM] Generating intermediate point ${i + 1}/${numPoints}`);
       
-      // Generate points with increasing spread as we get further from start
-      const spreadFactor = (i + 1) / numPoints; // 0.2 to 1.0
-      const point = await this.generateRandomPoint(
-        [centerLat, centerLng],
-        (distance / 2) * spreadFactor,
-        osmData
+      // Calculate progress along the main path
+      // Use (i+1)/(numPoints+1) to evenly distribute points and avoid extremes
+      const progress = (i + 1) / (numPoints + 1);
+      console.log(`[OSM] Progress: ${(progress * 100).toFixed(1)}%`);
+      
+      // Random perpendicular offset for variety (left or right of path)
+      // Range: -corridorWidth to +corridorWidth
+      const lateralOffset = (Math.random() - 0.5) * 2 * corridorWidth;
+      console.log(`[OSM] Lateral offset: ${lateralOffset >= 0 ? '+' : ''}${lateralOffset.toFixed(3)}km`);
+      
+      // Calculate candidate point along the corridor
+      const candidatePoint = calculatePerpendicularPoint(
+        startingPoint,
+        endPoint,
+        progress,
+        lateralOffset
+      );
+      console.log(`[OSM] Candidate point: [${candidatePoint.lat.toFixed(5)}, ${candidatePoint.lng.toFixed(5)}]`);
+      
+      // Find accessible point near the candidate location
+      const point = await this.findAccessiblePointNear(
+        candidatePoint,
+        osmData,
+        corridorWidth / 2 // Search radius is half the corridor width
       );
 
       console.log(`[OSM] Generating hint for point ${i + 1}...`);
-      const hint = await this.generateHint(point, endPoint, osmData);
-      console.log(`[OSM] Hint generated: "${hint}"`);
+      
+      let hint: string;
+      
+      if (useAIHints) {
+        // Try AI hint generation first
+        const aiHint = await generateAIHint({
+          startPoint: startingPoint,
+          goalPoint: endPoint,
+          currentWaypoint: {
+            lat: point.lat,
+            lng: point.lng,
+            sequenceNumber: i + 1,
+            totalWaypoints: numPoints,
+          },
+          osmFeatures: osmData,
+        });
+        
+        if (aiHint) {
+          hint = aiHint;
+          console.log(`[OSM] AI hint generated: "${hint}"`);
+        } else {
+          // Fallback to mathematical hint if AI fails (with OSM features)
+          hint = generateFallbackHint(point.lat, point.lng, endPoint.lat, endPoint.lng, osmData);
+          console.log(`[OSM] AI failed, using fallback hint: "${hint}"`);
+        }
+      } else {
+        // AI hints disabled, use mathematical hint directly (with OSM features)
+        hint = generateFallbackHint(point.lat, point.lng, endPoint.lat, endPoint.lng, osmData);
+        console.log(`[OSM] AI hints disabled, using mathematical hint: "${hint}"`);
+      }
 
       points.push({
         latitude: point.lat,
