@@ -26,7 +26,6 @@ export default function GameScreen() {
   const { locations } = usePlayerLocation(id);
   const { points, loading: pointsLoading } = usePoints(id);
   const [goalFound, setGoalFound] = useState<GamePoint | null>(null);
-  const [visitedPoints, setVisitedPoints] = useState<string[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { playerLocation, distanceTravelled, locationError, sendLocalNotification } =
     useGameContext(true, id, player?.id);
@@ -41,12 +40,6 @@ export default function GameScreen() {
 
   // Listen for server-side proximity events
   useProximityEvents(id, {
-    onPointReached: (point) => {
-      setVisitedPoints((prev) => {
-        if (prev.includes(point.id)) return prev;
-        return [...prev, point.id];
-      });
-    },
     onClueDiscovered: (point) => {
       if (Notification.permission === "granted") {
         sendLocalNotification("Point discovered!", `Hint: ${point.hint}`);
@@ -126,7 +119,7 @@ export default function GameScreen() {
   const stats = {
     showOwnLocation,
     showGoal,
-    pointsVisited: visitedPoints.length,
+    pointsVisited: points.filter((p) => p.status === "visited").length,
     totalPoints: triggeringPoints.length,
     distanceTraveled: `~ ${distanceInKm} km`,
   };
@@ -164,10 +157,7 @@ export default function GameScreen() {
           bounds={gameDetails.bounding_box}
           playerLocation={showOwnLocation ? playerLocation : null}
           showGoal={showGoal}
-          points={points.map((p) => ({
-            ...p,
-            status: visitedPoints.includes(p.id) ? "visited" : "unvisited",
-          }))}
+          points={points}
         />
 
         {isMenuOpen && (

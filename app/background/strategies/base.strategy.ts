@@ -1,9 +1,14 @@
 import type { Game } from "@/types/game";
 import type { GamePoint } from "@/types/game";
 
+export interface PointGenerationOptions {
+  useAIHints?: boolean; // Default: true
+  difficulty?: 'easy' | 'medium' | 'hard'; // Default: 'easy' (for future difficulty settings)
+}
+
 export interface PointGenerationStrategy {
   name: string;
-  generatePoints(game: Game): Promise<GamePoint[]>;
+  generatePoints(game: Game, options?: PointGenerationOptions): Promise<GamePoint[]>;
 }
 
 export type BoundingBox = {

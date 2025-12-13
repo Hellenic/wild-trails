@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import type { CreateGameInput } from "@/lib/api/validation";
 import type { User } from "@supabase/supabase-js";
 
 /**

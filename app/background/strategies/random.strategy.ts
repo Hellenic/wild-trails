@@ -2,9 +2,11 @@ import type { Game } from "@/types/game";
 import type { GamePoint } from "@/types/game";
 import {
   PointGenerationStrategy,
+  PointGenerationOptions,
   BoundingBox,
   convertToBoundingBox,
 } from "./base.strategy";
+import { calculateBearing, getCardinalDirection, calculateDistance } from "../geo-utils";
 
 const DEFAULT_MAX_RADIUS = 5;
 
@@ -38,40 +40,14 @@ export class RandomStrategy implements PointGenerationStrategy {
     };
   }
 
-  private getCardinalDirection(bearing: number): string {
-    const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-    const index = Math.round(bearing / 45) % 8;
-    return directions[index];
-  }
-
   private generateHint(
     point: { lat: number; lng: number },
     endPoint: { lat: number; lng: number }
   ): string {
-    // Calculate distance in kilometers
-    const distance = Math.sqrt(
-      Math.pow((point.lat - endPoint.lat) * 111, 2) +
-        Math.pow(
-          (point.lng - endPoint.lng) *
-            111 *
-            Math.cos((point.lat * Math.PI) / 180),
-          2
-        )
-    );
-
-    // Calculate bearing
-    const dLon = ((endPoint.lng - point.lng) * Math.PI) / 180;
-    const lat1 = (point.lat * Math.PI) / 180;
-    const lat2 = (endPoint.lat * Math.PI) / 180;
-    const y = Math.sin(dLon) * Math.cos(lat2);
-    const x =
-      Math.cos(lat1) * Math.sin(lat2) -
-      Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-    let bearing = (Math.atan2(y, x) * 180) / Math.PI;
-    bearing = (bearing + 360) % 360; // Normalize to 0-360
-
-    // Convert bearing to cardinal direction
-    const direction = this.getCardinalDirection(bearing);
+    // Calculate distance and direction using shared utilities
+    const distance = calculateDistance(point, endPoint);
+    const bearing = calculateBearing(point, endPoint);
+    const direction = getCardinalDirection(bearing);
 
     // Add some randomness to distance
     const roughDistance = Math.round(distance * 10) / 10;
@@ -80,7 +56,11 @@ export class RandomStrategy implements PointGenerationStrategy {
     return `The goal is approximately ${randomizedDistance.toFixed(1)} km to the ${direction}`;
   }
 
-  async generatePoints(game: Game): Promise<GamePoint[]> {
+  async generatePoints(game: Game, options?: PointGenerationOptions): Promise<GamePoint[]> {
+    // Random strategy doesn't use AI hints currently, but accepts options for interface consistency
+    const useAIHints = options?.useAIHints ?? false; // Random strategy defaults to false
+    console.log(`[Random] AI hints option: ${useAIHints} (not implemented for random strategy)`);
+    
     const boundingBox = convertToBoundingBox(game);
     const numPoints = Math.floor(Math.random() * 4) + 4; // 4-7 points
     const points: GamePoint[] = [];
