@@ -28,3 +28,4 @@ export type Player = Tables<"players">;
 export type GameRole = Game["selected_role"];
 export type GameMode = Database["public"]["Enums"]["game_mode_type"];
 export type GameMaster = Database["public"]["Enums"]["game_master_type"];
+export type GameStatus = Database["public"]["Enums"]["game_status_type"];

@@ -71,10 +71,13 @@ export type Database = {
           game_master: Database["public"]["Enums"]["game_master_type"]
           game_mode: Database["public"]["Enums"]["game_mode_type"]
           id: string
+          last_processing_error: string | null
           max_radius: number
           name: string
           password: string
           player_count: number
+          processing_attempts: number | null
+          processing_started_at: string | null
           selected_role: Database["public"]["Enums"]["game_role_type"] | null
           started_at: string | null
           starting_point: Json | null
@@ -89,10 +92,13 @@ export type Database = {
           game_master: Database["public"]["Enums"]["game_master_type"]
           game_mode: Database["public"]["Enums"]["game_mode_type"]
           id?: string
+          last_processing_error?: string | null
           max_radius: number
           name: string
           password: string
           player_count: number
+          processing_attempts?: number | null
+          processing_started_at?: string | null
           selected_role?: Database["public"]["Enums"]["game_role_type"] | null
           started_at?: string | null
           starting_point?: Json | null
@@ -107,10 +113,13 @@ export type Database = {
           game_master?: Database["public"]["Enums"]["game_master_type"]
           game_mode?: Database["public"]["Enums"]["game_mode_type"]
           id?: string
+          last_processing_error?: string | null
           max_radius?: number
           name?: string
           password?: string
           player_count?: number
+          processing_attempts?: number | null
+          processing_started_at?: string | null
           selected_role?: Database["public"]["Enums"]["game_role_type"] | null
           started_at?: string | null
           starting_point?: Json | null
@@ -222,7 +231,7 @@ export type Database = {
       game_mode_type: "single_player" | "two_player" | "multi_player"
       game_player_status_type: "waiting" | "ready" | "playing" | "finished"
       game_role_type: "player_a" | "player_b" | "game_master"
-      game_status_type: "setup" | "ready" | "active" | "completed"
+      game_status_type: "setup" | "ready" | "active" | "completed" | "failed"
       point_status_type: "unvisited" | "visited"
       point_type: "start" | "end" | "clue"
     }
@@ -356,7 +365,7 @@ export const Constants = {
       game_mode_type: ["single_player", "two_player", "multi_player"],
       game_player_status_type: ["waiting", "ready", "playing", "finished"],
       game_role_type: ["player_a", "player_b", "game_master"],
-      game_status_type: ["setup", "ready", "active", "completed"],
+      game_status_type: ["setup", "ready", "active", "completed", "failed"],
       point_status_type: ["unvisited", "visited"],
       point_type: ["start", "end", "clue"],
     },

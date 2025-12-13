@@ -1,11 +1,12 @@
 // Kind of a background process manager, which in the future could actually be in the background
 import { createClient } from "@supabase/supabase-js";
 import { gameAI } from "./game_ai";
-import type { Game } from "@/types/game";
+import type { Game, GameStatus } from "@/types/game";
 import type { Database } from "@/types/database.types";
 
-export const processCreateGame = async (gameId: string) => {
-  console.log(`[BG Process] Starting game creation process for game ${gameId}`);
+export const processCreateGame = async (gameId: string, currentAttempt: number = 0) => {
+  const attemptNumber = currentAttempt + 1;
+  console.log(`[BG Process] Starting game creation process for game ${gameId} (attempt ${attemptNumber}/3)`);
   
   try {
     // Use service role key to bypass RLS for background processing
@@ -30,7 +31,8 @@ export const processCreateGame = async (gameId: string) => {
       id: data.id,
       name: data.name,
       game_master: data.game_master,
-      status: data.status
+      status: data.status,
+      attempts: data.processing_attempts
     });
 
     // Note: Removed artificial delay to avoid serverless function timeouts
@@ -57,7 +59,12 @@ export const processCreateGame = async (gameId: string) => {
     console.log(`[BG Process] Updating game status to 'ready'...`);
     const { error: statusUpdateError } = await supabase
       .from("games")
-      .update({ status: "ready" })
+      .update({ 
+        status: "ready",
+        processing_started_at: null, // Clear processing timestamp
+        processing_attempts: 0, // Reset attempts on success
+        last_processing_error: null // Clear any previous errors
+      })
       .eq("id", gameId);
 
     if (statusUpdateError) {
@@ -69,23 +76,37 @@ export const processCreateGame = async (gameId: string) => {
     return { success: true, gameId };
     
   } catch (error) {
-    console.error(`[BG Process] Failed to process game ${gameId}:`, error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`[BG Process] Failed to process game ${gameId} (attempt ${attemptNumber}/3):`, errorMessage);
     
-    // Mark game as failed for visibility
+    // Update game with retry info
     try {
       const supabase = createClient<Database>(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_API_KEY!
       );
+      
+      const newAttemptCount = attemptNumber;
+      const isLastAttempt = newAttemptCount >= 3;
+      const newStatus: GameStatus = isLastAttempt ? 'failed' : 'setup';
+      
       await supabase
         .from('games')
         .update({ 
-          status: 'setup', // Keep in setup state so cron can retry
-          // Could add an error_message column in future
+          status: newStatus, // Mark as failed after max attempts, otherwise keep in setup for retry
+          processing_started_at: null, // Clear lock for retry
+          processing_attempts: newAttemptCount,
+          last_processing_error: errorMessage
         })
         .eq('id', gameId);
+        
+      if (isLastAttempt) {
+        console.error(`[BG Process] Game ${gameId} failed after ${newAttemptCount} attempts, marking as failed`);
+      } else {
+        console.log(`[BG Process] Game ${gameId} will be retried (attempt ${newAttemptCount}/3)`);
+      }
     } catch (updateError) {
-      console.error(`[BG Process] Failed to update game status to failed:`, updateError);
+      console.error(`[BG Process] Failed to update game retry info:`, updateError);
     }
     
     throw error; // Re-throw for Promise.allSettled tracking

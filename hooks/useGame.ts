@@ -40,6 +40,7 @@ export const useGameDetails = (gameId: string) => {
   }, [gameId]);
 
   useEffect(() => {
+    // eslint-disable-next-line
     fetchGameDetails();
   }, [fetchGameDetails]);
 
