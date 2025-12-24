@@ -9,6 +9,10 @@ import { ChatGameCreation } from "@/app/components/ChatGameCreation";
 import { LatLng } from "@/utils/map";
 import { gameAPI } from "@/lib/api/client";
 import type { GameDetails, GameMaster, GameRole } from "@/types/game";
+import { Button } from "@/app/components/ui/Button";
+import { Icon } from "@/app/components/ui/Icon";
+import { GlassPanel } from "@/app/components/ui/GlassPanel";
+import Link from "next/link";
 
 type FormData = {
   name: string;
@@ -42,7 +46,6 @@ export default function CreateGame() {
   useEffect(() => {
     const savedMode = localStorage.getItem("gameCreationMode") as "chat" | "form" | null;
     if (savedMode) {
-      // eslint-disable-next-line
       setMode(savedMode);
     }
   }, []);
@@ -109,123 +112,169 @@ export default function CreateGame() {
   };
 
   return (
-    <main className="min-h-screen bg-background py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-4xl font-serif font-bold text-forest-deep text-center mb-8">
-          Create Game
-        </h1>
+    <main className="min-h-screen dark:bg-background-dark bg-background-light relative">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-background-dark via-surface-dark to-background-dark opacity-95" />
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2313ec13' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
+      </div>
 
-        {/* Mode Toggle */}
-        <div className="flex justify-center mb-8">
-          <div className="inline-flex rounded-lg border border-forest-moss/30 bg-white p-1">
-            <button
-              onClick={() => handleModeChange("chat")}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                mode === "chat"
-                  ? "bg-forest-pine text-forest-mist"
-                  : "text-forest-deep hover:text-forest-pine"
-              }`}
-            >
-              💬 Chat Mode
-            </button>
-            <button
-              onClick={() => handleModeChange("form")}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                mode === "form"
-                  ? "bg-forest-pine text-forest-mist"
-                  : "text-forest-deep hover:text-forest-pine"
-              }`}
-            >
-              📋 Form Mode
-            </button>
+      <div className="relative z-10 py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="mb-8 flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <Icon name="add_location" size="lg" className="text-primary" />
+              <h1 className="text-3xl lg:text-4xl font-black text-white">
+                Create Game
+              </h1>
+            </div>
+            <Link href="/">
+              <Button variant="ghost">
+                <Icon name="close" className="text-lg" />
+              </Button>
+            </Link>
           </div>
-        </div>
 
-        {/* Chat Mode */}
-        {mode === "chat" && (
-          <div className="mb-4">
-            <ChatGameCreation />
-          </div>
-        )}
-
-        {/* Form Mode */}
-        {mode === "form" && (
-          <>
-            {/* Stepper */}
-            <div className="flex justify-between mb-8">
-          {steps.map((step) => (
-            <div key={step.number} className="flex items-center">
-              <div
-                className={`
-                w-8 h-8 rounded-full flex items-center justify-center
-                ${
-                  currentStep >= step.number
-                    ? "bg-forest-pine text-forest-mist"
-                    : "bg-forest-moss/30 text-forest-deep"
-                }
-              `}
+          {/* Mode Toggle */}
+          <div className="flex justify-center mb-8">
+            <GlassPanel className="inline-flex p-1">
+              <button
+                onClick={() => handleModeChange("chat")}
+                className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${
+                  mode === "chat"
+                    ? "bg-primary text-background-dark"
+                    : "text-white hover:text-primary"
+                }`}
               >
-                {step.number}
-              </div>
-              <span className="ml-2 text-forest-deep">{step.title}</span>
-              {step.number < steps.length && (
-                <div className="w-24 h-1 mx-4 bg-forest-moss/30" />
-              )}
+                <Icon name="chat" className="mr-2 text-lg inline" />
+                Chat Mode
+              </button>
+              <button
+                onClick={() => handleModeChange("form")}
+                className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${
+                  mode === "form"
+                    ? "bg-primary text-background-dark"
+                    : "text-white hover:text-primary"
+                }`}
+              >
+                <Icon name="description" className="mr-2 text-lg inline" />
+                Form Mode
+              </button>
+            </GlassPanel>
+          </div>
+
+          {/* Chat Mode */}
+          {mode === "chat" && (
+            <div className="mb-4">
+              <ChatGameCreation />
             </div>
-          ))}
+          )}
+
+          {/* Form Mode */}
+          {mode === "form" && (
+            <>
+              {/* Stepper */}
+              <div className="flex justify-between mb-8 max-w-2xl mx-auto">
+                {steps.map((step, index) => (
+                  <div key={step.number} className="flex items-center flex-1">
+                    <div className="flex flex-col items-center flex-1">
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
+                          currentStep >= step.number
+                            ? "bg-primary text-background-dark scale-110"
+                            : "bg-surface-dark-elevated text-gray-500 border border-white/10"
+                        }`}
+                      >
+                        {currentStep > step.number ? (
+                          <Icon name="check" className="text-xl" />
+                        ) : (
+                          step.number
+                        )}
+                      </div>
+                      <span
+                        className={`mt-2 text-sm font-medium ${
+                          currentStep >= step.number
+                            ? "text-primary"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        {step.title}
+                      </span>
+                    </div>
+                    {index < steps.length - 1 && (
+                      <div
+                        className={`h-0.5 flex-1 mx-4 transition-all duration-300 ${
+                          currentStep > step.number
+                            ? "bg-primary"
+                            : "bg-white/10"
+                        }`}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <GlassPanel className="mb-6 p-4 border-red-500/50">
+                  <div className="flex items-center gap-3 text-red-400">
+                    <Icon name="error" />
+                    <span>{error}</span>
+                  </div>
+                </GlassPanel>
+              )}
+
+              {/* Form Steps */}
+              <GlassPanel className="p-6 lg:p-8">
+                {currentStep === 1 && (
+                  <GameBasicInfo
+                    formData={formData}
+                    setFormData={(data) =>
+                      setFormData({
+                        ...formData,
+                        ...data,
+                      })
+                    }
+                    onNext={handleNext}
+                  />
+                )}
+                {currentStep === 2 && (
+                  <GameMapSelection
+                    formData={formData}
+                    setFormData={(data) =>
+                      setFormData({
+                        ...formData,
+                        ...data,
+                      })
+                    }
+                    onNext={handleNext}
+                    onBack={handleBack}
+                  />
+                )}
+                {currentStep === 3 && (
+                  <GameSettings
+                    pending={isPending}
+                    formData={formData}
+                    setFormData={(data) =>
+                      setFormData({
+                        ...formData,
+                        ...data,
+                      })
+                    }
+                    onBack={handleBack}
+                    onSubmit={handleSubmit}
+                  />
+                )}
+              </GlassPanel>
+            </>
+          )}
         </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-                {error}
-              </div>
-            )}
-
-            {/* Form Steps */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              {currentStep === 1 && (
-                <GameBasicInfo
-                  formData={formData}
-                  setFormData={(data) =>
-                    setFormData({
-                      ...formData,
-                      ...data,
-                    })
-                  }
-                  onNext={handleNext}
-                />
-              )}
-              {currentStep === 2 && (
-                <GameMapSelection
-                  formData={formData}
-                  setFormData={(data) =>
-                    setFormData({
-                      ...formData,
-                      ...data,
-                    })
-                  }
-                  onNext={handleNext}
-                  onBack={handleBack}
-                />
-              )}
-              {currentStep === 3 && (
-                <GameSettings
-                  pending={isPending}
-                  formData={formData}
-                  setFormData={(data) =>
-                    setFormData({
-                      ...formData,
-                      ...data,
-                    })
-                  }
-                  onBack={handleBack}
-                  onSubmit={handleSubmit}
-                />
-              )}
-            </div>
-          </>
-        )}
       </div>
     </main>
   );

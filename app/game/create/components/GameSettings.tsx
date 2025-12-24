@@ -1,5 +1,8 @@
 import React from "react";
 import type { GameMaster, GameRole } from "@/types/game";
+import { Button } from "@/app/components/ui/Button";
+import { Input } from "@/app/components/ui/Input";
+import { Icon } from "@/app/components/ui/Icon";
 
 type GameSettingsFormData = {
   duration: number;
@@ -29,23 +32,13 @@ export function GameSettings({
     onSubmit();
   };
 
-  const inputClassName =
-    "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md \
-    focus:outline-none focus:ring-2 focus:ring-forest-moss focus:border-transparent \
-    bg-white dark:bg-forest-mist dark:text-forest-pine";
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label
-          htmlFor="duration"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Game Duration (hours)
-        </label>
-        <input
+        <Input
           type="number"
           id="duration"
+          label="Game Duration (hours)"
           min="0.25"
           max="24.0"
           step="0.25"
@@ -53,21 +46,15 @@ export function GameSettings({
           onChange={(e) =>
             setFormData({ ...formData, duration: Number(e.target.value) })
           }
-          className={inputClassName}
           required
         />
       </div>
 
       <div>
-        <label
-          htmlFor="maxDistance"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Maximum Distance (km)
-        </label>
-        <input
+        <Input
           type="number"
           id="maxDistance"
+          label="Maximum Distance (km)"
           min="1"
           max="500"
           step="1"
@@ -75,7 +62,6 @@ export function GameSettings({
           onChange={(e) =>
             setFormData({ ...formData, maxDistance: Number(e.target.value) })
           }
-          className={inputClassName}
           required
         />
       </div>
@@ -83,7 +69,7 @@ export function GameSettings({
       <div>
         <label
           htmlFor="playerCount"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-gray-300 mb-2"
         >
           Number of Players
         </label>
@@ -93,7 +79,7 @@ export function GameSettings({
           onChange={(e) =>
             setFormData({ ...formData, playerCount: Number(e.target.value) })
           }
-          className={inputClassName}
+          className="w-full h-12 rounded-lg border bg-surface-dark-elevated text-white placeholder:text-gray-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent border-white/10 px-4"
         >
           <option value={1}>Single Player</option>
           <option value={2} disabled>
@@ -106,11 +92,11 @@ export function GameSettings({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-300 mb-3">
           Game Master
         </label>
-        <div className="mt-2 space-x-4">
-          <label className="inline-flex items-center">
+        <div className="flex gap-4">
+          <label className="flex-1 cursor-pointer">
             <input
               type="radio"
               value="ai"
@@ -121,11 +107,14 @@ export function GameSettings({
                   gameMasterType: e.target.value as "player" | "ai",
                 })
               }
-              className="form-radio text-forest-moss focus:ring-forest-moss dark:bg-forest-mist"
+              className="sr-only peer"
             />
-            <span className="ml-2 text-gray-700">AI</span>
+            <div className="h-12 flex items-center justify-center rounded-lg border-2 border-white/10 bg-surface-dark-elevated text-white transition-all peer-checked:border-primary peer-checked:bg-primary/10">
+              <Icon name="smart_toy" className="mr-2" />
+              <span className="font-medium">AI</span>
+            </div>
           </label>
-          <label className="inline-flex items-center">
+          <label className="flex-1 cursor-pointer">
             <input
               type="radio"
               value="player"
@@ -136,18 +125,25 @@ export function GameSettings({
                   gameMasterType: e.target.value as "player" | "ai",
                 })
               }
-              className="form-radio text-forest-moss focus:ring-forest-moss dark:bg-forest-mist"
+              className="sr-only peer"
             />
-            <span className="ml-2 text-gray-700">Player</span>
+            <div className="h-12 flex items-center justify-center rounded-lg border-2 border-white/10 bg-surface-dark-elevated text-white transition-all peer-checked:border-primary peer-checked:bg-primary/10">
+              <Icon name="person" className="mr-2" />
+              <span className="font-medium">Player</span>
+            </div>
           </label>
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="playerRole"
+          className="block text-sm font-medium text-gray-300 mb-2"
+        >
           Your Role
         </label>
         <select
+          id="playerRole"
           value={formData.playerRole || "none"}
           onChange={(e) =>
             setFormData({
@@ -158,7 +154,7 @@ export function GameSettings({
                   : (e.target.value as "player_a" | "player_b" | "game_master"),
             })
           }
-          className={inputClassName}
+          className="w-full h-12 rounded-lg border bg-surface-dark-elevated text-white placeholder:text-gray-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent border-white/10 px-4"
         >
           <option value="none">None</option>
           <option value="player_a">Player A (Starting Point)</option>
@@ -171,25 +167,24 @@ export function GameSettings({
         </select>
       </div>
 
-      <div className="flex justify-between">
-        <button
-          type="button"
-          onClick={onBack}
-          className="px-4 py-2 border border-gray-300 rounded-md bg-white 
-            dark:bg-forest-mist dark:text-forest-pine dark:border-forest-pine
-            hover:bg-gray-50 dark:hover:bg-forest-mist/90 transition-colors"
-        >
+      <div className="flex justify-between pt-4">
+        <Button type="button" onClick={onBack} variant="ghost">
+          <Icon name="arrow_back" className="mr-2 text-lg" />
           Back
-        </button>
-        <button
-          type="submit"
-          disabled={pending}
-          className={`bg-forest-pine text-forest-mist px-4 py-2 rounded-md 
-            hover:bg-forest-moss transition-colors
-            ${pending ? "opacity-50 cursor-not-allowed" : ""}`}
-        >
-          {pending ? "Creating..." : "Create Game"}
-        </button>
+        </Button>
+        <Button type="submit" disabled={pending} variant="primary">
+          {pending ? (
+            <>
+              <Icon name="progress_activity" className="mr-2 text-lg animate-spin" />
+              Creating...
+            </>
+          ) : (
+            <>
+              <Icon name="check_circle" className="mr-2 text-lg" />
+              Create Game
+            </>
+          )}
+        </Button>
       </div>
     </form>
   );

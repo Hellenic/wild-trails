@@ -13,6 +13,11 @@ Read the [synopsis](./synopsis.md) for more details.
 
 ## Recent Improvements
 
+- [x] **Modern UI Design System**: Complete redesign with glassmorphism effects, vibrant green branding, and polished components
+- [x] **Reusable Component Library**: Button, Input, GlassPanel, Icon, Toast notifications, and Skeleton loaders
+- [x] **Enhanced Login/Welcome**: Beautiful hero section with background imagery and glass panel authentication
+- [x] **Improved Navigation**: Icon-based navigation with smooth animations and responsive design
+- [x] **Accessibility-First**: WCAG AA compliant with keyboard navigation and screen reader support
 - [x] **Landmark-Based Goals**: Final goals snap to distinct landmarks (peaks, towers, historic sites) when 3+ are available, ensuring game variety
 - [x] **Progressive Path Generation**: Points now follow a logical forward progression from start to end (no more backtracking!)
 - [x] **AI-Powered Hints**: Contextual, progressive hints using Google Gemini with OSM landmark data
@@ -62,6 +67,20 @@ We currently use a **simplified Euclidean approximation** for distance calculati
 **Future consideration**: If we ever need sub-meter accuracy (e.g., for precise fitness tracking or navigation features), we could switch to the Haversine formula. However, for treasure hunt gameplay with hint-based exploration, the current approach is optimal.
 
 See [docs/distance-calculation-explained.md](./docs/distance-calculation-explained.md) for detailed technical explanation.
+
+## Design System
+
+Wild Trails features a modern, polished UI built with:
+- **Glassmorphism**: Semi-transparent panels with backdrop blur effects
+- **Brand Color**: Vibrant green (#13ec13) for calls-to-action and accents
+- **Typography**: Be Vietnam Pro (display) and Noto Sans (body)
+- **Icons**: Material Symbols Outlined for consistency
+- **Components**: Reusable Button, Input, GlassPanel, Icon, Toast, and Skeleton components
+- **Animations**: Smooth transitions and micro-interactions throughout
+- **Accessibility**: WCAG AA compliant with keyboard navigation support
+- **Responsive**: Mobile-first design with touch-friendly targets
+
+See [docs/design-system.md](./docs/design-system.md) for complete documentation and usage examples.
 
 ## Interesting things
  - Trailmap.fi, MapAnt.fi
