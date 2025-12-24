@@ -1,4 +1,5 @@
 import React from "react";
+import { cn } from "@/lib/utils";
 
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "text" | "rectangular" | "circular";
@@ -12,7 +13,7 @@ export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
       variant = "rectangular",
       width,
       height,
-      className = "",
+      className,
       style,
       ...props
     },
@@ -33,7 +34,11 @@ export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
     return (
       <div
         ref={ref}
-        className={`animate-pulse bg-white/5 ${variantClasses[variant]} ${className}`}
+        className={cn(
+          "animate-pulse bg-white/5",
+          variantClasses[variant],
+          className
+        )}
         style={{
           width: width,
           height: height || defaultHeight[variant],
