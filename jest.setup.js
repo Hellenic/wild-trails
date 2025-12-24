@@ -1,4 +1,5 @@
 // Jest setup file for unit tests
+import '@testing-library/jest-dom';
 
 // Mock fetch for external API calls (used by OSM strategy tests)
 global.fetch = jest.fn(() =>
@@ -8,4 +9,3 @@ global.fetch = jest.fn(() =>
     text: () => Promise.resolve(""),
   })
 );
-

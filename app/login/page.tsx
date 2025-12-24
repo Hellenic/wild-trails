@@ -1,15 +1,12 @@
 "use client";
 
 import { login, signup } from "./actions";
-import Image from "next/image";
 import { Button } from "../components/ui/Button";
 import { GlassPanel } from "../components/ui/GlassPanel";
 import { Icon } from "../components/ui/Icon";
 import { Input } from "../components/ui/Input";
-import { useState } from "react";
 
 export default function LoginPage() {
-  const [isLogin, setIsLogin] = useState(true);
 
   return (
     <main className="relative min-h-screen w-full flex items-center justify-center p-4 lg:p-8 dark:bg-background-dark bg-background-light">
