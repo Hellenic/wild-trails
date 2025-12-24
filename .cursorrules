@@ -1,0 +1,221 @@
+# Wild Trails Design System Rules
+
+## UI Components
+
+### Always Use Reusable Components
+- Import from `@/app/components/ui`
+- Available: Button, Input, GlassPanel, Icon, Skeleton, Toast
+- Don't create one-off button/input styles
+
+### Class Name Management
+```tsx
+import { cn } from "@/lib/utils";
+
+// Use cn() for all className concatenation
+className={cn("base-classes", condition && "conditional", className)}
+```
+
+### Component Patterns
+- All components use `React.forwardRef`
+- Export TypeScript interfaces
+- Set `displayName` for debugging
+- Support `className` prop for customization
+
+## Theme Colors
+
+### Primary Brand
+```tsx
+bg-primary           // #13ec13 (vibrant green)
+bg-primary-dark      // #0fb80f
+text-primary
+border-primary
+```
+
+### Backgrounds
+```tsx
+bg-background-dark        // #102210 (main dark bg)
+bg-surface-dark           // #1a2c1a (card bg)
+bg-surface-dark-elevated  // #283928 (elevated elements)
+```
+
+### Glass Effects
+```tsx
+<GlassPanel>           // Use instead of custom cards
+<GlassPanel variant="light">  // For light theme
+```
+
+## Typography
+
+### Font Families
+```tsx
+font-display    // Be Vietnam Pro (headings, bold text)
+font-body       // Noto Sans (body text, UI)
+```
+
+### Headings
+```tsx
+<h1 className="text-4xl font-black text-white">  // Use font-black for impact
+<h2 className="text-2xl font-bold text-white">
+```
+
+## Icons
+
+### Always Use Icon Component
+```tsx
+import { Icon } from "@/app/components/ui";
+
+<Icon name="terrain" size="lg" className="text-primary" />
+```
+
+### Common Icons
+- `terrain` - Brand/logo
+- `add_location` - Create game
+- `group_add` - Join game
+- `list` - My games
+- `play_arrow` - Start/resume
+- `settings` - Configuration
+- `close` - Close/cancel
+
+## Buttons
+
+### Variants
+```tsx
+<Button variant="primary">    // Main actions (green)
+<Button variant="secondary">  // Secondary actions (border)
+<Button variant="ghost">      // Subtle actions
+<Button variant="outline">    // Alternative border style
+```
+
+### With Icons
+```tsx
+<Button variant="primary">
+  <Icon name="add" className="mr-2" />
+  Create Game
+</Button>
+```
+
+## Forms
+
+### Use Input Component
+```tsx
+<Input
+  label="Game Name"
+  placeholder="My Adventure"
+  error={errors.name}
+  value={name}
+  onChange={handleChange}
+/>
+```
+
+### Radio/Select Styling
+```tsx
+// For custom radio buttons
+className="h-12 rounded-lg border-2 border-white/10 bg-surface-dark-elevated 
+  peer-checked:border-primary peer-checked:bg-primary/10"
+
+// For selects
+className="h-12 rounded-lg border bg-surface-dark-elevated text-white 
+  border-white/10 px-4 focus:ring-2 focus:ring-primary"
+```
+
+## Layouts
+
+### Page Structure
+```tsx
+<main className="min-h-screen dark:bg-background-dark relative">
+  {/* Background pattern */}
+  <div className="absolute inset-0 z-0">...</div>
+  
+  {/* Content */}
+  <div className="relative z-10 p-4 md:p-8">
+    <GlassPanel className="p-6 lg:p-8">
+      {/* Your content */}
+    </GlassPanel>
+  </div>
+</main>
+```
+
+### Responsive Breakpoints
+- `sm:` 640px (mobile landscape)
+- `md:` 768px (tablet)
+- `lg:` 1024px (desktop)
+
+### Touch Targets
+- Minimum height: `h-12` (48px) for mobile
+- Buttons use: `h-9` (sm), `h-12` (md), `h-14` (lg)
+
+## Animations
+
+### Built-in Classes
+```tsx
+animate-fade-in        // Fade in
+animate-fade-in-up     // Fade + slide up
+animate-slide-up       // Slide up
+animate-scale-in       // Scale in
+animate-pulse          // Pulse (for skeletons)
+```
+
+### Hover Effects
+```tsx
+hover:scale-[1.02]     // Subtle scale up
+hover:bg-primary/10    // Subtle bg change
+transition-all         // Smooth transitions
+```
+
+## Accessibility
+
+### Always Include
+- Focus rings: `focus:ring-2 focus:ring-primary`
+- Disabled states: `disabled:opacity-50 disabled:cursor-not-allowed`
+- ARIA labels for icon-only buttons
+- Semantic HTML (button, input, nav, etc.)
+
+### Icon Buttons
+```tsx
+<Button variant="ghost" aria-label="Close">
+  <Icon name="close" />
+</Button>
+```
+
+## Toast Notifications
+
+### Usage
+```tsx
+import { useToast } from "@/app/components/ui";
+
+const { showToast } = useToast();
+
+showToast("success", "Game created successfully!");
+showToast("error", "Failed to save");
+showToast("warning", "Location access required");
+showToast("info", "Hint unlocked");
+```
+
+## Loading States
+
+### Use Skeleton
+```tsx
+import { Skeleton, GameCardSkeleton } from "@/app/components/ui";
+
+{loading ? <GameCardSkeleton /> : <GameCard />}
+{loading ? <Skeleton width="200px" height="40px" /> : <Content />}
+```
+
+## Don't
+
+- ❌ Don't use emoji in buttons (use Icon component)
+- ❌ Don't hardcode colors (use theme classes)
+- ❌ Don't use string concatenation for classes (use `cn()`)
+- ❌ Don't create custom button styles (use Button variants)
+- ❌ Don't use inline styles (use Tailwind)
+- ❌ Don't forget focus states on interactive elements
+
+## Do
+
+- ✅ Use `cn()` for all className logic
+- ✅ Use Icon component for all icons
+- ✅ Use Button component with variants
+- ✅ Use GlassPanel for cards/containers
+- ✅ Test components with React Testing Library
+- ✅ Ensure mobile responsiveness (test at 320px+)
+- ✅ Add focus states and ARIA labels
