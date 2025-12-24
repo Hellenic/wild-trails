@@ -1,4 +1,7 @@
 import React from "react";
+import { Button } from "@/app/components/ui/Button";
+import { Input } from "@/app/components/ui/Input";
+import { Icon } from "@/app/components/ui/Icon";
 
 type GameBasicInfoFormData = {
   name: string;
@@ -19,57 +22,41 @@ export function GameBasicInfo({ formData, setFormData, onNext }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-2">
-        <label
-          htmlFor="gameName"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Game Name
-        </label>
-        <input
+      <div>
+        <Input
           type="text"
           id="gameName"
+          label="Game Name"
+          placeholder="My Epic Adventure"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md 
-            focus:outline-none focus:ring-2 focus:ring-forest-moss focus:border-transparent
-            bg-white dark:bg-forest-mist dark:text-forest-pine"
           required
         />
       </div>
 
-      <div className="space-y-2">
-        <label
-          htmlFor="password"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Game Password
-        </label>
-        <input
+      <div>
+        <Input
           type="text"
           id="password"
+          label="Game Password"
+          placeholder="Enter a password"
           value={formData.password}
           onChange={(e) =>
             setFormData({ ...formData, password: e.target.value })
           }
-          className="w-full px-3 py-2 border border-gray-300 rounded-md 
-            focus:outline-none focus:ring-2 focus:ring-forest-moss focus:border-transparent
-            bg-white dark:bg-forest-mist dark:text-forest-pine"
           required
         />
-        <p className="mt-1 text-sm text-gray-700">
+        <p className="mt-2 text-sm text-gray-400">
+          <Icon name="info" className="inline text-base mr-1" />
           Other players will need this password to join the game
         </p>
       </div>
 
-      <div className="flex justify-end">
-        <button
-          type="submit"
-          className="bg-forest-pine text-forest-mist px-4 py-2 rounded-md 
-            hover:bg-forest-moss transition-colors"
-        >
+      <div className="flex justify-end pt-4">
+        <Button type="submit" variant="primary">
           Next
-        </button>
+          <Icon name="arrow_forward" className="ml-2 text-lg" />
+        </Button>
       </div>
     </form>
   );

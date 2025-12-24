@@ -6,6 +6,9 @@ import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/useUser";
 import type { Game, GameStatus } from "@/types/game";
 import { useRouter } from "next/navigation";
+import { Button } from "@/app/components/ui/Button";
+import { Icon } from "@/app/components/ui/Icon";
+import { GlassPanel } from "@/app/components/ui/GlassPanel";
 
 type GameListItem = Game;
 
@@ -66,20 +69,20 @@ export default function GamesPage() {
   };
 
   const getStatusBadgeClass = (status: GameStatus) => {
-    const baseClasses = "px-2 py-1 rounded text-xs font-medium";
+    const baseClasses = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider";
     switch (status) {
       case "setup":
-        return `${baseClasses} bg-yellow-100 text-yellow-800`;
+        return `${baseClasses} bg-yellow-500/20 text-yellow-400 border border-yellow-500/30`;
       case "ready":
-        return `${baseClasses} bg-blue-100 text-blue-800`;
+        return `${baseClasses} bg-blue-500/20 text-blue-400 border border-blue-500/30`;
       case "active":
-        return `${baseClasses} bg-green-100 text-green-800`;
+        return `${baseClasses} bg-green-500/20 text-green-400 border border-green-500/30`;
       case "completed":
-        return `${baseClasses} bg-gray-100 text-gray-800`;
+        return `${baseClasses} bg-gray-500/20 text-gray-400 border border-gray-500/30`;
       case "failed":
-        return `${baseClasses} bg-red-100 text-red-800`;
+        return `${baseClasses} bg-red-500/20 text-red-400 border border-red-500/30`;
       default:
-        return `${baseClasses} bg-gray-100 text-gray-800`;
+        return `${baseClasses} bg-gray-500/20 text-gray-400 border border-gray-500/30`;
     }
   };
 
@@ -88,36 +91,37 @@ export default function GamesPage() {
       case "setup":
       case "ready":
         return (
-          <Link
-            href={`/game/${game.id}/setup`}
-            className="px-3 py-1 bg-forest-pine text-forest-mist rounded hover:bg-forest-moss transition-colors text-sm"
-          >
-            View Setup
+          <Link href={`/game/${game.id}/setup`}>
+            <Button variant="secondary" size="sm">
+              <Icon name="settings" className="mr-1 text-lg" />
+              Setup
+            </Button>
           </Link>
         );
       case "active":
         return (
-          <Link
-            href={`/game/${game.id}/play`}
-            className="px-3 py-1 bg-forest-pine text-forest-mist rounded hover:bg-forest-moss transition-colors text-sm"
-          >
-            Resume Game
+          <Link href={`/game/${game.id}/play`}>
+            <Button variant="primary" size="sm">
+              <Icon name="play_arrow" className="mr-1 text-lg" />
+              Resume
+            </Button>
           </Link>
         );
       case "completed":
         return (
-          <Link
-            href={`/game/${game.id}/results`}
-            className="px-3 py-1 bg-forest-pine text-forest-mist rounded hover:bg-forest-moss transition-colors text-sm"
-          >
-            View Results
+          <Link href={`/game/${game.id}/results`}>
+            <Button variant="secondary" size="sm">
+              <Icon name="analytics" className="mr-1 text-lg" />
+              Results
+            </Button>
           </Link>
         );
       case "failed":
         return (
-          <span className="px-3 py-1 bg-gray-200 text-gray-600 rounded text-sm">
-            Generation Failed
-          </span>
+          <Button variant="ghost" size="sm" disabled>
+            <Icon name="error" className="mr-1 text-lg" />
+            Failed
+          </Button>
         );
       default:
         return null;
@@ -157,169 +161,196 @@ export default function GamesPage() {
 
   if (userLoading || loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center text-foreground">Loading games...</div>
+      <main className="min-h-screen flex items-center justify-center dark:bg-background-dark bg-background-light">
+        <div className="text-center">
+          <div className="animate-pulse">
+            <Icon name="terrain" size="xl" className="text-primary mb-4" />
+            <div className="text-white">Loading games...</div>
+          </div>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-6 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-serif font-bold text-forest-deep mb-2">
-              My Games
-            </h1>
-            <p className="text-gray-600">
-              View and manage your Wild Trails adventures
-            </p>
-          </div>
-          <Link
-            href="/"
-            className="px-4 py-2 bg-forest-bark text-forest-mist rounded-lg hover:bg-forest-bark/80 transition-colors"
-          >
-            Back to Home
-          </Link>
-        </div>
+    <main className="min-h-screen dark:bg-background-dark bg-background-light relative">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-background-dark via-surface-dark to-background-dark opacity-95" />
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2313ec13' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
+      </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            {error}
+      <div className="relative z-10 p-4 md:p-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <Icon name="list" size="lg" className="text-primary" />
+                <h1 className="text-3xl lg:text-4xl font-black text-white">
+                  My Games
+                </h1>
+              </div>
+              <p className="text-gray-400">
+                View and manage your Wild Trails adventures
+              </p>
+            </div>
+            <Link href="/">
+              <Button variant="secondary">
+                <Icon name="home" className="mr-2" />
+                Home
+              </Button>
+            </Link>
           </div>
-        )}
 
-        {/* Filter Bar */}
-        <div className="mb-6 flex gap-2 flex-wrap">
-          <button
-            onClick={() => setFilterStatus("all")}
-            className={`px-4 py-2 rounded ${
-              filterStatus === "all"
-                ? "bg-forest-pine text-forest-mist"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            } transition-colors`}
-          >
-            All ({games.length})
-          </button>
-          {(["setup", "ready", "active", "completed", "failed"] as GameStatus[]).map(
-            (status) => {
-              const count = games.filter((g) => g.status === status).length;
-              return (
-                <button
-                  key={status}
-                  onClick={() => setFilterStatus(status)}
-                  className={`px-4 py-2 rounded capitalize ${
-                    filterStatus === status
-                      ? "bg-forest-pine text-forest-mist"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  } transition-colors`}
-                >
-                  {status} ({count})
-                </button>
-              );
-            }
+          {/* Error Message */}
+          {error && (
+            <GlassPanel className="mb-6 p-4 border-red-500/50">
+              <div className="flex items-center gap-3 text-red-400">
+                <Icon name="error" />
+                <span>{error}</span>
+              </div>
+            </GlassPanel>
           )}
-        </div>
 
-        {/* Games List */}
-        {filteredGames.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="mb-4 text-6xl">🏕️</div>
-            <h2 className="text-2xl font-serif font-bold text-forest-deep mb-2">
-              {filterStatus === "all" 
-                ? "No games yet" 
-                : `No ${filterStatus} games`}
-            </h2>
-            <p className="text-gray-600 mb-6">
-              {filterStatus === "all"
-                ? "Create your first Wild Trails adventure!"
-                : "Try a different filter or create a new game."}
-            </p>
-            {filterStatus === "all" && (
-              <Link
-                href="/game/create"
-                className="inline-block px-6 py-3 bg-forest-pine text-forest-mist rounded-lg hover:bg-forest-moss transition-colors"
-              >
-                Create Your First Game
-              </Link>
+          {/* Filter Bar */}
+          <div className="mb-6 flex gap-2 flex-wrap">
+            <Button
+              variant={filterStatus === "all" ? "primary" : "ghost"}
+              size="sm"
+              onClick={() => setFilterStatus("all")}
+            >
+              All ({games.length})
+            </Button>
+            {(["setup", "ready", "active", "completed", "failed"] as GameStatus[]).map(
+              (status) => {
+                const count = games.filter((g) => g.status === status).length;
+                return (
+                  <Button
+                    key={status}
+                    variant={filterStatus === status ? "primary" : "ghost"}
+                    size="sm"
+                    onClick={() => setFilterStatus(status)}
+                  >
+                    <span className="capitalize">{status}</span> ({count})
+                  </Button>
+                );
+              }
             )}
           </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredGames.map((game) => (
-              <div
-                key={game.id}
-                className="bg-white rounded-lg shadow-md p-4 md:p-6 border border-gray-200 hover:shadow-lg transition-shadow"
-              >
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  {/* Game Info */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-serif font-bold text-forest-deep">
-                        {game.name}
-                      </h3>
-                      <span className={getStatusBadgeClass(game.status)}>
-                        {game.status}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                      <span>
-                        📏 {formatDistance(game.max_radius * 2)}
-                      </span>
-                      <span>
-                        ⏱️ {formatDuration(game.duration)}
-                      </span>
-                      <span>
-                        📅 {formatDate(game.created_at)}
-                      </span>
-                      <span className="capitalize">
-                        🎮 {game.game_mode.replace("_", " ")}
-                      </span>
-                    </div>
-                    {game.last_processing_error && (
-                      <div className="mt-2 text-sm text-red-600">
-                        ⚠️ {game.last_processing_error}
-                      </div>
-                    )}
-                  </div>
 
-                  {/* Actions */}
-                  <div className="flex gap-2 items-center">
-                    {getActionButton(game)}
-                    
-                    {/* Delete Button */}
-                    {deleteConfirm === game.id ? (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleDeleteGame(game.id)}
-                          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm"
-                        >
-                          Confirm
-                        </button>
-                        <button
-                          onClick={() => setDeleteConfirm(null)}
-                          className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors text-sm"
-                        >
-                          Cancel
-                        </button>
+          {/* Games List */}
+          {filteredGames.length === 0 ? (
+            <GlassPanel className="p-16 text-center">
+              <Icon name="terrain" size="xl" className="text-primary/40 mb-4" />
+              <h2 className="text-2xl font-bold text-white mb-2">
+                {filterStatus === "all" 
+                  ? "No games yet" 
+                  : `No ${filterStatus} games`}
+              </h2>
+              <p className="text-gray-400 mb-6">
+                {filterStatus === "all"
+                  ? "Create your first Wild Trails adventure!"
+                  : "Try a different filter or create a new game."}
+              </p>
+              {filterStatus === "all" && (
+                <Link href="/game/create">
+                  <Button variant="primary" size="lg">
+                    <Icon name="add" className="mr-2" />
+                    Create Your First Game
+                  </Button>
+                </Link>
+              )}
+            </GlassPanel>
+          ) : (
+            <div className="space-y-4">
+              {filteredGames.map((game) => (
+                <GlassPanel
+                  key={game.id}
+                  className="p-6 hover:border-primary/30 transition-all duration-300"
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    {/* Game Info */}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3 flex-wrap">
+                        <h3 className="text-xl font-bold text-white">
+                          {game.name}
+                        </h3>
+                        <span className={getStatusBadgeClass(game.status)}>
+                          {game.status}
+                        </span>
                       </div>
-                    ) : (
-                      <button
-                        onClick={() => setDeleteConfirm(game.id)}
-                        className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors text-sm"
-                        title="Delete game"
-                      >
-                        🗑️
-                      </button>
-                    )}
+                      <div className="flex flex-wrap gap-4 text-sm text-gray-400">
+                        <span className="flex items-center gap-1">
+                          <Icon name="straighten" className="text-lg" />
+                          {formatDistance(game.max_radius * 2)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Icon name="schedule" className="text-lg" />
+                          {formatDuration(game.duration)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Icon name="calendar_today" className="text-lg" />
+                          {formatDate(game.created_at)}
+                        </span>
+                        <span className="flex items-center gap-1 capitalize">
+                          <Icon name="sports_esports" className="text-lg" />
+                          {game.game_mode.replace("_", " ")}
+                        </span>
+                      </div>
+                      {game.last_processing_error && (
+                        <div className="mt-3 flex items-start gap-2 text-sm text-red-400">
+                          <Icon name="warning" className="text-lg flex-shrink-0" />
+                          <span>{game.last_processing_error}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 items-center flex-shrink-0">
+                      {getActionButton(game)}
+                      
+                      {/* Delete Button */}
+                      {deleteConfirm === game.id ? (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => handleDeleteGame(game.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Confirm
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDeleteConfirm(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDeleteConfirm(game.id)}
+                          title="Delete game"
+                        >
+                          <Icon name="delete" className="text-lg text-red-400" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                </GlassPanel>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
