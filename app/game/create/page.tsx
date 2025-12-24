@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition, useEffect } from "react";
+import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { GameBasicInfo } from "./components/GameBasicInfo";
 import { GameMapSelection } from "./components/GameMapSelection";
