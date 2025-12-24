@@ -1,4 +1,3 @@
-import React from "react";
 import { Input } from "@/app/components/ui/Input";
 
 describe("Input Component", () => {
@@ -36,10 +35,10 @@ describe("Input Component", () => {
   });
 
   it("should accept different input types", () => {
-    const types = ["text", "email", "password", "number"];
+    const types: Array<"text" | "email" | "password" | "number"> = ["text", "email", "password", "number"];
     
     types.forEach((type) => {
-      const input = Input({ type: type as any });
+      const input = Input({ type });
       expect(input).toBeDefined();
     });
   });

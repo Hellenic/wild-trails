@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "@/app/components/ui/Button";
 
 describe("Button Component", () => {
