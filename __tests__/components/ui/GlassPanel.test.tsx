@@ -1,5 +1,5 @@
 import React from "react";
-import { GlassPanel } from "@/app/components/ui/GlassPanel";
+import { GlassPanel, type GlassPanelProps } from "@/app/components/ui/GlassPanel";
 
 describe("GlassPanel Component", () => {
   it("should accept children", () => {
@@ -38,11 +38,12 @@ describe("GlassPanel Component", () => {
   });
 
   it("should accept additional props", () => {
-    const panel = GlassPanel({
+    const props: GlassPanelProps & { "data-testid"?: string; "aria-label"?: string } = {
       "data-testid": "test-panel",
       "aria-label": "Test Panel",
       children: "Panel",
-    } as any);
+    };
+    const panel = GlassPanel(props);
     expect(panel).toBeDefined();
   });
 });

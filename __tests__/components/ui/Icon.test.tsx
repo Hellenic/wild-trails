@@ -1,5 +1,4 @@
-import React from "react";
-import { Icon } from "@/app/components/ui/Icon";
+import { Icon, type IconProps } from "@/app/components/ui/Icon";
 
 describe("Icon Component", () => {
   it("should accept icon name", () => {
@@ -40,11 +39,12 @@ describe("Icon Component", () => {
   });
 
   it("should accept additional props", () => {
-    const icon = Icon({
+    const props: IconProps & { "data-testid"?: string; "aria-label"?: string } = {
       name: "warning",
       "data-testid": "warning-icon",
       "aria-label": "Warning",
-    } as any);
+    };
+    const icon = Icon(props);
     expect(icon).toBeDefined();
   });
 });
