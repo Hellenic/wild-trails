@@ -70,17 +70,24 @@ See [docs/distance-calculation-explained.md](./docs/distance-calculation-explain
 
 ## Design System
 
-Wild Trails features a modern, polished UI built with:
-- **Glassmorphism**: Semi-transparent panels with backdrop blur effects
-- **Brand Color**: Vibrant green (#13ec13) for calls-to-action and accents
-- **Typography**: Be Vietnam Pro (display) and Noto Sans (body)
-- **Icons**: Material Symbols Outlined for consistency
-- **Components**: Reusable Button, Input, GlassPanel, Icon, Toast, and Skeleton components
-- **Animations**: Smooth transitions and micro-interactions throughout
-- **Accessibility**: WCAG AA compliant with keyboard navigation support
-- **Responsive**: Mobile-first design with touch-friendly targets
+Modern UI built with Tailwind CSS featuring glassmorphism effects and vibrant green branding (`#13ec13`).
 
-See [docs/design-system.md](./docs/design-system.md) for complete documentation and usage examples.
+**Components** (`/app/components/ui/`): Button, Input, GlassPanel, Icon, Skeleton, Toast  
+**Fonts**: Be Vietnam Pro (display), Noto Sans (body)  
+**Icons**: Material Symbols Outlined  
+**Utils**: `cn()` helper (clsx + tailwind-merge)
+
+```tsx
+import { Button, Icon, cn } from "@/app/components/ui";
+
+<Button variant="primary" size="lg">
+  <Icon name="add" className="mr-2" />
+  Create Game
+</Button>
+```
+
+All components are accessible (WCAG AA), mobile-responsive, and tested with React Testing Library.  
+See `.cursorrules` for usage guidelines.
 
 ## Interesting things
  - Trailmap.fi, MapAnt.fi
