@@ -15,3 +15,6 @@ export { Skeleton, GameCardSkeleton } from "./Skeleton";
 export type { SkeletonProps } from "./Skeleton";
 
 export { ToastProvider, useToast } from "./Toast";
+
+// Re-export the cn utility for convenience
+export { cn } from "@/lib/utils";

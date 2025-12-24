@@ -1,4 +1,5 @@
 import React from "react";
+import { cn } from "@/lib/utils";
 
 export interface IconProps extends React.HTMLAttributes<HTMLSpanElement> {
   name: string;
@@ -7,7 +8,7 @@ export interface IconProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 export const Icon = React.forwardRef<HTMLSpanElement, IconProps>(
-  ({ name, fill = false, size = "md", className = "", ...props }, ref) => {
+  ({ name, fill = false, size = "md", className, ...props }, ref) => {
     const sizeStyles = {
       sm: "text-xl",
       md: "text-2xl",
@@ -15,12 +16,15 @@ export const Icon = React.forwardRef<HTMLSpanElement, IconProps>(
       xl: "text-5xl",
     };
 
-    const fillStyle = fill ? "material-symbols-outlined-fill" : "";
-
     return (
       <span
         ref={ref}
-        className={`material-symbols-outlined ${fillStyle} ${sizeStyles[size]} ${className}`}
+        className={cn(
+          "material-symbols-outlined",
+          fill && "material-symbols-outlined-fill",
+          sizeStyles[size],
+          className
+        )}
         {...props}
       >
         {name}

@@ -1,4 +1,5 @@
 import React from "react";
+import { cn } from "@/lib/utils";
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -8,18 +9,9 @@ export interface InputProps
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, fullWidth = true, className = "", ...props }, ref) => {
-    const baseStyles =
-      "h-12 rounded-lg border bg-surface-dark-elevated text-white placeholder:text-gray-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed";
-
-    const errorStyles = error
-      ? "border-red-500 focus:ring-red-500"
-      : "border-white/10 focus:border-primary";
-
-    const widthStyles = fullWidth ? "w-full" : "";
-
+  ({ label, error, fullWidth = true, className, ...props }, ref) => {
     return (
-      <div className={widthStyles}>
+      <div className={cn(fullWidth && "w-full")}>
         {label && (
           <label className="block text-sm font-medium text-gray-300 mb-2">
             {label}
@@ -27,7 +19,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
         <input
           ref={ref}
-          className={`${baseStyles} ${errorStyles} ${widthStyles} ${className} px-4`}
+          className={cn(
+            "h-12 rounded-lg border bg-surface-dark-elevated text-white placeholder:text-gray-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed px-4",
+            error
+              ? "border-red-500 focus:ring-red-500"
+              : "border-white/10 focus:border-primary",
+            fullWidth && "w-full",
+            className
+          )}
           {...props}
         />
         {error && <p className="mt-1 text-sm text-red-500">{error}</p>}

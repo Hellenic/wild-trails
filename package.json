@@ -27,12 +27,14 @@
     "@supabase/supabase-js": "2.47.10",
     "@turf/turf": "7.3.1",
     "ai": "5.0.108",
+    "clsx": "^2.1.1",
     "leaflet": "1.9.4",
     "next": "16.0.10",
     "osmtogeojson": "3.0.0-beta.5",
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "react-leaflet": "5.0.0",
+    "tailwind-merge": "^3.4.0",
     "zod": "4.1.13"
   },
   "devDependencies": {

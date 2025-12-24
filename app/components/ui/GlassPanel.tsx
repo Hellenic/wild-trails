@@ -1,4 +1,5 @@
 import React from "react";
+import { cn } from "@/lib/utils";
 
 export interface GlassPanelProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "dark" | "light";
@@ -6,14 +7,15 @@ export interface GlassPanelProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const GlassPanel = React.forwardRef<HTMLDivElement, GlassPanelProps>(
-  ({ variant = "dark", className = "", children, ...props }, ref) => {
-    const variantStyles =
-      variant === "dark" ? "glass-panel" : "glass-panel-light";
-
+  ({ variant = "dark", className, children, ...props }, ref) => {
     return (
       <div
         ref={ref}
-        className={`${variantStyles} rounded-2xl shadow-2xl ${className}`}
+        className={cn(
+          "rounded-2xl shadow-2xl",
+          variant === "dark" ? "glass-panel" : "glass-panel-light",
+          className
+        )}
         {...props}
       >
         {children}
