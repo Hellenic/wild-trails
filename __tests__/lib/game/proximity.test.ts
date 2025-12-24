@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import { LatLng } from "@/utils/map";
 
 describe("Proximity Calculations", () => {

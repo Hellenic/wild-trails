@@ -6,7 +6,7 @@ const createJestConfig = nextJest({
 });
 
 const customJestConfig = {
-  testEnvironment: "jsdom", // Changed from "node" to support React components
+  testEnvironment: "jsdom", // Default to jsdom for UI components
   silent: true, // Suppress console output during tests
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/$1",
@@ -21,6 +21,13 @@ const customJestConfig = {
     "!**/*.d.ts",
     "!**/node_modules/**",
   ],
+  // Use different environments for different test types
+  testMatch: [
+    "**/__tests__/**/*.(test|spec).(ts|tsx|js|jsx)",
+  ],
+  testEnvironmentOptions: {
+    customExportConditions: ["node", "node-addons"],
+  },
 };
 
 module.exports = createJestConfig(customJestConfig);

@@ -1,6 +1,7 @@
 /**
  * Tests for distance estimation functionality
  * Used in the drawer menu to show estimated distance remaining
+ * @jest-environment node
  */
 
 import { calculateDistance } from "@/app/background/geo-utils";

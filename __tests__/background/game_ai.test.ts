@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 // First, mock osmtogeojson
 type OSMElement = {
   id: number;
