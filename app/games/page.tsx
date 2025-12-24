@@ -41,7 +41,7 @@ export default function GamesPage() {
         .order("created_at", { ascending: false });
 
       if (fetchError) throw fetchError;
-      setGames((data as GameListItem[]) || []);
+      setGames(data || []);
     } catch (err) {
       console.error("Error fetching games:", err);
       setError("Failed to load games. Please try again.");
