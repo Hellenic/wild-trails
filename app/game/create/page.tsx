@@ -26,12 +26,19 @@ type FormData = {
   playerRole: GameRole;
 };
 
+// Initialize mode from localStorage
+const getInitialMode = (): "chat" | "form" => {
+  if (typeof window === "undefined") return "chat";
+  const savedMode = localStorage.getItem("gameCreationMode");
+  return (savedMode === "chat" || savedMode === "form") ? savedMode : "chat";
+};
+
 export default function CreateGame() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [currentStep, setCurrentStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<"chat" | "form">("chat");
+  const [mode, setMode] = useState<"chat" | "form">(getInitialMode);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     password: "",
@@ -42,18 +49,12 @@ export default function CreateGame() {
     maxDistance: 3,
   });
 
-  // Load user's preferred mode from localStorage
-  useEffect(() => {
-    const savedMode = localStorage.getItem("gameCreationMode") as "chat" | "form" | null;
-    if (savedMode) {
-      setMode(savedMode);
-    }
-  }, []);
-
-  // Save mode preference
+  // Save mode preference when it changes
   const handleModeChange = (newMode: "chat" | "form") => {
     setMode(newMode);
-    localStorage.setItem("gameCreationMode", newMode);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("gameCreationMode", newMode);
+    }
   };
 
   const steps = [
