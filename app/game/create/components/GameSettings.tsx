@@ -10,6 +10,7 @@ type GameSettingsFormData = {
   gameMasterType: GameMaster;
   playerRole: GameRole;
   maxDistance: number;
+  difficulty: "easy" | "medium" | "hard";
 };
 
 type Props = {
@@ -34,6 +35,74 @@ export function GameSettings({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-3">
+          Difficulty Level
+        </label>
+        <div className="flex gap-3">
+          <label className="flex-1 cursor-pointer">
+            <input
+              type="radio"
+              name="difficulty"
+              value="easy"
+              checked={formData.difficulty === "easy"}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  difficulty: e.target.value as "easy" | "medium" | "hard",
+                })
+              }
+              className="sr-only peer"
+            />
+            <div className="h-auto p-3 flex flex-col items-center justify-center rounded-lg border-2 border-white/10 bg-surface-dark-elevated text-white transition-all peer-checked:border-primary peer-checked:bg-primary/10">
+              <Icon name="hiking" className="mb-1" />
+              <span className="font-medium text-sm">Easy</span>
+              <span className="text-xs text-gray-400 mt-1 text-center">Narrow path, direct route</span>
+            </div>
+          </label>
+          <label className="flex-1 cursor-pointer">
+            <input
+              type="radio"
+              name="difficulty"
+              value="medium"
+              checked={formData.difficulty === "medium"}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  difficulty: e.target.value as "easy" | "medium" | "hard",
+                })
+              }
+              className="sr-only peer"
+            />
+            <div className="h-auto p-3 flex flex-col items-center justify-center rounded-lg border-2 border-white/10 bg-surface-dark-elevated text-white transition-all peer-checked:border-primary peer-checked:bg-primary/10">
+              <Icon name="landscape" className="mb-1" />
+              <span className="font-medium text-sm">Medium</span>
+              <span className="text-xs text-gray-400 mt-1 text-center">Wider corridor, some detours</span>
+            </div>
+          </label>
+          <label className="flex-1 cursor-pointer">
+            <input
+              type="radio"
+              name="difficulty"
+              value="hard"
+              checked={formData.difficulty === "hard"}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  difficulty: e.target.value as "easy" | "medium" | "hard",
+                })
+              }
+              className="sr-only peer"
+            />
+            <div className="h-auto p-3 flex flex-col items-center justify-center rounded-lg border-2 border-white/10 bg-surface-dark-elevated text-white transition-all peer-checked:border-primary peer-checked:bg-primary/10">
+              <Icon name="terrain" className="mb-1" />
+              <span className="font-medium text-sm">Hard</span>
+              <span className="text-xs text-gray-400 mt-1 text-center">Very wide area, zig-zag path</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
       <div>
         <Input
           type="number"

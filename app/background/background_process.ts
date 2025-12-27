@@ -39,7 +39,9 @@ export const processCreateGame = async (gameId: string, currentAttempt: number =
     // In production, the actual point generation provides sufficient delay
 
     console.log(`[BG Process] Generating game points using AI...`);
-    const points = await gameAI.generateGamePoints(data as Game);
+    const points = await gameAI.generateGamePoints(data as Game, "osm", {
+      difficulty: data.difficulty ?? "easy",
+    });
     console.log(`[BG Process] Generated ${points.length} points`);
 
     console.log(`[BG Process] Inserting points into database...`);

@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Input, GlassPanel, Icon } from "./ui";
-import { cn } from "@/lib/utils";
 
 interface JoinGameModalProps {
   isOpen: boolean;

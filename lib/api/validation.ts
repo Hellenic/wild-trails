@@ -14,6 +14,7 @@ export const gameMasterTypeSchema = z.enum(["player", "ai"]);
 export const gameModeTypeSchema = z.enum(["single_player", "two_player", "multi_player"]);
 export const gameStatusTypeSchema = z.enum(["setup", "ready", "active", "completed"]);
 export const gameRoleTypeSchema = z.enum(["player_a", "player_b", "game_master"]);
+export const gameDifficultyTypeSchema = z.enum(["easy", "medium", "hard"]);
 
 export const boundingBoxSchema = z.object({
   northWest: z.object({
@@ -39,6 +40,7 @@ export const createGameSchema = z.object({
   player_count: z.number().int().positive(),
   game_mode: gameModeTypeSchema,
   game_master: gameMasterTypeSchema,
+  difficulty: gameDifficultyTypeSchema.optional().default("easy"),
   selected_role: gameRoleTypeSchema.optional(),
   starting_point: startingPointSchema.optional(),
   bounding_box: boundingBoxSchema,
@@ -61,6 +63,7 @@ export const gameResponseSchema = z.object({
   player_count: z.number(),
   game_mode: gameModeTypeSchema,
   game_master: gameMasterTypeSchema,
+  difficulty: gameDifficultyTypeSchema,
   selected_role: gameRoleTypeSchema.nullable(),
   starting_point: startingPointSchema.nullable(),
   bounding_box: boundingBoxSchema,

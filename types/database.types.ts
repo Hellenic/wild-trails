@@ -66,6 +66,7 @@ export type Database = {
           bounding_box: Json
           created_at: string
           creator_id: string
+          difficulty: Database["public"]["Enums"]["game_difficulty_type"]
           duration: number
           ended_at: string | null
           game_master: Database["public"]["Enums"]["game_master_type"]
@@ -88,6 +89,7 @@ export type Database = {
           bounding_box: Json
           created_at?: string
           creator_id: string
+          difficulty?: Database["public"]["Enums"]["game_difficulty_type"]
           duration: number
           ended_at?: string | null
           game_master: Database["public"]["Enums"]["game_master_type"]
@@ -110,6 +112,7 @@ export type Database = {
           bounding_box?: Json
           created_at?: string
           creator_id?: string
+          difficulty?: Database["public"]["Enums"]["game_difficulty_type"]
           duration?: number
           ended_at?: string | null
           game_master?: Database["public"]["Enums"]["game_master_type"]
@@ -230,6 +233,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      game_difficulty_type: "easy" | "medium" | "hard"
       game_master_type: "player" | "ai"
       game_mode_type: "single_player" | "two_player" | "multi_player"
       game_player_status_type: "waiting" | "ready" | "playing" | "finished"
@@ -364,6 +368,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      game_difficulty_type: ["easy", "medium", "hard"],
       game_master_type: ["player", "ai"],
       game_mode_type: ["single_player", "two_player", "multi_player"],
       game_player_status_type: ["waiting", "ready", "playing", "finished"],
