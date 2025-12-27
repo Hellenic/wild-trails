@@ -1,7 +1,14 @@
 {
   "name": "wild-trails",
   "description": "Wild Trails is a real-world adventure game that combines orienteering, puzzle-solving, and geocaching, where players navigate through wilderness using clues to find their final destination within a time limit.",
-  "version": "0.2.3",
+  "version": "0.3.0",
+  "author": "Hannu Kärkkäinen <hannu.karkkainen@gmail.com>",
+  "license": "AGPL-3.0-or-later",
+  "homepage": "https://wild-trails.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hellenic/wild-trails"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
