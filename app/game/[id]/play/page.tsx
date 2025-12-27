@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { gameAPI } from "@/lib/api/client";
 import { usePlayer } from "@/hooks/usePlayer";
@@ -315,7 +315,6 @@ export default function GameScreen() {
             onShowOwnLocation={() => setShowOwnLocation(!showOwnLocation)}
             onShowGoal={() => setShowGoal(!showGoal)}
             onGiveUp={() => setShowGiveUpDialog(true)}
-            visitedPoints={visitedWaypoints}
             hints={collectedHints}
           />
         )}

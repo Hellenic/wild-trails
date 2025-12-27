@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Button, Icon } from "./ui";
+import { Button, Input, GlassPanel, Icon } from "./ui";
+import { cn } from "@/lib/utils";
 
 interface JoinGameModalProps {
   isOpen: boolean;
@@ -119,75 +120,76 @@ export function JoinGameModal({ isOpen, onClose }: JoinGameModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 animate-scale-in">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-2xl font-serif font-bold text-forest-deep">
-            Join Game
-          </h3>
-          <button
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background-dark/80 backdrop-blur-sm p-4">
+      <GlassPanel className="max-w-md w-full p-6 animate-scale-in border border-white/10">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-2">
+            <Icon name="group_add" className="text-primary" />
+            <h3 className="text-2xl font-display font-black text-white uppercase tracking-tight">
+              Join Game
+            </h3>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handleClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
+            className="h-8 w-8 p-0 rounded-full"
+            aria-label="Close"
           >
-            ×
-          </button>
+            <Icon name="close" />
+          </Button>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-            {error}
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm flex items-start gap-3">
+            <Icon name="error" size="sm" className="mt-0.5 shrink-0" />
+            <p>{error}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-          <div>
-            <label
-              htmlFor="join-game-code"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Game Code
-            </label>
-            <input
-              id="join-game-code"
-              name="game-code"
-              type="text"
-              value={gameCode}
-              onChange={(e) => setGameCode(e.target.value)}
-              placeholder="Enter game code (UUID)"
-              required
-              autoComplete="off"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-pine focus:border-transparent outline-none"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              The game creator will provide you with this code
-            </p>
-          </div>
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6"
+          autoComplete="off"
+        >
+          {/* Hidden input to further discourage autofill */}
+          <input type="text" style={{ display: 'none' }} />
+          <input type="password" style={{ display: 'none' }} />
 
-          <div>
-            <label
-              htmlFor="join-game-password"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Password (if required)
-            </label>
-            <input
-              id="join-game-password"
-              name="game-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
-              autoComplete="off"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-pine focus:border-transparent outline-none"
-            />
-          </div>
+          <Input
+            id="join-game-code"
+            name="game-code"
+            label="Game Code"
+            type="text"
+            value={gameCode}
+            onChange={(e) => setGameCode(e.target.value)}
+            placeholder="Enter game code (UUID)"
+            required
+            autoComplete="off"
+            className="font-mono"
+          />
+          <p className="text-xs text-gray-400 -mt-4 px-1">
+            The game creator will provide you with this code
+          </p>
 
-          <div className="flex gap-3 pt-2">
+          <Input
+            id="join-game-password"
+            name="game-password"
+            label="Password (if required)"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter password"
+            autoComplete="new-password"
+          />
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
               fullWidth
+              className="order-2 sm:order-1"
             >
               Cancel
             </Button>
@@ -198,19 +200,24 @@ export function JoinGameModal({ isOpen, onClose }: JoinGameModalProps) {
               loadingText="Joining..."
               disabled={!gameCode}
               fullWidth
+              className="order-1 sm:order-2"
             >
+              <Icon name="play_arrow" size="sm" />
               Join Game
             </Button>
           </div>
         </form>
 
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <p className="text-xs text-gray-600 text-center">
-            💡 <strong>Note:</strong> Multiplayer features are coming in Phase 2.
-            Currently, you can only join single-player games in setup phase.
-          </p>
+        <div className="mt-8 pt-6 border-t border-white/10">
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
+            <Icon name="info" size="sm" className="text-primary shrink-0 mt-0.5" />
+            <p className="text-xs text-gray-400 leading-relaxed">
+              <strong className="text-primary">Note:</strong> Multiplayer features are coming in Phase 2.
+              Currently, you can only join single-player games in setup phase.
+            </p>
+          </div>
         </div>
-      </div>
+      </GlassPanel>
     </div>
   );
 }

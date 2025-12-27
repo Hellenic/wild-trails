@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import type { GamePoint } from "@/hooks/usePoints";
 import { Icon } from "@/app/components/ui/Icon";
 import { Button } from "@/app/components/ui/Button";
 import { GlassPanel } from "@/app/components/ui/GlassPanel";
@@ -19,14 +18,12 @@ export function DrawerMenu({
   onShowOwnLocation,
   onShowGoal,
   onGiveUp,
-  visitedPoints = [],
   hints = [],
 }: {
   stats: GameStats;
   onShowOwnLocation: () => void;
   onShowGoal: () => void;
   onGiveUp?: () => void;
-  visitedPoints?: GamePoint[];
   hints?: Array<{ pointId: string; hint: string; timestamp: string }>;
 }) {
   const [expandedHints, setExpandedHints] = useState<Set<string>>(new Set());
