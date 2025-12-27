@@ -7,6 +7,10 @@ import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/useUser";
 import type { Game, GamePoint } from "@/types/game";
 import { calculateDistance } from "@/app/background/geo-utils";
+import { getJourneyComparison, getNatureFact, getEncouragingMessage } from "@/lib/game/fun-facts";
+import { Icon } from "@/app/components/ui/Icon";
+import { GlassPanel } from "@/app/components/ui/GlassPanel";
+import { Button } from "@/app/components/ui/Button";
 import dynamic from "next/dynamic";
 
 // Dynamically import map to avoid SSR issues
@@ -145,6 +149,11 @@ export default function ResultsPage() {
       visitedWaypoints,
       totalWaypoints,
       finalAccuracy: Math.round(finalAccuracy),
+      funFacts: {
+        journey: getJourneyComparison(totalDistance, totalMinutes, visitedWaypoints),
+        nature: getNatureFact(game.difficulty),
+        encouragement: getEncouragingMessage(visitedWaypoints, totalWaypoints, game.gave_up || false),
+      },
     };
   };
 
@@ -176,52 +185,102 @@ export default function ResultsPage() {
   const stats = calculateStats();
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-forest-pine text-forest-mist p-6 shadow-md">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-serif font-bold mb-2">Game Complete!</h1>
-          <h2 className="text-xl">{game.name}</h2>
-        </div>
+    <main className="min-h-screen dark:bg-background-dark bg-background-light relative">
+      {/* Background pattern */}
+      <div className="absolute inset-0 z-0 opacity-30">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10" />
       </div>
 
-      <div className="max-w-6xl mx-auto p-4 md:p-8">
-        {/* Stats Summary */}
-        {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="text-3xl font-bold text-forest-deep mb-2">
-                {stats.totalTime}
-              </div>
-              <div className="text-gray-600 text-sm">Total Time</div>
+      <div className="relative z-10 p-4 md:p-8">
+        <div className="max-w-6xl mx-auto space-y-8">
+          {/* Header */}
+          <div className="text-center mb-8 animate-fade-in">
+            <div className="mb-6">
+              <Icon name="emoji_events" size="xl" className="text-primary animate-bounce" />
             </div>
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="text-3xl font-bold text-forest-deep mb-2">
-                {stats.distanceTraveled} km
-              </div>
-              <div className="text-gray-600 text-sm">Distance Traveled</div>
+            <h1 className="text-4xl font-black text-white mb-2 font-display">
+              Game Complete!
+            </h1>
+            <h2 className="text-xl text-gray-300 font-body">{game.name}</h2>
+          </div>
+
+          {/* Stats Summary */}
+          {stats && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 animate-fade-in-up">
+              <GlassPanel className="p-6 text-center">
+                <div className="text-3xl font-black text-white mb-2">
+                  {stats.totalTime}
+                </div>
+                <div className="text-gray-400 text-sm font-body uppercase tracking-wider">Total Time</div>
+              </GlassPanel>
+              <GlassPanel className="p-6 text-center">
+                <div className="text-3xl font-black text-white mb-2">
+                  {stats.distanceTraveled} km
+                </div>
+                <div className="text-gray-400 text-sm font-body uppercase tracking-wider">Distance Traveled</div>
+              </GlassPanel>
+              <GlassPanel className="p-6 text-center">
+                <div className="text-3xl font-black text-white mb-2">
+                  {stats.visitedWaypoints}/{stats.totalWaypoints}
+                </div>
+                <div className="text-gray-400 text-sm font-body uppercase tracking-wider">Waypoints Visited</div>
+              </GlassPanel>
+              <GlassPanel className="p-6 text-center">
+                <div className="text-3xl font-black text-white mb-2">
+                  {stats.finalAccuracy}m
+                </div>
+                <div className="text-gray-400 text-sm font-body uppercase tracking-wider">Final Accuracy</div>
+              </GlassPanel>
             </div>
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="text-3xl font-bold text-forest-deep mb-2">
-                {stats.visitedWaypoints}/{stats.totalWaypoints}
+          )}
+
+        {/* Fun Facts Section */}
+        {stats && stats.funFacts && (
+          <div className="mb-8 animate-fade-in-up">
+            <GlassPanel className="p-6 md:p-8">
+              <div className="flex items-center gap-2 mb-6">
+                <Icon name="lightbulb" size="sm" className="text-primary" />
+                <h3 className="text-xl font-black text-white font-display">
+                  Did You Know?
+                </h3>
               </div>
-              <div className="text-gray-600 text-sm">Waypoints Visited</div>
-            </div>
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="text-3xl font-bold text-forest-deep mb-2">
-                {stats.finalAccuracy}m
+              
+              <div className="space-y-4">
+                {/* Journey Comparison */}
+                <div className="flex items-start gap-3 p-4 bg-surface-dark-elevated rounded-2xl border border-white/10">
+                  <Icon name="straighten" size="sm" className="text-primary mt-1 flex-shrink-0" />
+                  <p className="text-gray-200 font-body leading-relaxed">
+                    {stats.funFacts.journey}
+                  </p>
+                </div>
+
+                {/* Nature Fact */}
+                <div className="flex items-start gap-3 p-4 bg-surface-dark-elevated rounded-2xl border border-white/10">
+                  <Icon name="pets" size="sm" className="text-primary mt-1 flex-shrink-0" />
+                  <p className="text-gray-200 font-body leading-relaxed">
+                    {stats.funFacts.nature}
+                  </p>
+                </div>
+
+                {/* Encouragement */}
+                <div className="flex items-start gap-3 p-4 bg-primary/10 rounded-2xl border border-primary/30">
+                  <Icon name="stars" size="sm" className="text-primary mt-1 flex-shrink-0" />
+                  <p className="text-primary font-body font-medium leading-relaxed">
+                    {stats.funFacts.encouragement}
+                  </p>
+                </div>
               </div>
-              <div className="text-gray-600 text-sm">Final Accuracy</div>
-            </div>
+            </GlassPanel>
           </div>
         )}
 
         {/* Map Visualization */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h3 className="text-xl font-serif font-bold text-forest-deep mb-4">
+        <GlassPanel className="p-6 md:p-8 mb-8">
+          <h3 className="text-xl font-black text-white mb-4 font-display flex items-center gap-2">
+            <Icon name="map" size="sm" className="text-primary" />
             Your Journey
           </h3>
-          <div className="h-96 rounded-lg overflow-hidden border border-gray-300">
+          <div className="h-96 rounded-2xl overflow-hidden border border-white/10">
             <ResultsMap
               bounds={game.bounding_box}
               points={points}
@@ -230,11 +289,12 @@ export default function ResultsPage() {
               )}
             />
           </div>
-        </div>
+        </GlassPanel>
 
         {/* Waypoints Summary */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h3 className="text-xl font-serif font-bold text-forest-deep mb-4">
+        <GlassPanel className="p-6 md:p-8 mb-8">
+          <h3 className="text-xl font-black text-white mb-4 font-display flex items-center gap-2">
+            <Icon name="location_on" size="sm" className="text-primary" />
             Waypoints
           </h3>
           <div className="space-y-3">
@@ -243,52 +303,63 @@ export default function ResultsPage() {
               .map((point, index) => (
                 <div
                   key={point.id}
-                  className="flex items-center gap-4 p-3 bg-gray-50 rounded"
+                  className="flex items-center gap-4 p-4 bg-surface-dark-elevated rounded-2xl border border-white/10 hover:border-primary/30 transition-colors"
                 >
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-black ${
                       point.status === "visited"
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-300 text-gray-600"
+                        ? "bg-primary text-background-dark shadow-lg shadow-primary/20"
+                        : "bg-white/10 text-gray-400"
                     }`}
                   >
                     {index + 1}
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium">
+                    <div className="font-bold text-white font-body">
                       Waypoint {index + 1}
                     </div>
-                    <div className="text-sm text-gray-600">
-                      {point.status === "visited" ? "✓ Visited" : "○ Skipped"}
+                    <div className="text-sm text-gray-400 flex items-center gap-1">
+                      {point.status === "visited" ? (
+                        <>
+                          <Icon name="check_circle" size="sm" className="text-primary" />
+                          <span>Visited</span>
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="cancel" size="sm" className="text-gray-500" />
+                          <span>Skipped</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
               ))}
           </div>
-        </div>
+        </GlassPanel>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href="/game/create"
-            className="px-6 py-3 bg-forest-pine text-forest-mist rounded-lg hover:bg-forest-moss transition-colors font-medium text-center"
-          >
-            🎮 Create New Game
+          <Link href="/game/create">
+            <Button variant="primary" size="lg" fullWidth className="sm:w-auto">
+              <Icon name="add_location" size="sm" className="mr-2" />
+              Create New Game
+            </Button>
           </Link>
-          <Link
-            href="/games"
-            className="px-6 py-3 bg-forest-bark text-forest-mist rounded-lg hover:bg-forest-bark/80 transition-colors font-medium text-center"
-          >
-            📋 Back to My Games
+          <Link href="/games">
+            <Button variant="secondary" size="lg" fullWidth className="sm:w-auto">
+              <Icon name="list" size="sm" className="mr-2" />
+              Back to My Games
+            </Button>
           </Link>
-          <Link
-            href="/"
-            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium text-center"
-          >
-            🏠 Home
+          <Link href="/">
+            <Button variant="ghost" size="lg" fullWidth className="sm:w-auto">
+              <Icon name="home" size="sm" className="mr-2" />
+              Home
+            </Button>
           </Link>
         </div>
       </div>
+    </div>
     </main>
   );
 }
