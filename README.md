@@ -29,7 +29,6 @@ Read the [synopsis](./synopsis.md) for more details.
 > Current focus: Single player game polish & testing
 
 - [ ] **Testing & Refinement**: Extensive testing of progressive path generation with various distances and terrains
-- [ ] **Difficulty Settings**: Medium and hard difficulty levels with wider corridors and zig-zag patterns
 - [ ] More rich events for points in addition to proximity check (server-sent events)
 - [ ] "Feel-good" elements (e.g. "You are the first to complete this game!"), encouraging messages, visual rewards, fun facts, comparisons...
 

@@ -565,10 +565,28 @@ export class OSMStrategy implements PointGenerationStrategy {
     const totalDistance = calculateDistance(startingPoint, endPoint);
     console.log(`[OSM] Distance between start and end: ${totalDistance.toFixed(2)}km`);
 
-    // Determine corridor width based on difficulty (currently only 'easy' implemented)
+    // Determine corridor width based on difficulty
     const difficulty = options?.difficulty ?? 'easy';
-    const corridorWidth = totalDistance * CORRIDOR_WIDTH_EASY;
-    console.log(`[OSM] Using corridor width: ${corridorWidth.toFixed(2)}km (${(CORRIDOR_WIDTH_EASY * 100).toFixed(0)}% of distance) for '${difficulty}' difficulty`);
+    let corridorWidth: number;
+    let corridorWidthPercent: number;
+    
+    switch (difficulty) {
+      case 'medium':
+        corridorWidth = totalDistance * CORRIDOR_WIDTH_MEDIUM;
+        corridorWidthPercent = CORRIDOR_WIDTH_MEDIUM * 100;
+        break;
+      case 'hard':
+        corridorWidth = totalDistance * CORRIDOR_WIDTH_HARD;
+        corridorWidthPercent = CORRIDOR_WIDTH_HARD * 100;
+        break;
+      case 'easy':
+      default:
+        corridorWidth = totalDistance * CORRIDOR_WIDTH_EASY;
+        corridorWidthPercent = CORRIDOR_WIDTH_EASY * 100;
+        break;
+    }
+    
+    console.log(`[OSM] Using corridor width: ${corridorWidth.toFixed(2)}km (${corridorWidthPercent.toFixed(0)}% of distance) for '${difficulty}' difficulty`);
 
     // Generate intermediate points using corridor-based progressive path
     console.log(`[OSM] Generating ${numPoints} intermediate points along corridor...`);
@@ -580,9 +598,26 @@ export class OSMStrategy implements PointGenerationStrategy {
       const progress = (i + 1) / (numPoints + 1);
       console.log(`[OSM] Progress: ${(progress * 100).toFixed(1)}%`);
       
-      // Random perpendicular offset for variety (left or right of path)
-      // Range: -corridorWidth to +corridorWidth
-      const lateralOffset = (Math.random() - 0.5) * 2 * corridorWidth;
+      // Calculate lateral offset based on difficulty level
+      let lateralOffset: number;
+      
+      if (difficulty === 'easy') {
+        // Easy: Random lateral offset for variety
+        lateralOffset = (Math.random() - 0.5) * 2 * corridorWidth;
+      } else if (difficulty === 'medium') {
+        // Medium: Add slight zig-zag pattern (alternate sides every other point)
+        // Reduce base offset range to 70% to accommodate zig-zag of ±30%
+        const baseLateralOffset = (Math.random() - 0.5) * 2 * corridorWidth * 0.7;
+        const zigzagOffset = (i % 2 === 0 ? 1 : -1) * corridorWidth * 0.3; // 30% of corridor width
+        lateralOffset = baseLateralOffset + zigzagOffset;
+      } else {
+        // Hard: Add larger zig-zag pattern with alternating direction
+        // Reduce base offset range to 40% to accommodate zig-zag of ±60%
+        const baseLateralOffset = (Math.random() - 0.5) * 2 * corridorWidth * 0.4;
+        const zigzagOffset = (i % 2 === 0 ? 1 : -1) * corridorWidth * 0.6; // 60% of corridor width
+        lateralOffset = baseLateralOffset + zigzagOffset;
+      }
+      
       console.log(`[OSM] Lateral offset: ${lateralOffset >= 0 ? '+' : ''}${lateralOffset.toFixed(3)}km`);
       
       // Calculate candidate point along the corridor

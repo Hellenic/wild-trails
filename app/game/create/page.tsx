@@ -24,6 +24,7 @@ type FormData = {
   playerCount: number;
   gameMasterType: GameMaster;
   playerRole: GameRole;
+  difficulty: "easy" | "medium" | "hard";
 };
 
 export default function CreateGame() {
@@ -40,6 +41,7 @@ export default function CreateGame() {
     gameMasterType: "ai",
     playerRole: "player_a",
     maxDistance: 3,
+    difficulty: "easy",
   });
 
   // Initialize mode from localStorage on mount
@@ -92,6 +94,7 @@ export default function CreateGame() {
           game_mode: "single_player",
           selected_role: formData.playerRole || undefined,
           game_master: formData.gameMasterType,
+          difficulty: formData.difficulty,
           starting_point: formData.startingPoint
             ? {
                 lat: formData.startingPoint.lat,

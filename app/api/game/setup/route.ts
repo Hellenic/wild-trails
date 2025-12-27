@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
         duration: validatedData.duration,
         game_master: validatedData.game_master,
         game_mode: validatedData.game_mode,
+        difficulty: validatedData.difficulty || "easy",
         starting_point: validatedData.starting_point || null,
       })
       .select()
