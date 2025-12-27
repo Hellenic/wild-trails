@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 import { cn } from "@/lib/utils";
 
 export interface InputProps
@@ -10,15 +10,25 @@ export interface InputProps
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, fullWidth = true, className, ...props }, ref) => {
+    const generatedId = useId();
+    const inputId = props.id || generatedId;
+    const errorId = `${inputId}-error`;
+
     return (
       <div className={cn(fullWidth && "w-full")}>
         {label && (
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label
+            htmlFor={inputId}
+            className="block text-sm font-medium text-gray-300 mb-2"
+          >
             {label}
           </label>
         )}
         <input
+          id={inputId}
           ref={ref}
+          aria-describedby={error ? errorId : undefined}
+          aria-invalid={!!error}
           className={cn(
             "h-12 rounded-lg border bg-surface-dark-elevated text-white placeholder:text-gray-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed px-4",
             error
@@ -29,7 +39,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
           {...props}
         />
-        {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+        {error && (
+          <p id={errorId} className="mt-1 text-sm text-red-500">
+            {error}
+          </p>
+        )}
       </div>
     );
   }

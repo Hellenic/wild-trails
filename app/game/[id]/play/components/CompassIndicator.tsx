@@ -1,49 +1,62 @@
 import React from "react";
 import { calculateBearing, getCardinalDirection } from "@/app/background/geo-utils";
+import { Icon } from "@/app/components/ui/Icon";
+import { GlassPanel } from "@/app/components/ui/GlassPanel";
+import { cn } from "@/lib/utils";
 
 interface CompassIndicatorProps {
   playerLocation: { lat: number; lng: number };
   targetLocation: { lat: number; lng: number };
   label?: string;
-  color?: "green" | "blue" | "gold";
+  variant?: "waypoint" | "goal";
 }
 
 export function CompassIndicator({
   playerLocation,
   targetLocation,
   label,
-  color = "blue",
+  variant = "waypoint",
 }: CompassIndicatorProps) {
   const bearing = calculateBearing(playerLocation, targetLocation);
   const direction = getCardinalDirection(bearing);
 
-  const colorClasses = {
-    green: "bg-green-500 text-white border-green-600",
-    blue: "bg-blue-500 text-white border-blue-600",
-    gold: "bg-yellow-500 text-white border-yellow-600",
-  };
-
   return (
-    <div
-      className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 ${colorClasses[color]} shadow-md`}
+    <GlassPanel
+      className={cn(
+        "flex items-center gap-3 px-4 py-2.5 rounded-2xl border transition-all animate-fade-in shadow-xl",
+        variant === "goal" 
+          ? "bg-primary/20 border-primary/40" 
+          : "bg-surface-dark-elevated/80 border-white/10"
+      )}
     >
       {/* Arrow pointing in direction */}
       <div
-        className="text-xl font-bold"
+        className={cn(
+          "flex items-center justify-center transition-all duration-500",
+          variant === "goal" ? "text-primary shadow-[0_0_10px_rgba(19,236,19,0.3)]" : "text-white"
+        )}
         style={{
           transform: `rotate(${bearing}deg)`,
-          transition: "transform 0.3s ease-out",
         }}
       >
-        ↑
+        <Icon name="navigation" size="sm" />
       </div>
       
       {/* Direction info */}
-      <div className="text-sm">
-        <div className="font-bold">{direction}</div>
-        {label && <div className="text-xs opacity-90">{label}</div>}
+      <div className="flex flex-col">
+        <div className={cn(
+          "text-xs font-black uppercase tracking-widest leading-none mb-1",
+          variant === "goal" ? "text-primary" : "text-white"
+        )}>
+          {direction}
+        </div>
+        {label && (
+          <div className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter truncate max-w-[80px]">
+            {label}
+          </div>
+        )}
       </div>
-    </div>
+    </GlassPanel>
   );
 }
 
@@ -61,27 +74,27 @@ export function CompassOverlay({
   if (!playerLocation) return null;
 
   return (
-    <div className="absolute top-20 left-4 z-20 space-y-2">
-      {/* Show compass to visited points */}
-      {visitedPoints.slice(-3).map((point, index) => (
-        <CompassIndicator
-          key={point.id}
-          playerLocation={playerLocation}
-          targetLocation={{ lat: point.latitude, lng: point.longitude }}
-          label={point.label || `Point ${index + 1}`}
-          color="green"
-        />
-      ))}
-
-      {/* Show compass to goal if visible */}
+    <div className="absolute top-4 left-4 z-20 space-y-3 pointer-events-none">
+      {/* Show compass to goal if visible - Goal prioritized at top */}
       {goalLocation && (
         <CompassIndicator
           playerLocation={playerLocation}
           targetLocation={goalLocation}
-          label="Goal"
-          color="gold"
+          label="The Goal"
+          variant="goal"
         />
       )}
+
+      {/* Show compass to visited points */}
+      {visitedPoints.slice(-2).reverse().map((point, index) => (
+        <CompassIndicator
+          key={point.id}
+          playerLocation={playerLocation}
+          targetLocation={{ lat: point.latitude, lng: point.longitude }}
+          label={point.label || `Waypoint ${visitedPoints.length - index}`}
+          variant="waypoint"
+        />
+      ))}
     </div>
   );
 }

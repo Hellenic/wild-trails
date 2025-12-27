@@ -18,6 +18,9 @@ import { createClient } from "@/lib/supabase/client";
 import { playWaypointFound, triggerHaptic } from "@/lib/audio/sounds";
 import { CompassOverlay } from "./components/CompassIndicator";
 import { calculateDistance } from "@/app/background/geo-utils";
+import { Icon } from "@/app/components/ui/Icon";
+import { Button } from "@/app/components/ui/Button";
+import { GlassPanel } from "@/app/components/ui/GlassPanel";
 
 type Params = {
   id: string;
@@ -117,17 +120,23 @@ export default function GameScreen() {
 
   if (playerLoading || gameDetailsLoading || pointsLoading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center text-forest-deep">Loading...</div>
+      <main className="min-h-screen flex items-center justify-center dark:bg-background-dark bg-background-light">
+        <div className="text-center">
+          <div className="animate-pulse">
+            <Icon name="terrain" size="xl" className="text-primary mb-4" />
+            <div className="text-white">Loading game...</div>
+          </div>
+        </div>
       </main>
     );
   }
 
   if (!player) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center text-forest-deep">
-          You are not a player in this game.
+      <main className="min-h-screen flex items-center justify-center dark:bg-background-dark bg-background-light">
+        <div className="text-center text-white">
+          <Icon name="error" size="lg" className="text-red-400 mb-4" />
+          <p>You are not a player in this game.</p>
         </div>
       </main>
     );
@@ -135,8 +144,11 @@ export default function GameScreen() {
 
   if (!gameDetails) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center text-forest-deep">Game not found.</div>
+      <main className="min-h-screen flex items-center justify-center dark:bg-background-dark bg-background-light">
+        <div className="text-center text-white">
+          <Icon name="search_off" size="lg" className="text-gray-400 mb-4" />
+          <p>Game not found.</p>
+        </div>
       </main>
     );
   }
@@ -144,22 +156,37 @@ export default function GameScreen() {
   // Redirect to setup if game hasn't started yet
   if (gameDetails.status !== "active" || !gameDetails.started_at) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="text-forest-deep mb-4">
-            <h2 className="text-2xl font-bold mb-2">Game Not Started</h2>
-            <p className="text-forest-deep/70">
+      <main className="min-h-screen dark:bg-background-dark bg-background-light relative flex items-center justify-center">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-background-dark via-surface-dark to-background-dark opacity-95" />
+          <div
+            className="absolute inset-0 opacity-10"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2313ec13' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            }}
+          />
+        </div>
+
+        <div className="relative z-10 w-full max-w-md p-4">
+          <GlassPanel className="p-8 text-center">
+            <Icon name="hourglass_empty" size="xl" className="text-primary mb-6" />
+            <h2 className="text-2xl font-black text-white mb-4 tracking-tight">Game Not Started</h2>
+            <p className="text-gray-400 mb-8 leading-relaxed">
               {gameDetails.status === "setup" && gameDetails.game_master === "ai"
                 ? "The AI is currently generating waypoints for your adventure. This usually takes a few moments."
                 : "This game hasn't been started yet. Please wait for the game master to start the game."}
             </p>
-          </div>
-          <button
-            onClick={() => router.push(`/game/${id}/setup`)}
-            className="mt-4 px-6 py-2 bg-forest-pine text-forest-mist rounded-lg hover:bg-forest-deep transition-colors"
-          >
-            Go to Setup
-          </button>
+            <Button
+              variant="primary"
+              fullWidth
+              size="lg"
+              onClick={() => router.push(`/game/${id}/setup`)}
+            >
+              <Icon name="settings" size="sm" className="mr-2" />
+              Go to Setup
+            </Button>
+          </GlassPanel>
         </div>
       </main>
     );
@@ -195,55 +222,74 @@ export default function GameScreen() {
   };
 
   return (
-    <main className="relative h-screen w-full bg-background flex flex-col">
-      <div className="h-[5vh] flex justify-between items-center px-4">
+    <main className="relative h-screen w-full dark:bg-background-dark bg-background-light flex flex-col overflow-hidden">
+      {/* Background Pattern (Subtle) */}
+      <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-background-dark via-surface-dark to-background-dark" />
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2313ec13' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
+      </div>
+
+      <div className="relative z-10 h-[6vh] flex justify-between items-center px-4 bg-surface-dark/40 backdrop-blur-md border-b border-white/5 shadow-lg">
         <TimeDisplay
           startedAt={new Date(gameDetails.started_at ?? "")}
           durationMinutes={gameDetails.duration}
         />
-        <button
-          className="p-2 text-forest-deep hover:bg-forest-light/10 rounded-full transition-colors z-20"
+        <Button
+          variant="ghost"
+          size="sm"
+          className="p-2 text-white hover:bg-white/10 rounded-full transition-all"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
+          aria-label="Menu"
         >
-          ☰
-        </button>
+          <Icon name={isMenuOpen ? "close" : "menu"} size="sm" />
+        </Button>
       </div>
 
       {/* Location Error Banner */}
       {locationError && (
-        <div className="absolute top-[5vh] left-0 right-0 z-30 px-4 py-2">
-          <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded-lg shadow-lg flex items-start space-x-2">
-            <span className="text-lg">⚠️</span>
-            <div className="flex-1">
-              <p className="text-sm font-medium">GPS Issue</p>
-              <p className="text-xs mt-1">{locationError}</p>
-              <p className="text-xs mt-2 font-medium">
-                Try: Moving outside, clear view of sky, or check device location settings
-              </p>
+        <div className="absolute top-[7vh] left-4 right-4 z-30 animate-fade-in">
+          <GlassPanel className="bg-red-950/40 border-red-500/50 p-4 shadow-xl backdrop-blur-xl">
+            <div className="flex items-start gap-3">
+              <div className="bg-red-500/20 p-2 rounded-lg">
+                <Icon name="warning" size="sm" className="text-red-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-black text-white uppercase tracking-wider">GPS Issue</p>
+                <p className="text-sm text-red-100 mt-1 leading-relaxed font-medium">{locationError}</p>
+                <p className="text-[10px] mt-2 font-black text-red-400 uppercase tracking-widest bg-red-500/10 inline-block px-2 py-0.5 rounded">
+                  Try: Moving outside, clear view of sky
+                </p>
+              </div>
             </div>
-          </div>
+          </GlassPanel>
         </div>
       )}
 
       {/* Low Accuracy Warning */}
       {!locationError && locationAccuracy && locationAccuracy > 50 && (
-        <div className="absolute top-[5vh] left-0 right-0 z-30 px-4 py-2">
-          <div className="bg-amber-100 border border-amber-400 text-amber-800 px-4 py-3 rounded-lg shadow-lg flex items-start space-x-2">
-            <span className="text-lg">📍</span>
-            <div className="flex-1">
-              <p className="text-sm font-medium">Low GPS Accuracy</p>
-              <p className="text-xs mt-1">
-                Current accuracy: ±{Math.round(locationAccuracy)}m. Results may be imprecise.
-              </p>
-              <p className="text-xs mt-1 opacity-75">
-                For best results, ensure clear view of the sky
-              </p>
+        <div className="absolute top-[7vh] left-4 right-4 z-30 animate-fade-in">
+          <GlassPanel className="bg-amber-950/40 border-amber-500/50 p-4 shadow-xl backdrop-blur-xl">
+            <div className="flex items-start gap-3">
+              <div className="bg-amber-500/20 p-2 rounded-lg">
+                <Icon name="location_searching" size="sm" className="text-amber-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-black text-white uppercase tracking-wider">Low GPS Accuracy</p>
+                <p className="text-sm text-amber-100 mt-1 leading-relaxed font-medium">
+                  Accuracy: ±{Math.round(locationAccuracy)}m. Results may be imprecise.
+                </p>
+              </div>
             </div>
-          </div>
+          </GlassPanel>
         </div>
       )}
 
-      <div className="flex-grow h-[95vh]">
+      <div className="flex-grow h-[94vh] relative">
         <GameMap
           bounds={gameDetails.bounding_box}
           playerLocation={showOwnLocation ? playerLocation : null}
@@ -296,16 +342,19 @@ export default function GameScreen() {
 
       {/* Giving Up Overlay */}
       {isGivingUp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg shadow-xl p-8 text-center max-w-sm">
-            <div className="text-4xl mb-4">🏳️</div>
-            <h3 className="text-xl font-bold text-forest-deep mb-2">
-              Revealing Goal Location
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in">
+          <GlassPanel className="p-10 text-center max-w-sm mx-4">
+            <Icon name="flag" size="xl" className="text-red-400 mb-6" />
+            <h3 className="text-2xl font-black text-white mb-4 tracking-tight">
+              Revealing Goal
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-400 leading-relaxed">
               The goal marker is now visible on the map. Redirecting to results...
             </p>
-          </div>
+            <div className="mt-8 flex justify-center">
+              <Icon name="progress_activity" size="md" className="text-primary animate-spin" />
+            </div>
+          </GlassPanel>
         </div>
       )}
     </main>

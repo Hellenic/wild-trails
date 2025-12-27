@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import type { GamePoint } from "@/hooks/usePoints";
+import { Icon } from "@/app/components/ui/Icon";
+import { Button } from "@/app/components/ui/Button";
+import { GlassPanel } from "@/app/components/ui/GlassPanel";
+import { cn } from "@/lib/utils";
 
 type GameStats = {
   showOwnLocation: boolean;
@@ -38,118 +42,156 @@ export function DrawerMenu({
   };
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 bg-white h-[80vh] rounded-t-3xl shadow-lg overflow-y-auto">
-      <div className="p-6 space-y-6">
-        <div className="space-y-4">
-          <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <span className="text-gray-700">Show own location</span>
-            <input
-              type="checkbox"
-              checked={stats.showOwnLocation}
-              onChange={onShowOwnLocation}
-              className="w-5 h-5 accent-forest-deep"
-            />
-          </label>
+    <div className="absolute bottom-0 left-0 right-0 z-50 h-[80vh] animate-slide-up">
+      <GlassPanel className="h-full rounded-t-[32px] rounded-b-none border-t border-white/10 overflow-y-auto shadow-[0_-20px_50px_rgba(0,0,0,0.6)] bg-background-dark/90 backdrop-blur-xl">
+        <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mt-4 mb-6" />
+        
+        <div className="p-6 md:p-8 space-y-8">
+          {/* Controls */}
+          <div className="grid grid-cols-1 gap-3">
+            <label className="flex items-center justify-between p-4 bg-surface-dark-elevated rounded-2xl border border-white/5 cursor-pointer hover:border-primary/30 transition-all group">
+              <div className="flex items-center gap-3">
+                <Icon name="my_location" size="sm" className="text-primary group-hover:scale-110 transition-transform" />
+                <span className="text-sm font-bold text-white">Show own location</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={stats.showOwnLocation}
+                onChange={onShowOwnLocation}
+                className="w-6 h-6 rounded-md border-2 border-white/10 bg-background-dark text-primary focus:ring-primary focus:ring-offset-0 transition-all cursor-pointer"
+              />
+            </label>
 
-          <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <span className="text-gray-700">Show goal</span>
-            <input
-              type="checkbox"
-              checked={stats.showGoal}
-              onChange={onShowGoal}
-              className="w-5 h-5 accent-forest-deep"
-            />
-          </label>
-        </div>
-
-        <div className="space-y-4 mt-6">
-          <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
-            <span className="text-gray-700">Points visited</span>
-            <span className="font-medium text-forest-deep">
-              {stats.pointsVisited}/{stats.totalPoints}
-            </span>
+            <label className="flex items-center justify-between p-4 bg-surface-dark-elevated rounded-2xl border border-white/5 cursor-pointer hover:border-primary/30 transition-all group">
+              <div className="flex items-center gap-3">
+                <Icon name="flag" size="sm" className="text-primary group-hover:scale-110 transition-transform" />
+                <span className="text-sm font-bold text-white">Show goal (Cheat)</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={stats.showGoal}
+                onChange={onShowGoal}
+                className="w-6 h-6 rounded-md border-2 border-white/10 bg-background-dark text-primary focus:ring-primary focus:ring-offset-0 transition-all cursor-pointer"
+              />
+            </label>
           </div>
 
-          <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
-            <span className="text-gray-700">Distance traveled</span>
-            <span className="font-medium text-forest-deep">
-              {stats.distanceTraveled}
-            </span>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 bg-surface-dark-elevated/50 rounded-2xl border border-white/5">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Waypoints</p>
+              <div className="flex items-end justify-between">
+                <span className="text-2xl font-black text-white">{stats.pointsVisited}/{stats.totalPoints}</span>
+                <Icon name="location_on" size="sm" className="text-primary/60" />
+              </div>
+            </div>
+            <div className="p-4 bg-surface-dark-elevated/50 rounded-2xl border border-white/5">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Distance</p>
+              <div className="flex items-end justify-between">
+                <span className="text-2xl font-black text-white">{stats.distanceTraveled}</span>
+                <Icon name="straighten" size="sm" className="text-primary/60" />
+              </div>
+            </div>
+            {stats.estimatedDistanceRemaining && (
+              <div className="col-span-full p-4 bg-primary/10 rounded-2xl border border-primary/30">
+                <p className="text-[10px] font-black uppercase tracking-widest text-primary/80 mb-1">Est. Distance to Goal</p>
+                <div className="flex items-end justify-between">
+                  <span className="text-2xl font-black text-primary drop-shadow-[0_0_8px_rgba(19,236,19,0.3)]">{stats.estimatedDistanceRemaining}</span>
+                  <Icon name="explore" size="sm" className="text-primary/60" />
+                </div>
+              </div>
+            )}
           </div>
 
-          {stats.estimatedDistanceRemaining && (
-            <div className="flex justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <span className="text-blue-700 font-medium">Est. distance to goal</span>
-              <span className="font-bold text-blue-900">
-                {stats.estimatedDistanceRemaining}
-              </span>
+          {/* Hints Section */}
+          {hints.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 px-1">
+                <Icon name="tips_and_updates" size="sm" className="text-primary" />
+                <h3 className="text-lg font-black text-white uppercase tracking-tight">
+                  Discovered Hints ({hints.length})
+                </h3>
+              </div>
+              <div className="space-y-3">
+                {hints.slice().reverse().map((hint, index) => {
+                  const isLatest = index === 0;
+                  const pointNumber = hints.length - index;
+                  const isExpanded = expandedHints.has(hint.pointId) || isLatest;
+
+                  return (
+                    <div
+                      key={hint.pointId}
+                      className={cn(
+                        "rounded-2xl border transition-all overflow-hidden",
+                        isLatest
+                          ? "bg-primary/10 border-primary/40 shadow-[0_0_20px_rgba(19,236,19,0.15)]"
+                          : "bg-surface-dark-elevated/50 border-white/10"
+                      )}
+                    >
+                      <button
+                        onClick={() => toggleHint(hint.pointId)}
+                        className="w-full flex justify-between items-center p-4 text-left group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-inner",
+                            isLatest ? "bg-primary text-background-dark" : "bg-white/20 text-white"
+                          )}>
+                            {pointNumber}
+                          </div>
+                          <span className={cn(
+                            "font-bold text-sm",
+                            isLatest ? "text-primary" : "text-white"
+                          )}>
+                            Waypoint Hint
+                            {isLatest && <span className="ml-2 text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full uppercase tracking-widest font-black">Latest</span>}
+                          </span>
+                        </div>
+                        <Icon 
+                          name={isExpanded ? "expand_less" : "expand_more"} 
+                          size="sm" 
+                          className={cn("transition-transform", isLatest ? "text-primary" : "text-gray-400")} 
+                        />
+                      </button>
+                      {isExpanded && (
+                        <div className="px-4 pb-4 pt-0">
+                          <div className="p-4 bg-background-dark/60 rounded-xl border border-white/5 text-sm text-gray-200 leading-relaxed font-medium">
+                            &quot;{hint.hint}&quot;
+                          </div>
+                          <div className="mt-3 flex justify-end">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                              {new Date(hint.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Give Up Button */}
+          {onGiveUp && (
+            <div className="pt-6 border-t border-white/10">
+              <Button
+                variant="ghost"
+                fullWidth
+                size="lg"
+                onClick={onGiveUp}
+                className="bg-red-500/20 text-red-100 border border-red-500/40 hover:bg-red-500/30 hover:border-red-500/60 rounded-2xl font-black uppercase tracking-wider"
+              >
+                <Icon name="flag" size="sm" className="mr-2" />
+                Reveal Goal Location
+              </Button>
+              <p className="text-[10px] font-black text-gray-500 text-center mt-3 uppercase tracking-[0.2em]">
+                Warning: This will end the current game
+              </p>
             </div>
           )}
         </div>
-
-        {/* Hints Section */}
-        {hints.length > 0 && (
-          <div className="mt-6">
-            <h3 className="text-lg font-bold text-forest-deep mb-3">
-              Collected Hints ({hints.length})
-            </h3>
-            <div className="space-y-3">
-              {hints.slice().reverse().map((hint, index) => {
-                const isLatest = index === 0;
-                const pointNumber = hints.length - index;
-                const isExpanded = expandedHints.has(hint.pointId) || isLatest;
-
-                return (
-                  <div
-                    key={hint.pointId}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      isLatest
-                        ? "bg-green-50 border-green-400"
-                        : "bg-gray-50 border-gray-200"
-                    }`}
-                  >
-                    <button
-                      onClick={() => toggleHint(hint.pointId)}
-                      className="w-full flex justify-between items-center text-left"
-                    >
-                      <span className="font-medium text-forest-deep">
-                        {isLatest ? "🆕 " : ""}Hint {pointNumber}
-                        {isLatest && <span className="ml-2 text-xs text-green-700">(Latest)</span>}
-                      </span>
-                      <span className="text-xl">{isExpanded ? "−" : "+"}</span>
-                    </button>
-                    {isExpanded && (
-                      <div className="mt-2 text-sm text-gray-700 leading-relaxed">
-                        {hint.hint}
-                      </div>
-                    )}
-                    {isExpanded && (
-                      <div className="mt-2 text-xs text-gray-500">
-                        {new Date(hint.timestamp).toLocaleTimeString()}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Give Up Button */}
-        {onGiveUp && (
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <button
-              onClick={onGiveUp}
-              className="w-full px-6 py-3 bg-red-100 text-red-700 border-2 border-red-300 rounded-lg hover:bg-red-200 transition-colors font-medium"
-            >
-              🏳️ Reveal Goal Location
-            </button>
-            <p className="text-xs text-gray-500 text-center mt-2">
-              This will end the game and show you the goal location
-            </p>
-          </div>
-        )}
-      </div>
+      </GlassPanel>
     </div>
   );
 }

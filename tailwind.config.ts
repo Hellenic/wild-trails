@@ -28,6 +28,16 @@ export default {
           dark: "#1a2c1a",
           "dark-elevated": "#283928",
         },
+        // Card and accent colors (matching design system)
+        card: {
+          dark: "#1c271c",
+        },
+        accent: {
+          dark: "#283928",
+        },
+        text: {
+          subtle: "#9db99d",
+        },
         // Legacy forest colors (for gradual migration)
         forest: {
           deep: "#1a2f25",

@@ -5,6 +5,7 @@ import { DefaultChatTransport } from "ai";
 import { useChat } from "@ai-sdk/react";
 import { useRouter } from "next/navigation";
 import { GAME_CREATION_WELCOME_MESSAGE } from "@/lib/ai/prompts";
+import { Button } from "./ui";
 
 // Type for the create_game tool output
 interface CreateGameOutput {
@@ -221,16 +222,14 @@ export function ChatGameCreation() {
                      focus:outline-none focus:ring-2 focus:ring-forest-pine 
                      focus:border-transparent text-forest-deep"
           />
-          <button
+          <Button
             type="submit"
             disabled={!input.trim()}
-            className="px-6 py-2 bg-forest-pine text-forest-mist rounded-lg 
-                     hover:bg-forest-deep transition-colors duration-200
-                     disabled:opacity-50 disabled:cursor-not-allowed
-                     font-medium"
+            variant="primary"
+            size="sm"
           >
             Send
-          </button>
+          </Button>
         </div>
         <p className="text-xs text-forest-deep/80 mt-2 font-medium">
           💡 Tip: Describe your ideal adventure, and I&apos;ll help you set it up!

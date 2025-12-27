@@ -15,9 +15,48 @@ describe("Input Component", () => {
     expect(screen.getByRole("textbox")).toBeInTheDocument();
   });
 
+  it("associates label with input via id", () => {
+    render(<Input label="Username" id="user-input" />);
+    const label = screen.getByText("Username");
+    const input = screen.getByRole("textbox");
+
+    expect(label).toHaveAttribute("for", "user-input");
+    expect(input).toHaveAttribute("id", "user-input");
+  });
+
+  it("generates unique id when none provided", () => {
+    render(<Input label="Username" />);
+    const label = screen.getByText("Username");
+    const input = screen.getByRole("textbox");
+
+    const id = input.getAttribute("id");
+    expect(id).toBeTruthy();
+    expect(label).toHaveAttribute("for", id);
+  });
+
+  it("focuses input when label is clicked", async () => {
+    const user = userEvent.setup();
+    render(<Input label="Username" />);
+    const label = screen.getByText("Username");
+    const input = screen.getByRole("textbox");
+
+    await user.click(label);
+    expect(input).toHaveFocus();
+  });
+
   it("displays error message", () => {
     render(<Input label="Email" error="Invalid email" />);
     expect(screen.getByText("Invalid email")).toBeInTheDocument();
+  });
+
+  it("associates error message with input via aria-describedby", () => {
+    render(<Input label="Email" error="Invalid email" id="email-input" />);
+    const input = screen.getByRole("textbox");
+    const error = screen.getByText("Invalid email");
+
+    expect(input).toHaveAttribute("aria-describedby", "email-input-error");
+    expect(error).toHaveAttribute("id", "email-input-error");
+    expect(input).toHaveAttribute("aria-invalid", "true");
   });
 
   it("applies error styles when error is present", () => {

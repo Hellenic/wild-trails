@@ -169,21 +169,17 @@ export function GameSettings({
 
       <div className="flex justify-between pt-4">
         <Button type="button" onClick={onBack} variant="ghost">
-          <Icon name="arrow_back" className="mr-2 text-lg" />
+          <Icon name="arrow_back" size="sm" className="mr-2" />
           Back
         </Button>
-        <Button type="submit" disabled={pending} variant="primary">
-          {pending ? (
-            <>
-              <Icon name="progress_activity" className="mr-2 text-lg animate-spin" />
-              Creating...
-            </>
-          ) : (
-            <>
-              <Icon name="check_circle" className="mr-2 text-lg" />
-              Create Game
-            </>
-          )}
+        <Button
+          type="submit"
+          isLoading={pending}
+          loadingText="Creating..."
+          variant="primary"
+        >
+          <Icon name="check_circle" size="sm" className="mr-2" />
+          Create Game
         </Button>
       </div>
     </form>

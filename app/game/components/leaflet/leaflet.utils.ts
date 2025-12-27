@@ -30,10 +30,10 @@ export const getMarkerIcon = (
   index?: number
 ) => {
   const colors = {
-    start: "bg-green-500",
+    start: "bg-primary",
     destination: "bg-red-500",
-    visited: "bg-blue-500",
-    unvisited: "bg-gray-400",
+    visited: "bg-primary",
+    unvisited: "bg-gray-500",
     player: "bg-yellow-500",
   };
 
