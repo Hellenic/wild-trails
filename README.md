@@ -31,10 +31,16 @@ Read the [synopsis](./synopsis.md) for more details.
 - [ ] **Testing & Refinement**: Extensive testing of progressive path generation with various distances and terrains
 - [ ] **Difficulty Settings**: Medium and hard difficulty levels with wider corridors and zig-zag patterns
 - [ ] More rich events for points in addition to proximity check (server-sent events)
-- [ ] Finalize game creation flow; single player mode player cannot be GM. Without role, if you join game possible.
-- [ ] Curated list of games? Similar to "kiintorastit", could use existing orienteering points and/or geocaches
-- [ ] Rewards for completing games (e.g. badges, personal records, points, achievements, virtual collectibles)
 - [ ] "Feel-good" elements (e.g. "You are the first to complete this game!"), encouraging messages, visual rewards, fun facts, comparisons...
+
+### Roadmap
+
+- [ ] Multiplayer game - [.cursor/plans/multiplayer_phase_2a+2b_2f97d51f.plan.md]
+- [ ] Native mobile app - [.cursor/plans/native_mobile_client_with_expo_7312b0da.plan.md] (Designs exist in Stitch)
+- [ ] Crawler for rich, existing game points - [.cursor/plans/content_ingestion_scraper_system_bb341af8.plan.md]
+- [ ] Curated & public games - [.cursor/plans/public_templates_&_curated_games_6356b520.plan.md]
+- [ ] Social features (e.g. friend list, scoreboards)
+- [ ] Rewards for completing games (e.g. badges, personal records, points, achievements, XP, virtual collectibles)
 
 ## Future features?
  - Critical line + time to get to the line
