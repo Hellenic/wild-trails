@@ -63,16 +63,16 @@ export default function DebugPage() {
 
   if (playerLoading || gameDetailsLoading || pointsLoading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center text-forest-deep">Loading...</div>
+      <main className="min-h-screen flex items-center justify-center dark:bg-background-dark bg-background-light">
+        <div className="text-center text-white">Loading...</div>
       </main>
     );
   }
 
   if (!player) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center text-forest-deep">
+      <main className="min-h-screen flex items-center justify-center dark:bg-background-dark bg-background-light">
+        <div className="text-center text-white">
           You are not player in this game.
         </div>
       </main>
@@ -81,8 +81,8 @@ export default function DebugPage() {
 
   if (!gameDetails) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center text-forest-deep">Game not found</div>
+      <main className="min-h-screen flex items-center justify-center dark:bg-background-dark bg-background-light">
+        <div className="text-center text-white">Game not found</div>
       </main>
     );
   }
@@ -95,7 +95,7 @@ export default function DebugPage() {
     : undefined;
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen dark:bg-background-dark bg-background-light">
       <div className="h-[800px] relative">
         <GameMasterMap
           desiredStartingPoint={desiredStartingPoint}

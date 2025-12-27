@@ -86,7 +86,27 @@ class SoundManager {
   }
 
   /**
-   * Get user preference from localStorage or user metadata
+   * Get user preference from user metadata
+   * This should be called after user authentication
+   */
+  async loadPreferenceFromAuth(): Promise<void> {
+    try {
+      if (typeof window === "undefined") return;
+
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      const { data } = await supabase.auth.getUser();
+      
+      if (data.user?.user_metadata?.preferences?.sound_effects_enabled !== undefined) {
+        this.enabled = data.user.user_metadata.preferences.sound_effects_enabled;
+      }
+    } catch (error) {
+      console.error("Failed to load sound preference from auth:", error);
+    }
+  }
+
+  /**
+   * Get user preference from localStorage (fallback)
    */
   loadPreference(): void {
     try {
@@ -115,13 +135,15 @@ class SoundManager {
 // Singleton instance
 export const soundManager = new SoundManager();
 
-// Load preferences on initialization
+// Load preferences on initialization (fallback from localStorage)
+// Primary preference loading is handled by SoundManagerProvider in the app
 if (typeof window !== "undefined") {
   soundManager.loadPreference();
 }
 
 /**
  * Play waypoint discovery sound
+ * Respects user's sound preferences set via SoundManagerProvider
  */
 export async function playWaypointFound(): Promise<void> {
   await soundManager.playSimple("/sounds/waypoint-found.mp3");
@@ -129,6 +151,7 @@ export async function playWaypointFound(): Promise<void> {
 
 /**
  * Play goal discovery sound
+ * Respects user's sound preferences set via SoundManagerProvider
  */
 export async function playGoalFound(): Promise<void> {
   await soundManager.playSimple("/sounds/goal-found.mp3");

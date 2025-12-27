@@ -4,8 +4,10 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/useUser";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import type { Game, GameStatus } from "@/types/game";
 import { useRouter } from "next/navigation";
+import { formatDistanceFromMeters } from "@/lib/utils/distance";
 import { Button } from "@/app/components/ui/Button";
 import { Icon } from "@/app/components/ui/Icon";
 import { GlassPanel } from "@/app/components/ui/GlassPanel";
@@ -14,6 +16,7 @@ type GameListItem = Game;
 
 export default function GamesPage() {
   const { user, loading: userLoading } = useUser();
+  const { preferences } = useUserPreferences();
   const router = useRouter();
   const supabase = createClient();
   
@@ -140,10 +143,7 @@ export default function GamesPage() {
   };
 
   const formatDistance = (meters: number) => {
-    if (meters >= 1000) {
-      return `${(meters / 1000).toFixed(1)} km`;
-    }
-    return `${Math.round(meters)} m`;
+    return formatDistanceFromMeters(meters, preferences.distance_unit);
   };
 
   const formatDuration = (minutes: number) => {

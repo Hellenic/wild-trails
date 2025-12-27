@@ -10,6 +10,7 @@ import type {
   UserMetadata,
 } from "@/types/user";
 import { parseUserProfile, DEFAULT_USER_PREFERENCES } from "@/types/user";
+import { formatDistance } from "@/lib/utils/distance";
 import { Button } from "@/app/components/ui/Button";
 import { Icon } from "@/app/components/ui/Icon";
 import { GlassPanel } from "@/app/components/ui/GlassPanel";
@@ -397,9 +398,9 @@ export default function ProfilePage() {
               </div>
               <div className="text-center p-6 bg-surface-dark-elevated rounded-xl border border-white/10">
                 <div className="text-4xl font-black text-primary mb-2">
-                  {stats.totalDistance.toFixed(1)}
+                  {formatDistance(stats.totalDistance, profile.preferences.distance_unit)}
                 </div>
-                <div className="text-sm text-gray-400">Total Distance (km)</div>
+                <div className="text-sm text-gray-400">Total Distance</div>
               </div>
             </div>
           </GlassPanel>

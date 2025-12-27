@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/useUser";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import type { Game, GamePoint } from "@/types/game";
 import { calculateDistance } from "@/app/background/geo-utils";
 import { getJourneyComparison, getNatureFact, getEncouragingMessage } from "@/lib/game/fun-facts";
+import { formatDistance, formatDistanceFromMeters } from "@/lib/utils/distance";
 import { Icon } from "@/app/components/ui/Icon";
 import { GlassPanel } from "@/app/components/ui/GlassPanel";
 import { Button } from "@/app/components/ui/Button";
@@ -30,6 +32,7 @@ export default function ResultsPage() {
   const router = useRouter();
   const gameId = params.id as string;
   const { user, loading: userLoading } = useUser();
+  const { preferences } = useUserPreferences();
   const supabase = createClient();
 
   const [game, setGame] = useState<Game | null>(null);
@@ -145,7 +148,7 @@ export default function ResultsPage() {
 
     return {
       totalTime: `${hours}h ${minutes}m`,
-      distanceTraveled: totalDistance.toFixed(2),
+      distanceTraveled: formatDistance(totalDistance, preferences.distance_unit),
       visitedWaypoints,
       totalWaypoints,
       finalAccuracy: Math.round(finalAccuracy),
@@ -160,22 +163,21 @@ export default function ResultsPage() {
 
   if (userLoading || loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center text-foreground">Loading results...</div>
+      <main className="min-h-screen flex items-center justify-center dark:bg-background-dark bg-background-light">
+        <div className="text-center text-white">Loading results...</div>
       </main>
     );
   }
 
   if (error || !game) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
+      <main className="min-h-screen flex items-center justify-center dark:bg-background-dark bg-background-light">
         <div className="text-center">
           <div className="text-red-600 mb-4">{error || "Game not found"}</div>
-          <Link
-            href="/games"
-            className="inline-block px-6 py-3 bg-forest-pine text-forest-mist rounded-lg hover:bg-forest-moss transition-colors"
-          >
-            Back to My Games
+          <Link href="/games">
+            <Button variant="primary" size="lg">
+              Back to My Games
+            </Button>
           </Link>
         </div>
       </main>
@@ -215,7 +217,7 @@ export default function ResultsPage() {
               </GlassPanel>
               <GlassPanel className="p-6 text-center">
                 <div className="text-3xl font-black text-white mb-2">
-                  {stats.distanceTraveled} km
+                  {stats.distanceTraveled}
                 </div>
                 <div className="text-gray-400 text-sm font-body uppercase tracking-wider">Distance Traveled</div>
               </GlassPanel>
@@ -227,7 +229,7 @@ export default function ResultsPage() {
               </GlassPanel>
               <GlassPanel className="p-6 text-center">
                 <div className="text-3xl font-black text-white mb-2">
-                  {stats.finalAccuracy}m
+                  {formatDistanceFromMeters(stats.finalAccuracy, preferences.distance_unit, 0)}
                 </div>
                 <div className="text-gray-400 text-sm font-body uppercase tracking-wider">Final Accuracy</div>
               </GlassPanel>

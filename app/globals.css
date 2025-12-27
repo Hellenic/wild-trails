@@ -21,14 +21,6 @@
   --card-dark: #1c271c;
   --accent-dark: #283928;
   --text-subtle: #9db99d;
-  
-  /* Legacy forest colors (for gradual migration) */
-  --deep-forest: #1a2f25;
-  --pine-green: #2c4a3c;
-  --moss-green: #4a6741;
-  --bark-brown: #8b4513;
-  --warm-wood: #deb887;
-  --forest-mist: #e8eee7;
 }
 
 html {

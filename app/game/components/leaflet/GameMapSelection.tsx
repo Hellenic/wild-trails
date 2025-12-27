@@ -6,6 +6,7 @@ import { LatLngTuple } from "leaflet";
 import { LatLng as CustomLatLng } from "@/utils/map";
 import { getMarkerIcon } from "./leaflet.utils";
 import { MapTileLayers } from "./MapTileLayers";
+import { Button } from "@/app/components/ui";
 
 type GameMapSelectionFormData = {
   mapArea?: Game["bounding_box"];
@@ -94,21 +95,23 @@ export default function GameMapSelection({
       </div>
 
       <div className="flex justify-between">
-        <button
+        <Button
           type="button"
           onClick={onBack}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+          variant="secondary"
+          size="md"
         >
           Back
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={onNext}
           disabled={!formData.mapArea}
-          className="bg-forest-pine text-forest-mist px-4 py-2 rounded-md hover:bg-forest-moss disabled:bg-gray-300"
+          variant="primary"
+          size="md"
         >
           Next
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import { useGameDetails } from "@/hooks/useGame";
 import { usePoints, type GamePoint } from "@/hooks/usePoints";
 import { usePlayerLocation } from "@/hooks/usePlayerLocation";
 import { useProximityEvents } from "@/hooks/useProximityEvents";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { TimeDisplay } from "./components/TimeDisplay";
 import { GoalFoundPopup } from "./components/GoalFoundPopup";
 import { DrawerMenu } from "./components/DrawerMenu";
@@ -18,6 +19,7 @@ import { createClient } from "@/lib/supabase/client";
 import { playWaypointFound, triggerHaptic } from "@/lib/audio/sounds";
 import { CompassOverlay } from "./components/CompassIndicator";
 import { calculateDistance } from "@/app/background/geo-utils";
+import { formatDistance, formatDistanceFromMeters } from "@/lib/utils/distance";
 import { Icon } from "@/app/components/ui/Icon";
 import { Button } from "@/app/components/ui/Button";
 import { GlassPanel } from "@/app/components/ui/GlassPanel";
@@ -33,6 +35,7 @@ export default function GameScreen() {
   const { gameDetails, loading: gameDetailsLoading } = useGameDetails(id);
   const { locations } = usePlayerLocation(id);
   const { points, loading: pointsLoading } = usePoints(id);
+  const { preferences } = useUserPreferences();
   const [goalFound, setGoalFound] = useState<GamePoint | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showGiveUpDialog, setShowGiveUpDialog] = useState(false);
@@ -41,8 +44,6 @@ export default function GameScreen() {
   const { playerLocation, distanceTravelled, locationError, locationAccuracy, sendLocalNotification } =
     useGameContext(true, id, player?.id);
   const supabase = createClient();
-
-  const distanceInKm = (distanceTravelled / 1000).toFixed(2);
 
   // Cheats, while developing the application
   const [showOwnLocation, setShowOwnLocation] = useState(false);
@@ -207,7 +208,9 @@ export default function GameScreen() {
       { lat: goalPoint.latitude, lng: goalPoint.longitude }
     );
     const errorMargin = Math.max(0.5, distance * 0.2); // 20% error margin, min 500m
-    estimatedDistanceToGoal = `${(distance - errorMargin).toFixed(1)} - ${(distance + errorMargin).toFixed(1)} km`;
+    const minDist = formatDistance(distance - errorMargin, preferences.distance_unit);
+    const maxDist = formatDistance(distance + errorMargin, preferences.distance_unit);
+    estimatedDistanceToGoal = `${minDist} - ${maxDist}`;
   }
 
   const visitedWaypoints = points.filter(p => p.type === "clue" && p.status === "visited");
@@ -217,7 +220,7 @@ export default function GameScreen() {
     showGoal,
     pointsVisited: visitedWaypoints.length,
     totalPoints: triggeringPoints.length,
-    distanceTraveled: `~ ${distanceInKm} km`,
+    distanceTraveled: `~ ${formatDistanceFromMeters(distanceTravelled, preferences.distance_unit)}`,
     estimatedDistanceRemaining: estimatedDistanceToGoal,
   };
 

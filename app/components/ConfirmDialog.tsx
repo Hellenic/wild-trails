@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "./ui";
+import { Button, GlassPanel } from "./ui";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -26,16 +26,16 @@ export function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 animate-fade-in">
-        <h3 className="text-xl font-serif font-bold text-forest-deep mb-3">
+      <GlassPanel className="max-w-md w-full p-6 animate-fade-in">
+        <h3 className="text-xl font-display font-bold text-white mb-3">
           {title}
         </h3>
-        <p className="text-gray-700 mb-6">{message}</p>
+        <p className="text-gray-300 mb-6">{message}</p>
         <div className="flex gap-3 justify-end">
           <Button
             variant="ghost"
             onClick={onCancel}
-            className="text-gray-700 hover:bg-gray-100"
+            className="text-gray-300 hover:bg-white/10"
           >
             {cancelText}
           </Button>
@@ -47,7 +47,7 @@ export function ConfirmDialog({
             {confirmText}
           </Button>
         </div>
-      </div>
+      </GlassPanel>
     </div>
   );
 }

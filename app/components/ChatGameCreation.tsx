@@ -115,11 +115,11 @@ export function ChatGameCreation() {
     : messages;
 
   return (
-    <div className="flex flex-col h-[600px] bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="flex flex-col h-[600px] bg-white dark:bg-surface-dark rounded-lg shadow-lg overflow-hidden">
       {/* Chat Header */}
-      <div className="bg-forest-pine text-forest-mist px-6 py-4 border-b border-forest-deep/10">
-        <h2 className="text-xl font-serif font-bold">Create Your Adventure</h2>
-        <p className="text-sm text-forest-mist/80 mt-1">
+      <div className="bg-primary dark:bg-primary text-background-dark px-6 py-4 border-b border-white/10">
+        <h2 className="text-xl font-display font-bold text-background-dark">Create Your Adventure</h2>
+        <p className="text-sm text-background-dark/80 mt-1">
           Chat with AI to set up your game
         </p>
       </div>
@@ -136,13 +136,13 @@ export function ChatGameCreation() {
             <div
               className={`max-w-[80%] rounded-lg px-4 py-3 ${
                 message.role === "user"
-                  ? "bg-forest-pine text-forest-mist ml-4"
-                  : "bg-forest-moss/20 text-forest-deep mr-4"
+                  ? "bg-primary text-background-dark ml-4"
+                  : "bg-surface-dark-elevated dark:bg-surface-dark-elevated text-white mr-4"
               }`}
             >
               {/* Display role indicator for assistant */}
               {message.role === "assistant" && (
-                <div className="text-xs font-semibold text-forest-pine mb-1">
+                <div className="text-xs font-semibold text-primary mb-1 font-display">
                   Wild Trails Assistant
                 </div>
               )}
@@ -167,7 +167,7 @@ export function ChatGameCreation() {
                   if (part.type.startsWith("tool-") && "state" in part) {
                     const state = (part as { state?: string }).state;
                     return (
-                      <div key={partIndex} className="mt-2 text-xs italic text-forest-deep/60">
+                      <div key={partIndex} className="mt-2 text-xs italic text-gray-400">
                         {state === "input-available" && `🔧 Calling: ${part.type.replace("tool-", "")}...`}
                         {state === "output-available" && `✓ ${part.type.replace("tool-", "")} complete`}
                       </div>
@@ -184,12 +184,12 @@ export function ChatGameCreation() {
         {/* Loading indicator */}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-forest-moss/20 text-forest-deep rounded-lg px-4 py-3 mr-4">
+            <div className="bg-surface-dark-elevated dark:bg-surface-dark-elevated text-white rounded-lg px-4 py-3 mr-4">
               <div className="flex items-center space-x-2">
                 <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-forest-pine rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                  <div className="w-2 h-2 bg-forest-pine rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-                  <div className="w-2 h-2 bg-forest-pine rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
                 </div>
                 <span className="text-sm">Thinking...</span>
               </div>
@@ -210,7 +210,7 @@ export function ChatGameCreation() {
       {/* Input Area */}
       <form
         onSubmit={handleSubmit}
-        className="border-t border-forest-moss/30 px-6 py-4 bg-forest-moss/5"
+        className="border-t border-white/10 px-6 py-4 bg-surface-dark/50"
       >
         <div className="flex space-x-3">
           <input
@@ -218,9 +218,9 @@ export function ChatGameCreation() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1 px-4 py-2 border border-forest-moss/30 rounded-lg 
-                     focus:outline-none focus:ring-2 focus:ring-forest-pine 
-                     focus:border-transparent text-forest-deep"
+            className="flex-1 px-4 py-2 border border-white/10 rounded-lg bg-surface-dark-elevated text-white
+                     focus:outline-none focus:ring-2 focus:ring-primary 
+                     focus:border-transparent placeholder:text-gray-400"
           />
           <Button
             type="submit"
@@ -231,7 +231,7 @@ export function ChatGameCreation() {
             Send
           </Button>
         </div>
-        <p className="text-xs text-forest-deep/80 mt-2 font-medium">
+        <p className="text-xs text-gray-400 mt-2 font-body">
           💡 Tip: Describe your ideal adventure, and I&apos;ll help you set it up!
         </p>
       </form>
