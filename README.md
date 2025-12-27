@@ -30,7 +30,6 @@ Read the [synopsis](./synopsis.md) for more details.
 
 - [ ] **Testing & Refinement**: Extensive testing of progressive path generation with various distances and terrains
 - [ ] More rich events for points in addition to proximity check (server-sent events)
-- [ ] "Feel-good" elements (e.g. "You are the first to complete this game!"), encouraging messages, visual rewards, fun facts, comparisons...
 
 ### Roadmap
 
