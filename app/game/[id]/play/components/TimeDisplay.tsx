@@ -50,7 +50,7 @@ export function TimeDisplay({ startedAt, durationMinutes }: TimeDisplayProps) {
   }, [startedAt, durationMinutes]);
 
   return (
-    <div className="bg-forest-mist/80 backdrop-blur-sm p-2 text-center text-xl font-mono">
+    <div className="bg-primary/10 border border-primary/20 px-4 py-1.5 rounded-full text-center text-lg font-black font-mono text-primary shadow-[0_0_15px_rgba(19,236,19,0.1)]">
       {timeRemaining}
     </div>
   );

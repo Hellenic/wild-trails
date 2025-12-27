@@ -109,7 +109,7 @@ const ToastItem: React.FC<{ toast: Toast; onClose: () => void }> = ({
         onClick={onClose}
         className="flex-shrink-0 hover:opacity-70 transition-opacity"
       >
-        <Icon name="close" className="text-lg" />
+        <Icon name="close" size="sm" />
       </button>
     </div>
   );

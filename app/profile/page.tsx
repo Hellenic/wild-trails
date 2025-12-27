@@ -10,6 +10,10 @@ import type {
   UserMetadata,
 } from "@/types/user";
 import { parseUserProfile, DEFAULT_USER_PREFERENCES } from "@/types/user";
+import { Button } from "@/app/components/ui/Button";
+import { Icon } from "@/app/components/ui/Icon";
+import { GlassPanel } from "@/app/components/ui/GlassPanel";
+import { Input } from "@/app/components/ui/Input";
 
 interface GameStats {
   totalGames: number;
@@ -137,8 +141,13 @@ export default function ProfilePage() {
 
   if (userLoading || loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center text-foreground">Loading profile...</div>
+      <main className="min-h-screen flex items-center justify-center dark:bg-background-dark bg-background-light">
+        <div className="text-center">
+          <div className="animate-pulse">
+            <Icon name="person" size="xl" className="text-primary mb-4" />
+            <div className="text-white">Loading profile...</div>
+          </div>
+        </div>
       </main>
     );
   }
@@ -148,268 +157,286 @@ export default function ProfilePage() {
   };
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-forest-pine text-forest-mist p-6 shadow-md">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <h1 className="text-3xl font-serif font-bold">Profile</h1>
-          <Link
-            href="/"
-            className="px-4 py-2 bg-forest-mist/20 hover:bg-forest-mist/30 rounded-lg transition-colors"
-          >
-            ← Back to Home
-          </Link>
-        </div>
+    <main className="min-h-screen dark:bg-background-dark bg-background-light relative">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-background-dark via-surface-dark to-background-dark opacity-95" />
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2313ec13' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
       </div>
 
-      <div className="max-w-4xl mx-auto p-4 md:p-8">
-        {/* Error/Success Messages */}
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            {error}
-          </div>
-        )}
-        {successMessage && (
-          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
-            {successMessage}
-          </div>
-        )}
-
-        {/* User Info */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-serif font-bold text-forest-deep mb-4">
-            User Information
-          </h2>
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-full bg-forest-pine text-forest-mist flex items-center justify-center text-2xl font-bold">
-              {profile.display_name
-                ? profile.display_name.substring(0, 2).toUpperCase()
-                : getInitials(user?.email || "")}
+      <div className="relative z-10 p-4 md:p-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-center gap-3">
+              <Icon name="person" size="lg" className="text-primary" />
+              <h1 className="text-3xl lg:text-4xl font-black text-white">
+                Profile
+              </h1>
             </div>
-            <div>
-              <div className="text-sm text-gray-600">Display Name</div>
-              <input
-                type="text"
-                value={profile.display_name || ""}
-                onChange={(e) =>
-                  setProfile({ ...profile, display_name: e.target.value })
-                }
-                placeholder="Enter your name"
-                className="text-lg font-medium text-forest-deep border-b border-gray-300 focus:border-forest-pine outline-none"
-              />
-            </div>
+            <Link href="/">
+              <Button variant="secondary">
+                <Icon name="home" size="sm" className="mr-2" />
+                Home
+              </Button>
+            </Link>
           </div>
-          <div className="text-sm text-gray-600">
-            <strong>Email:</strong> {user?.email}
-          </div>
-        </div>
+          {/* Error/Success Messages */}
+          {error && (
+            <GlassPanel className="mb-6 p-4 border-red-500/50">
+              <div className="flex items-center gap-3 text-red-400">
+                <Icon name="error" size="sm" />
+                <span>{error}</span>
+              </div>
+            </GlassPanel>
+          )}
+          {successMessage && (
+            <GlassPanel className="mb-6 p-4 border-primary/50">
+              <div className="flex items-center gap-3 text-primary">
+                <Icon name="check_circle" size="sm" />
+                <span>{successMessage}</span>
+              </div>
+            </GlassPanel>
+          )}
 
-        {/* Preferences */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-serif font-bold text-forest-deep mb-4">
-            Preferences
-          </h2>
-          <div className="space-y-6">
-            {/* Distance Unit */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Distance Units
-              </label>
-              <div className="flex gap-4">
-                <button
-                  onClick={() =>
-                    setProfile({
-                      ...profile,
-                      preferences: { ...profile.preferences, distance_unit: "km" },
-                    })
+          {/* User Info */}
+          <GlassPanel className="p-6 lg:p-8 mb-6">
+            <h2 className="text-2xl font-bold text-white mb-6">
+              User Information
+            </h2>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary text-primary flex items-center justify-center text-2xl font-bold">
+                {profile.display_name
+                  ? profile.display_name.substring(0, 2).toUpperCase()
+                  : getInitials(user?.email || "")}
+              </div>
+              <div className="flex-1">
+                <Input
+                  label="Display Name"
+                  value={profile.display_name || ""}
+                  onChange={(e) =>
+                    setProfile({ ...profile, display_name: e.target.value })
                   }
-                  className={`px-4 py-2 rounded-lg border-2 transition-colors ${
-                    profile.preferences.distance_unit === "km"
-                      ? "border-forest-pine bg-forest-pine text-forest-mist"
-                      : "border-gray-300 text-gray-700 hover:border-forest-pine"
-                  }`}
-                >
-                  Kilometers (km)
-                </button>
-                <button
-                  onClick={() =>
-                    setProfile({
-                      ...profile,
-                      preferences: { ...profile.preferences, distance_unit: "miles" },
-                    })
-                  }
-                  className={`px-4 py-2 rounded-lg border-2 transition-colors ${
-                    profile.preferences.distance_unit === "miles"
-                      ? "border-forest-pine bg-forest-pine text-forest-mist"
-                      : "border-gray-300 text-gray-700 hover:border-forest-pine"
-                  }`}
-                >
-                  Miles (mi)
-                </button>
+                  placeholder="Enter your name"
+                />
               </div>
             </div>
+            <div className="text-sm text-gray-400">
+              <span className="text-gray-300 font-medium">Email:</span> {user?.email}
+            </div>
+          </GlassPanel>
 
-            {/* Map Tile Layer */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Map Style
-              </label>
-              <div className="flex gap-4 flex-wrap">
-                {(["topo", "street", "satellite"] as const).map((layer) => (
-                  <button
-                    key={layer}
+          {/* Preferences */}
+          <GlassPanel className="p-6 lg:p-8 mb-6">
+            <h2 className="text-2xl font-bold text-white mb-6">
+              Preferences
+            </h2>
+            <div className="space-y-6">
+              {/* Distance Unit */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-3">
+                  Distance Units
+                </label>
+                <div className="flex gap-3">
+                  <Button
+                    variant={profile.preferences.distance_unit === "km" ? "primary" : "outline"}
                     onClick={() =>
                       setProfile({
                         ...profile,
-                        preferences: { ...profile.preferences, map_tile_layer: layer },
+                        preferences: { ...profile.preferences, distance_unit: "km" },
                       })
                     }
-                    className={`px-4 py-2 rounded-lg border-2 transition-colors capitalize ${
-                      profile.preferences.map_tile_layer === layer
-                        ? "border-forest-pine bg-forest-pine text-forest-mist"
-                        : "border-gray-300 text-gray-700 hover:border-forest-pine"
-                    }`}
                   >
-                    {layer === "topo" ? "Topographic" : layer}
-                  </button>
-                ))}
+                    Kilometers (km)
+                  </Button>
+                  <Button
+                    variant={profile.preferences.distance_unit === "miles" ? "primary" : "outline"}
+                    onClick={() =>
+                      setProfile({
+                        ...profile,
+                        preferences: { ...profile.preferences, distance_unit: "miles" },
+                      })
+                    }
+                  >
+                    Miles (mi)
+                  </Button>
+                </div>
               </div>
-            </div>
 
-            {/* Sound Effects */}
-            <div className="flex items-center justify-between">
+              {/* Map Tile Layer */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Sound Effects
+                <label className="block text-sm font-medium text-gray-300 mb-3">
+                  Map Style
                 </label>
-                <p className="text-xs text-gray-500">
-                  Play sounds when discovering waypoints and goals
-                </p>
+                <div className="flex gap-3 flex-wrap">
+                  {(["topo", "street", "satellite"] as const).map((layer) => (
+                    <Button
+                      key={layer}
+                      variant={profile.preferences.map_tile_layer === layer ? "primary" : "outline"}
+                      onClick={() =>
+                        setProfile({
+                          ...profile,
+                          preferences: { ...profile.preferences, map_tile_layer: layer },
+                        })
+                      }
+                    >
+                      {layer === "topo" ? "Topographic" : layer.charAt(0).toUpperCase() + layer.slice(1)}
+                    </Button>
+                  ))}
+                </div>
               </div>
-              <button
-                onClick={() =>
-                  setProfile({
-                    ...profile,
-                    preferences: {
-                      ...profile.preferences,
-                      sound_effects_enabled: !profile.preferences.sound_effects_enabled,
-                    },
-                  })
-                }
-                className={`w-14 h-8 rounded-full transition-colors ${
-                  profile.preferences.sound_effects_enabled
-                    ? "bg-forest-pine"
-                    : "bg-gray-300"
-                }`}
-              >
-                <div
-                  className={`w-6 h-6 bg-white rounded-full shadow-md transform transition-transform ${
+
+              {/* Sound Effects */}
+              <div className="flex items-center justify-between py-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300">
+                    Sound Effects
+                  </label>
+                  <p className="text-xs text-gray-500">
+                    Play sounds when discovering waypoints and goals
+                  </p>
+                </div>
+                <button
+                  onClick={() =>
+                    setProfile({
+                      ...profile,
+                      preferences: {
+                        ...profile.preferences,
+                        sound_effects_enabled: !profile.preferences.sound_effects_enabled,
+                      },
+                    })
+                  }
+                  className={`w-14 h-8 rounded-full transition-colors ${
                     profile.preferences.sound_effects_enabled
-                      ? "translate-x-7"
-                      : "translate-x-1"
+                      ? "bg-primary"
+                      : "bg-gray-600"
                   }`}
-                />
-              </button>
-            </div>
-
-            {/* Notifications */}
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Notifications
-                </label>
-                <p className="text-xs text-gray-500">
-                  Receive browser push notifications for game events
-                </p>
+                >
+                  <div
+                    className={`w-6 h-6 bg-white rounded-full shadow-md transform transition-transform ${
+                      profile.preferences.sound_effects_enabled
+                        ? "translate-x-7"
+                        : "translate-x-1"
+                    }`}
+                  />
+                </button>
               </div>
-              <button
-                onClick={() =>
-                  setProfile({
-                    ...profile,
-                    preferences: {
-                      ...profile.preferences,
-                      notifications_enabled: !profile.preferences.notifications_enabled,
-                    },
-                  })
-                }
-                className={`w-14 h-8 rounded-full transition-colors ${
-                  profile.preferences.notifications_enabled
-                    ? "bg-forest-pine"
-                    : "bg-gray-300"
-                }`}
-              >
-                <div
-                  className={`w-6 h-6 bg-white rounded-full shadow-md transform transition-transform ${
+
+              {/* Notifications */}
+              <div className="flex items-center justify-between py-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300">
+                    Notifications
+                  </label>
+                  <p className="text-xs text-gray-500">
+                    Receive browser push notifications for game events
+                  </p>
+                </div>
+                <button
+                  onClick={() =>
+                    setProfile({
+                      ...profile,
+                      preferences: {
+                        ...profile.preferences,
+                        notifications_enabled: !profile.preferences.notifications_enabled,
+                      },
+                    })
+                  }
+                  className={`w-14 h-8 rounded-full transition-colors ${
                     profile.preferences.notifications_enabled
-                      ? "translate-x-7"
-                      : "translate-x-1"
+                      ? "bg-primary"
+                      : "bg-gray-600"
                   }`}
-                />
-              </button>
-            </div>
-          </div>
-
-          <button
-            onClick={savePreferences}
-            disabled={saving}
-            className="mt-6 w-full px-6 py-3 bg-forest-pine text-forest-mist rounded-lg hover:bg-forest-moss transition-colors font-medium disabled:opacity-50"
-          >
-            {saving ? "Saving..." : "💾 Save Preferences"}
-          </button>
-        </div>
-
-        {/* Statistics */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-serif font-bold text-forest-deep mb-4">
-            Statistics
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-forest-pine/10 rounded-lg">
-              <div className="text-3xl font-bold text-forest-deep">
-                {stats.totalGames}
+                >
+                  <div
+                    className={`w-6 h-6 bg-white rounded-full shadow-md transform transition-transform ${
+                      profile.preferences.notifications_enabled
+                        ? "translate-x-7"
+                        : "translate-x-1"
+                    }`}
+                  />
+                </button>
               </div>
-              <div className="text-sm text-gray-600">Total Games Created</div>
             </div>
-            <div className="text-center p-4 bg-forest-pine/10 rounded-lg">
-              <div className="text-3xl font-bold text-forest-deep">
-                {stats.completedGames}
-              </div>
-              <div className="text-sm text-gray-600">Games Completed</div>
-            </div>
-            <div className="text-center p-4 bg-forest-pine/10 rounded-lg">
-              <div className="text-3xl font-bold text-forest-deep">
-                {stats.totalDistance.toFixed(1)} km
-              </div>
-              <div className="text-sm text-gray-600">Total Distance</div>
-            </div>
-          </div>
-        </div>
 
-        {/* Account Actions */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-serif font-bold text-forest-deep mb-4">
-            Account Actions
-          </h2>
-          <div className="space-y-3">
-            <Link
-              href="/games"
-              className="block w-full px-6 py-3 bg-forest-bark/30 text-forest-deep border-2 border-forest-bark rounded-lg hover:bg-forest-bark/40 transition-colors font-medium text-center"
+            <Button
+              variant="primary"
+              fullWidth
+              size="lg"
+              onClick={savePreferences}
+              disabled={saving}
+              className="mt-6"
             >
-              📋 View My Games
-            </Link>
-            <button
-              onClick={handleSignOut}
-              className="w-full px-6 py-3 bg-forest-bark text-forest-mist rounded-lg hover:bg-forest-bark/80 transition-colors font-medium"
-            >
-              🚪 Sign Out
-            </button>
-            <button
-              onClick={handleDeleteAccount}
-              className="w-full px-6 py-3 bg-red-100 text-red-700 border-2 border-red-300 rounded-lg hover:bg-red-200 transition-colors font-medium"
-            >
-              ⚠️ Delete Account
-            </button>
-          </div>
+              <Icon name="save" size="sm" className="mr-2" />
+              {saving ? "Saving..." : "Save Preferences"}
+            </Button>
+          </GlassPanel>
+
+          {/* Statistics */}
+          <GlassPanel className="p-6 lg:p-8 mb-6">
+            <h2 className="text-2xl font-bold text-white mb-6">
+              Statistics
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-6 bg-surface-dark-elevated rounded-xl border border-white/10">
+                <div className="text-4xl font-black text-primary mb-2">
+                  {stats.totalGames}
+                </div>
+                <div className="text-sm text-gray-400">Total Games Created</div>
+              </div>
+              <div className="text-center p-6 bg-surface-dark-elevated rounded-xl border border-white/10">
+                <div className="text-4xl font-black text-primary mb-2">
+                  {stats.completedGames}
+                </div>
+                <div className="text-sm text-gray-400">Games Completed</div>
+              </div>
+              <div className="text-center p-6 bg-surface-dark-elevated rounded-xl border border-white/10">
+                <div className="text-4xl font-black text-primary mb-2">
+                  {stats.totalDistance.toFixed(1)}
+                </div>
+                <div className="text-sm text-gray-400">Total Distance (km)</div>
+              </div>
+            </div>
+          </GlassPanel>
+
+          {/* Account Actions */}
+          <GlassPanel className="p-6 lg:p-8">
+            <h2 className="text-2xl font-bold text-white mb-6">
+              Account Actions
+            </h2>
+            <div className="space-y-3">
+              <Link href="/games" className="block">
+                <Button variant="secondary" fullWidth size="lg">
+                  <Icon name="list" size="sm" className="mr-2" />
+                  View My Games
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                fullWidth
+                size="lg"
+                onClick={handleSignOut}
+              >
+                <Icon name="logout" size="sm" className="mr-2" />
+                Sign Out
+              </Button>
+              <Button
+                variant="ghost"
+                fullWidth
+                size="lg"
+                onClick={handleDeleteAccount}
+                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+              >
+                <Icon name="warning" size="sm" className="mr-2" />
+                Delete Account
+              </Button>
+            </div>
+          </GlassPanel>
         </div>
       </div>
     </main>

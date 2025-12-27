@@ -89,4 +89,23 @@ describe("Button Component", () => {
   it("has correct displayName for debugging", () => {
     expect(Button.displayName).toBe("Button");
   });
+
+  it("handles loading state via prop", () => {
+    render(
+      <Button isLoading loadingText="Loading...">
+        Click me
+      </Button>
+    );
+    const button = screen.getByRole("button");
+    expect(button).toBeDisabled();
+    expect(button).toHaveTextContent("Loading...");
+    expect(button.querySelector(".animate-spin")).toBeInTheDocument();
+  });
+
+  it("shows children when loading if no loadingText is provided", () => {
+    render(<Button isLoading>Click me</Button>);
+    const button = screen.getByRole("button");
+    expect(button).toHaveTextContent("Click me");
+    expect(button.querySelector(".animate-spin")).toBeInTheDocument();
+  });
 });

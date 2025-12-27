@@ -20,11 +20,12 @@ export const Icon = React.forwardRef<HTMLSpanElement, IconProps>(
       <span
         ref={ref}
         className={cn(
-          "material-symbols-outlined",
+          "material-symbols-outlined inline-flex items-center justify-center",
           fill && "material-symbols-outlined-fill",
           sizeStyles[size],
           className
         )}
+        style={{ verticalAlign: 'middle' }}
         {...props}
       >
         {name}

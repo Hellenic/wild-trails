@@ -54,19 +54,19 @@ export default function Home() {
             <div className="flex gap-2">
               <Link href="/games">
                 <Button variant="ghost" size="sm">
-                  <Icon name="list" className="mr-1 text-lg" />
+                  <Icon name="list" size="sm" className="mr-2" />
                   <span className="hidden sm:inline">My Games</span>
                 </Button>
               </Link>
               <Link href="/profile">
                 <Button variant="ghost" size="sm">
-                  <Icon name="person" className="mr-1 text-lg" />
+                  <Icon name="person" size="sm" className="mr-2" />
                   <span className="hidden sm:inline">Profile</span>
                 </Button>
               </Link>
               <Link href="/onboarding">
                 <Button variant="ghost" size="sm">
-                  <Icon name="menu_book" className="mr-1 text-lg" />
+                  <Icon name="menu_book" size="sm" className="mr-2" />
                   <span className="hidden sm:inline">Tutorial</span>
                 </Button>
               </Link>
@@ -76,7 +76,7 @@ export default function Home() {
                 onClick={() => supabase.auth.signOut()}
                 data-testid="signout-button"
               >
-                <Icon name="logout" className="text-lg" />
+                <Icon name="logout" size="sm" />
               </Button>
             </div>
           </div>
@@ -88,7 +88,7 @@ export default function Home() {
         <div className="w-full max-w-5xl">
           <GlassPanel className="p-8 lg:p-12">
             {/* Header */}
-            <div className="text-center mb-12 animate-fade-in-up">
+            <div className="text-center mb-12">
               <div className="flex justify-center mb-6">
                 <Icon name="terrain" size="xl" className="text-primary" />
               </div>
@@ -149,13 +149,13 @@ export default function Home() {
                 <>
                   <Link href="/games" className="w-full sm:w-auto">
                     <Button variant="secondary" fullWidth size="lg">
-                      <Icon name="list" className="mr-2" />
+                      <Icon name="list" size="sm" className="mr-2" />
                       View My Games
                     </Button>
                   </Link>
                   <Link href="/onboarding" className="w-full sm:w-auto">
                     <Button variant="ghost" fullWidth size="lg">
-                      <Icon name="menu_book" className="mr-2" />
+                      <Icon name="menu_book" size="sm" className="mr-2" />
                       Tutorial
                     </Button>
                   </Link>
@@ -163,7 +163,7 @@ export default function Home() {
               ) : (
                 <Link href="/login" className="w-full sm:w-auto">
                   <Button variant="primary" fullWidth size="lg">
-                    <Icon name="login" className="mr-2" />
+                    <Icon name="login" size="sm" className="mr-2" />
                     Sign In to Continue
                   </Button>
                 </Link>

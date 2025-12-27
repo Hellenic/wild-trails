@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Button, Icon } from "./ui";
 
 interface JoinGameModalProps {
   isOpen: boolean;
@@ -182,20 +183,24 @@ export function JoinGameModal({ isOpen, onClose }: JoinGameModalProps) {
           </div>
 
           <div className="flex gap-3 pt-2">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={handleClose}
-              className="flex-1 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors font-medium"
+              fullWidth
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              disabled={loading || !gameCode}
-              className="flex-1 px-6 py-3 bg-forest-pine hover:bg-forest-moss text-forest-mist rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="primary"
+              isLoading={loading}
+              loadingText="Joining..."
+              disabled={!gameCode}
+              fullWidth
             >
-              {loading ? "Joining..." : "Join Game"}
-            </button>
+              Join Game
+            </Button>
           </div>
         </form>
 

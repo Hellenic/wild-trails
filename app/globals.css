@@ -17,6 +17,11 @@
   --surface-dark: #1a2c1a;
   --surface-dark-elevated: #283928;
   
+  /* Card and accent colors */
+  --card-dark: #1c271c;
+  --accent-dark: #283928;
+  --text-subtle: #9db99d;
+  
   /* Legacy forest colors (for gradual migration) */
   --deep-forest: #1a2f25;
   --pine-green: #2c4a3c;
@@ -26,20 +31,26 @@
   --forest-mist: #e8eee7;
 }
 
+html {
+  background: var(--background-light);
+}
+
+.dark {
+  color-scheme: dark;
+  background: var(--background-dark);
+}
+
 body {
   font-family: var(--font-body), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-body.dark {
-  background: var(--background-dark);
-  color: #ffffff;
-}
-
-body:not(.dark) {
   background: var(--background-light);
   color: #0f172a;
+}
+
+.dark body {
+  background: var(--background-dark);
+  color: #ffffff;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -185,6 +196,11 @@ h1, h2, h3, h4, h5, h6 {
 
 .animation-delay-600 {
   animation-delay: 0.6s;
+  animation-fill-mode: both;
+}
+
+.animation-delay-800 {
+  animation-delay: 0.8s;
   animation-fill-mode: both;
 }
 

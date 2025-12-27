@@ -5,6 +5,9 @@ import { GameMasterMap } from "./GameMasterMap";
 import { gameAPI, pointsAPI } from "@/lib/api/client";
 import type { GameDetails } from "@/types/game";
 import type { Tables } from "@/types/database.types";
+import { Button } from "@/app/components/ui/Button";
+import { Icon } from "@/app/components/ui/Icon";
+import { GlassPanel } from "@/app/components/ui/GlassPanel";
 
 type GamePoint = Tables<"game_points">;
 
@@ -96,86 +99,115 @@ export function GameMasterView({
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-        <h1 className="text-3xl font-bold mb-4">
-          Game Setup - {gameDetails.name}
-        </h1>
-        <div className="flex justify-between items-center mb-6">
+    <div className="container mx-auto p-4 md:p-8">
+      <GlassPanel className="p-6 md:p-8 mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
           <div>
-            <p className="text-gray-600">Game Master: {gameDetails.game_master === 'ai' ? 'AI' : 'You'}</p>
-            <p className="text-gray-600">Players: {gameDetails.player_count}</p>
+            <div className="flex items-center gap-3 mb-2">
+              <Icon name="settings" size="lg" className="text-primary" />
+              <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">
+                Game Setup
+              </h1>
+            </div>
+            <h2 className="text-xl font-bold text-gray-300">{gameDetails.name}</h2>
+            <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-400">
+              <span className="flex items-center gap-1.5">
+                <Icon name="person" size="sm" />
+                Game Master: {gameDetails.game_master === 'ai' ? 'AI' : 'You'}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Icon name="group" size="sm" />
+                Players: {gameDetails.player_count}
+              </span>
+            </div>
           </div>
-          <button
+          <Button
+            variant="primary"
+            size="lg"
             onClick={handleGameStart}
-            disabled={points.length < 3 || saving} // Minimum points required
-            className={`bg-green-500 text-white px-6 py-2 rounded-lg ${
-              saving ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            disabled={points.length < 3 || saving}
+            className="shadow-lg shadow-primary/20"
           >
-            {saving ? "Starting Game..." : "Start Game"}
-          </button>
+            {saving ? (
+              <>
+                <Icon name="progress_activity" size="sm" className="mr-2 animate-spin" />
+                Starting...
+              </>
+            ) : (
+              <>
+                <Icon name="play_arrow" size="sm" className="mr-2" />
+                Start Game
+              </>
+            )}
+          </Button>
         </div>
-        <div>
-          <p className="flex items-center gap-2 text-gray-700 flex-wrap">
-            <span className="w-4 h-4 rounded-full bg-yellow-500 border-2 border-white inline-block"></span>
-            <span>Desired starting point</span>
-            <span className="mx-2">•</span>
-            <span className="w-4 h-4 border-2 border-blue-500 inline-block"></span>
-            <span>Desired game area</span>
-            <span className="mx-2">•</span>
-            <span className="w-4 h-4 rounded-full border-2 border-blue-500 inline-block"></span>
-            <span>Maximum radius</span>
-            <span className="mx-2">•</span>
-            <span className="w-4 h-4 rounded-full bg-green-600 border-2 border-white inline-block"></span>
-            <span>Starting point</span>
-            <span className="mx-2">•</span>
-            <span className="w-4 h-4 rounded-full bg-blue-600 border-2 border-white inline-block"></span>
-            <span>Clue point</span>
-            <span className="mx-2">•</span>
-            <span className="w-4 h-4 rounded-full bg-red-600 border-2 border-white inline-block"></span>
-            <span>Goal point</span>
+
+        <div className="bg-surface-dark-elevated/50 border border-white/5 rounded-xl p-4">
+          <p className="flex items-center gap-4 text-xs font-medium text-gray-400 flex-wrap uppercase tracking-wider">
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.4)]" />
+              Desired start
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 border-2 border-blue-500" />
+              Game area
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full border-2 border-blue-500" />
+              Max radius
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full bg-green-600 shadow-[0_0_8px_rgba(22,163,74,0.4)]" />
+              Starting point
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]" />
+              Clue point
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full bg-red-600 shadow-[0_0_8px_rgba(220,38,38,0.4)]" />
+              Goal point
+            </span>
           </p>
         </div>
-      </div>
+      </GlassPanel>
 
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Set Game Points</h2>
-          <div className="flex gap-2">
-            <button
+      <GlassPanel className="p-6 md:p-8">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6">
+          <div className="flex items-center gap-3">
+            <Icon name="map" size="md" className="text-primary" />
+            <h2 className="text-2xl font-bold text-white tracking-tight">Set Game Points</h2>
+          </div>
+          
+          <div className="flex flex-wrap gap-2 bg-surface-dark-elevated p-1 rounded-xl border border-white/5">
+            <Button
+              size="sm"
+              variant={selectedPointType === "start" ? "primary" : "ghost"}
               onClick={() => setSelectedPointType("start")}
-              className={`px-4 py-2 rounded ${
-                selectedPointType === "start"
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-100"
-              }`}
+              className="px-4"
             >
               Starting Point
-            </button>
-            <button
+            </Button>
+            <Button
+              size="sm"
+              variant={selectedPointType === "clue" ? "primary" : "ghost"}
               onClick={() => setSelectedPointType("clue")}
-              className={`px-4 py-2 rounded ${
-                selectedPointType === "clue"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100"
-              }`}
+              className="px-4"
             >
               Clue
-            </button>
-            <button
+            </Button>
+            <Button
+              size="sm"
+              variant={selectedPointType === "end" ? "primary" : "ghost"}
               onClick={() => setSelectedPointType("end")}
-              className={`px-4 py-2 rounded ${
-                selectedPointType === "end"
-                  ? "bg-red-600 text-white"
-                  : "bg-gray-100"
-              }`}
+              className="px-4"
             >
               Goal
-            </button>
+            </Button>
           </div>
         </div>
-        <div className="h-[600px] relative">
+
+        <div className="h-[600px] relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
           <GameMasterMap
             desiredStartingPoint={desiredStartingPoint}
             desiredMaxRadius={gameDetails.max_radius}
@@ -185,11 +217,20 @@ export function GameMasterView({
           />
         </div>
 
-        <div className="mt-6">
-          <h3 className="text-xl font-semibold mb-4">Game Points</h3>
-          <div className="space-y-4">
+        <div className="mt-10">
+          <div className="flex items-center gap-3 mb-6">
+            <Icon name="list" size="md" className="text-primary" />
+            <h3 className="text-2xl font-bold text-white tracking-tight">Game Points</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {points.length === 0 && (
+              <div className="col-span-full py-12 text-center border-2 border-dashed border-white/10 rounded-2xl text-gray-500">
+                <Icon name="add_location" size="xl" className="mb-4 opacity-20" />
+                <p>Add points by clicking on the map above</p>
+              </div>
+            )}
             {points.map((point, index, sortedPoints) => {
-              // Calculate clue number (only count previous clue points)
               const clueNumber =
                 point.type === "clue"
                   ? sortedPoints
@@ -200,59 +241,60 @@ export function GameMasterView({
               return (
                 <div
                   key={point.id}
-                  className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg"
+                  className="flex flex-col gap-4 p-5 bg-surface-dark-elevated rounded-2xl border border-white/10 hover:border-primary/30 transition-all group"
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
                       <span
                         className={`
-                            px-2 py-1 rounded text-sm text-white
+                            px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-white
                             ${
                               point.type === "start"
-                                ? "bg-green-600"
+                                ? "bg-green-600 shadow-[0_0_10px_rgba(22,163,74,0.3)]"
                                 : point.type === "end"
-                                  ? "bg-red-600"
-                                  : "bg-blue-600"
+                                  ? "bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.3)]"
+                                  : "bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.3)]"
                             }
                           `}
                       >
                         {point.type === "start"
-                          ? "Starting Point"
+                          ? "Start"
                           : point.type === "end"
                             ? "Goal"
-                            : `Clue Point #${clueNumber}`}
+                            : `Clue #${clueNumber}`}
                       </span>
-                      <span className="text-sm text-gray-600">
-                        ({point.position[0].toFixed(6)},{" "}
-                        {point.position[1].toFixed(6)})
+                      <span className="text-xs font-mono text-gray-500">
+                        {point.position[0].toFixed(6)}, {point.position[1].toFixed(6)}
                       </span>
                     </div>
-                    <textarea
-                      className="w-full p-2 border rounded-lg text-gray-900"
-                      placeholder={`Enter ${
-                        point.type === "clue" ? "clue" : "description"
-                      }...`}
-                      value={point.hint}
-                      onChange={(e) =>
-                        handleHintChange(point.id, e.target.value)
-                      }
-                      rows={2}
-                    />
+                    {point.type === "clue" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handlePointRemove(point.id)}
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-2"
+                      >
+                        <Icon name="delete" size="sm" />
+                      </Button>
+                    )}
                   </div>
-                  {point.type === "clue" && (
-                    <button
-                      onClick={() => handlePointRemove(point.id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      Remove
-                    </button>
-                  )}
+                  <textarea
+                    className="w-full p-3 bg-background-dark/50 border border-white/10 rounded-xl text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm"
+                    placeholder={`Enter ${
+                      point.type === "clue" ? "clue" : "description"
+                    }...`}
+                    value={point.hint}
+                    onChange={(e) =>
+                      handleHintChange(point.id, e.target.value)
+                    }
+                    rows={2}
+                  />
                 </div>
               );
             })}
           </div>
         </div>
-      </div>
+      </GlassPanel>
     </div>
   );
 }

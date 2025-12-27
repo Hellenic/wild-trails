@@ -55,7 +55,7 @@ export function GameBasicInfo({ formData, setFormData, onNext }: Props) {
       <div className="flex justify-end pt-4">
         <Button type="submit" variant="primary">
           Next
-          <Icon name="arrow_forward" className="ml-2 text-lg" />
+          <Icon name="arrow_forward" size="sm" className="ml-2" />
         </Button>
       </div>
     </form>

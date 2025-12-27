@@ -93,7 +93,7 @@ export default function GamesPage() {
         return (
           <Link href={`/game/${game.id}/setup`}>
             <Button variant="secondary" size="sm">
-              <Icon name="settings" className="mr-1 text-lg" />
+              <Icon name="settings" size="sm" className="mr-2" />
               Setup
             </Button>
           </Link>
@@ -102,7 +102,7 @@ export default function GamesPage() {
         return (
           <Link href={`/game/${game.id}/play`}>
             <Button variant="primary" size="sm">
-              <Icon name="play_arrow" className="mr-1 text-lg" />
+              <Icon name="play_arrow" size="sm" className="mr-2" />
               Resume
             </Button>
           </Link>
@@ -111,7 +111,7 @@ export default function GamesPage() {
         return (
           <Link href={`/game/${game.id}/results`}>
             <Button variant="secondary" size="sm">
-              <Icon name="analytics" className="mr-1 text-lg" />
+              <Icon name="analytics" size="sm" className="mr-2" />
               Results
             </Button>
           </Link>
@@ -119,7 +119,7 @@ export default function GamesPage() {
       case "failed":
         return (
           <Button variant="ghost" size="sm" disabled>
-            <Icon name="error" className="mr-1 text-lg" />
+            <Icon name="error" size="sm" className="mr-2" />
             Failed
           </Button>
         );
@@ -287,25 +287,25 @@ export default function GamesPage() {
                       </div>
                       <div className="flex flex-wrap gap-4 text-sm text-gray-400">
                         <span className="flex items-center gap-1">
-                          <Icon name="straighten" className="text-lg" />
+                          <Icon name="straighten" size="sm" />
                           {formatDistance(game.max_radius * 2)}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Icon name="schedule" className="text-lg" />
+                          <Icon name="schedule" size="sm" />
                           {formatDuration(game.duration)}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Icon name="calendar_today" className="text-lg" />
+                          <Icon name="calendar_today" size="sm" />
                           {formatDate(game.created_at)}
                         </span>
                         <span className="flex items-center gap-1 capitalize">
-                          <Icon name="sports_esports" className="text-lg" />
+                          <Icon name="sports_esports" size="sm" />
                           {game.game_mode.replace("_", " ")}
                         </span>
                       </div>
                       {game.last_processing_error && (
                         <div className="mt-3 flex items-start gap-2 text-sm text-red-400">
-                          <Icon name="warning" className="text-lg flex-shrink-0" />
+                          <Icon name="warning" size="sm" className="flex-shrink-0 mt-0.5" />
                           <span>{game.last_processing_error}</span>
                         </div>
                       )}
@@ -341,7 +341,7 @@ export default function GamesPage() {
                           onClick={() => setDeleteConfirm(game.id)}
                           title="Delete game"
                         >
-                          <Icon name="delete" className="text-lg text-red-400" />
+                          <Icon name="delete" size="sm" className="text-red-400" />
                         </Button>
                       )}
                     </div>

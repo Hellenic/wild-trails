@@ -15,8 +15,7 @@ export default function LoginPage() {
         <div
           className="w-full h-full bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2071&auto=format&fit=crop')",
+            backgroundImage: "url('/login-bg.jpg')",
           }}
         />
         {/* Dark Gradient Overlay for Readability */}
@@ -26,9 +25,9 @@ export default function LoginPage() {
       {/* Main Content Layout */}
       <div className="relative z-10 w-full max-w-[1200px] h-full flex flex-col lg:flex-row gap-8 lg:gap-16 items-center justify-center lg:justify-between">
         {/* Left Side: Hero Text (Desktop visible) */}
-        <div className="hidden lg:flex flex-col flex-1 max-w-lg gap-6 text-left animate-fade-in-up">
+        <div className="hidden lg:flex flex-col flex-1 max-w-lg gap-6 text-left">
           <div className="inline-flex items-center gap-2 text-primary">
-            <Icon name="terrain" size="lg" />
+            <span className="material-symbols-outlined text-4xl">terrain</span>
             <span className="text-xl font-bold tracking-widest uppercase">
               Wild Trails
             </span>
@@ -111,6 +110,7 @@ export default function LoginPage() {
                   variant="primary"
                   fullWidth
                   formAction={signup}
+                  loadingText="Creating account..."
                   data-testid="signup-button"
                 >
                   Sign Up
@@ -119,6 +119,7 @@ export default function LoginPage() {
                   variant="secondary"
                   fullWidth
                   formAction={login}
+                  loadingText="Logging in..."
                   data-testid="login-button"
                 >
                   Log In
@@ -193,7 +194,7 @@ export default function LoginPage() {
       {/* Sticky Footer (Optional for Desktop) */}
       <div className="absolute bottom-4 left-0 right-0 z-10 hidden lg:flex justify-center pointer-events-none">
         <p className="text-[#9db99d] text-xs font-normal opacity-60">
-          © 2024 Wild Trails. All rights reserved.
+          © 2025 Wild Trails. All rights reserved.
         </p>
       </div>
     </main>

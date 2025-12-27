@@ -1,5 +1,8 @@
 import React, { useEffect } from "react";
 import { playGoalFound, triggerHaptic } from "@/lib/audio/sounds";
+import { Icon } from "@/app/components/ui/Icon";
+import { Button } from "@/app/components/ui/Button";
+import { GlassPanel } from "@/app/components/ui/GlassPanel";
 
 type GoalFoundProps = {
   onClose: () => void;
@@ -14,42 +17,58 @@ export function GoalFoundPopup({ onClose, content }: GoalFoundProps) {
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-b from-blue-500 to-blue-600 z-50 flex flex-col text-white animate-fade-in">
-      <div className="flex-1 p-6 flex flex-col items-center justify-center text-center">
-        {/* Animated celebration icon */}
-        <div className="mb-8 text-6xl animate-bounce">🎉</div>
-        
-        {/* Title with animation */}
-        <h2 className="text-4xl font-bold mb-4 animate-scale-in">
-          Congratulations!
-        </h2>
-        <h3 className="text-2xl mb-8 animate-slide-up">
-          You&apos;ve found the goal!
-        </h3>
-        
-        {/* Content box with backdrop blur */}
-        <div className="bg-white/20 rounded-xl p-6 mb-8 backdrop-blur-md shadow-xl max-w-md w-full animate-slide-up animation-delay-200">
-          <div className="text-lg leading-relaxed">{content}</div>
-        </div>
-        
-        {/* Success indicators */}
-        <div className="flex gap-4 text-3xl mb-6 animate-slide-up animation-delay-400">
-          <span>✨</span>
-          <span>🏆</span>
-          <span>✨</span>
-        </div>
-        
-        <div className="text-xl opacity-90 font-medium animate-fade-in animation-delay-600">
-          Game Complete!
-        </div>
-      </div>
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center animate-fade-in px-4">
+      {/* Background with blur */}
+      <div className="absolute inset-0 bg-background-dark/80 backdrop-blur-md" />
       
-      <button
-        onClick={onClose}
-        className="w-full p-5 bg-white/25 hover:bg-white/35 text-white font-bold text-lg transition-all active:scale-95 border-t border-white/30"
-      >
-        View Results →
-      </button>
+      <div className="relative z-10 w-full max-w-lg">
+        <GlassPanel className="p-8 md:p-12 text-center border-primary/30 shadow-[0_0_50px_rgba(19,236,19,0.2)]">
+          {/* Animated celebration icon */}
+          <div className="mb-8 flex justify-center">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse" />
+              <Icon name="celebration" size="xl" className="text-primary text-7xl animate-bounce relative z-10" />
+            </div>
+          </div>
+          
+          {/* Title with animation */}
+          <h2 className="text-4xl font-black text-white mb-2 animate-scale-in tracking-tight">
+            Congratulations!
+          </h2>
+          <h3 className="text-xl font-bold text-primary mb-8 animate-slide-up">
+            You&apos;ve reached the goal!
+          </h3>
+          
+          {/* Content box with backdrop blur */}
+          <div className="bg-surface-dark-elevated/50 border border-white/10 rounded-2xl p-6 mb-10 shadow-inner animate-slide-up animation-delay-200">
+            <div className="text-lg text-gray-200 leading-relaxed italic italic-quote">
+              &quot;{content}&quot;
+            </div>
+          </div>
+          
+          {/* Success indicators */}
+          <div className="flex justify-center gap-6 mb-10 animate-slide-up animation-delay-400">
+            <Icon name="stars" size="md" className="text-primary/60" />
+            <Icon name="emoji_events" size="lg" className="text-primary shadow-lg shadow-primary/20" />
+            <Icon name="stars" size="md" className="text-primary/60" />
+          </div>
+          
+          <div className="mb-10 text-sm font-black uppercase tracking-[0.3em] text-gray-500 animate-fade-in animation-delay-600">
+            Adventure Complete
+          </div>
+          
+          <Button
+            onClick={onClose}
+            variant="primary"
+            fullWidth
+            size="lg"
+            className="shadow-xl shadow-primary/20 animate-slide-up animation-delay-800"
+          >
+            View Results
+            <Icon name="arrow_forward" size="sm" className="ml-2" />
+          </Button>
+        </GlassPanel>
+      </div>
     </div>
   );
 }

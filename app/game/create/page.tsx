@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { GameBasicInfo } from "./components/GameBasicInfo";
 import { GameMapSelection } from "./components/GameMapSelection";
@@ -26,19 +26,12 @@ type FormData = {
   playerRole: GameRole;
 };
 
-// Initialize mode from localStorage
-const getInitialMode = (): "chat" | "form" => {
-  if (typeof window === "undefined") return "chat";
-  const savedMode = localStorage.getItem("gameCreationMode");
-  return (savedMode === "chat" || savedMode === "form") ? savedMode : "chat";
-};
-
 export default function CreateGame() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [currentStep, setCurrentStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<"chat" | "form">(getInitialMode);
+  const [mode, setMode] = useState<"chat" | "form">("chat");
   const [formData, setFormData] = useState<FormData>({
     name: "",
     password: "",
@@ -48,6 +41,15 @@ export default function CreateGame() {
     playerRole: "player_a",
     maxDistance: 3,
   });
+
+  // Initialize mode from localStorage on mount
+  useEffect(() => {
+    const savedMode = localStorage.getItem("gameCreationMode");
+    if (savedMode === "chat" || savedMode === "form") {
+      // eslint-disable-next-line
+      setMode(savedMode);
+    }
+  }, []);
 
   // Save mode preference when it changes
   const handleModeChange = (newMode: "chat" | "form") => {
@@ -137,7 +139,7 @@ export default function CreateGame() {
             </div>
             <Link href="/">
               <Button variant="ghost">
-                <Icon name="close" className="text-lg" />
+                <Icon name="close" size="sm" />
               </Button>
             </Link>
           </div>
@@ -153,7 +155,7 @@ export default function CreateGame() {
                     : "text-white hover:text-primary"
                 }`}
               >
-                <Icon name="chat" className="mr-2 text-lg inline" />
+                <Icon name="chat" size="sm" className="mr-2" />
                 Chat Mode
               </button>
               <button
@@ -164,7 +166,7 @@ export default function CreateGame() {
                     : "text-white hover:text-primary"
                 }`}
               >
-                <Icon name="description" className="mr-2 text-lg inline" />
+                <Icon name="description" size="sm" className="mr-2" />
                 Form Mode
               </button>
             </GlassPanel>
