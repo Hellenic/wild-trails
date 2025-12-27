@@ -70,21 +70,107 @@ See [docs/distance-calculation-explained.md](./docs/distance-calculation-explain
 
 # Developing the application
 
-## Getting Started
+## Initial Setup (First Time)
 
-First, run the development server:
+### Prerequisites
+- Node.js 18+ or Bun
+- Vercel account
+- Supabase account
+- Google AI Studio API key (for Gemini)
+
+### 1. Clone and Install
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd wild-trails
+npm install  # or: bun install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Set Up Vercel
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Login and link project
+vercel login
+vercel link
+```
+
+### 3. Set Up Supabase
+
+1. **Create a Supabase project** at https://supabase.com/dashboard
+
+2. **Update project reference** in `package.json`:
+   ```json
+   {
+     "scripts": {
+       "db:setup": "supabase link --project-ref YOUR_PROJECT_REF",
+       "db:generate-types": "supabase gen types typescript --project-id \"YOUR_PROJECT_REF\" ..."
+     }
+   }
+   ```
+
+3. **Link your local project**:
+   ```bash
+   npm run db:login     # Login to Supabase
+   npm run db:setup     # Link to your project
+   ```
+
+4. **Apply database migrations** (includes enabling Realtime):
+   ```bash
+   npm run db:apply-migrations  # Applies all migrations in supabase/migrations/
+   ```
+   
+   This will:
+   - ✅ Create all database tables
+   - ✅ Set up row-level security policies
+   - ✅ **Enable Realtime for game tables** (critical for waypoints!)
+   
+### 4. Environment Variables
+
+Create `.env.local`:
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# Google AI (Gemini)
+GEMINI_API_KEY=your-gemini-api-key
+```
+
+Get these from:
+- **Supabase**: Project Settings → API
+- **Gemini**: https://aistudio.google.com/app/apikey
+
+### 5. Verify Setup
+
+```bash
+# Test database connection
+npm run db:generate-types
+
+# Should generate types/database.types.ts successfully
+```
+
+### 6. Run Development Server
+
+```bash
+npm run dev  # or: bun dev
+
+# Open http://localhost:3000
+```
+
+## Daily Development
+
+Once initial setup is complete:
+
+```bash
+npm run dev  # Start dev server
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
@@ -99,10 +185,103 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Database Migrations
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Creating a New Migration
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run db:create-migration your_migration_name
+```
+
+This creates a new file in `supabase/migrations/` where you can write SQL.
+
+### Applying Migrations
+
+```bash
+npm run db:apply-migrations
+```
+
+This pushes all pending migrations to your Supabase database.
+
+### Generating TypeScript Types
+
+After schema changes:
+
+```bash
+npm run db:generate-types
+```
+
+This updates `types/database.types.ts` with your current schema.
+
+## Testing
+
+```bash
+# Run unit tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run with coverage
+npm test -- --coverage
+
+# Run E2E tests (Playwright)
+npm run test:e2e
+```
+
+## Deployment
+
+### Deploy to Vercel
+
+```bash
+# Preview deployment
+vercel
+
+# Production deployment
+vercel --prod
+```
+
+### Pre-Deployment Checklist
+
+1. ✅ All tests passing (`npm test`)
+2. ✅ Migrations applied (`npm run db:apply-migrations`)
+3. ✅ **Realtime enabled** on `game_points` table (critical!)
+4. ✅ Environment variables set in Vercel dashboard
+5. ✅ Sound files in `public/sounds/` directory
+
+See [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) for complete list.
+
+## Troubleshooting
+
+### Waypoints Not Triggering?
+
+**Most likely**: Supabase Realtime not enabled on `game_points` table.
+
+**Fix**: See [ENABLE_REALTIME.md](./ENABLE_REALTIME.md)
+
+### Database Type Errors?
+
+Re-generate types after schema changes:
+
+```bash
+npm run db:generate-types
+```
+
+### Migration Errors?
+
+Check migration history:
+
+```bash
+supabase migration list
+```
+
+## Learn More
+
+To learn more about the technologies used:
+
+- [Next.js Documentation](https://nextjs.org/docs) - Next.js features and API
+- [Supabase Documentation](https://supabase.com/docs) - Database, auth, and realtime
+- [Tailwind CSS](https://tailwindcss.com/docs) - Utility-first CSS framework
+- [Leaflet](https://leafletjs.com/) - Interactive maps
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
