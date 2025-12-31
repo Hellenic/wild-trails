@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/types/database.types";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 
 type GamePoint = Tables<"game_points">;
 
@@ -21,13 +22,24 @@ export function useProximityEvents(
   gameId: string | null | undefined,
   callbacks: ProximityEventCallbacks
 ) {
+  // Use ref to store callbacks to avoid re-subscribing on every render
+  const callbacksRef = useRef(callbacks);
+  
+  // Update ref in an effect to satisfy React's rules
   useEffect(() => {
-    if (!gameId) return;
+    callbacksRef.current = callbacks;
+  });
+
+  useEffect(() => {
+    if (!gameId) {
+      return;
+    }
 
     const supabase = createClient();
+    let channel: RealtimeChannel | null = null;
     
     // Subscribe to changes on game_points table for this game
-    const channel = supabase
+    channel = supabase
       .channel(`game_points_${gameId}`)
       .on(
         "postgres_changes",
@@ -38,27 +50,35 @@ export function useProximityEvents(
           filter: `game_id=eq.${gameId}`,
         },
         (payload) => {
-          // When a point is marked as visited (by server proximity check)
-          if (payload.new.status === "visited" && payload.old.status === "unvisited") {
-            const point = payload.new as GamePoint;
-            
+          const newPoint = payload.new as GamePoint;
+          
+          // When a point is marked as visited
+          if (newPoint.status === "visited") {
             // Call the generic onPointReached callback if provided
-            callbacks.onPointReached?.(point);
+            callbacksRef.current.onPointReached?.(newPoint);
 
             // Call specific callbacks based on point type
-            if (point.type === "clue") {
-              callbacks.onClueDiscovered?.(point);
-            } else if (point.type === "end") {
-              callbacks.onGoalFound?.(point);
+            if (newPoint.type === "clue") {
+              callbacksRef.current.onClueDiscovered?.(newPoint);
+            } else if (newPoint.type === "end") {
+              callbacksRef.current.onGoalFound?.(newPoint);
             }
           }
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          console.error('Realtime subscription error:', err);
+        }
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Realtime channel error - check if Realtime is enabled on the table');
+        }
+      });
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
-  }, [gameId, callbacks]);
+  }, [gameId]); // Only re-subscribe when gameId changes, not callbacks
 }
-

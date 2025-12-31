@@ -18,7 +18,8 @@ export function usePoints(gameId: string) {
       const { data, error } = await supabase
         .from("game_points")
         .select()
-        .eq("game_id", gameId);
+        .eq("game_id", gameId)
+        .order("sequence_number", { ascending: true });
 
       if (error) {
         console.error("Error loading points:", error);

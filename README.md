@@ -29,16 +29,17 @@ Read the [synopsis](./synopsis.md) for more details.
 > Current focus: Single player game polish & testing
 
 - [ ] **Testing & Refinement**: Extensive testing of progressive path generation with various distances and terrains
-- [ ] More rich events for points in addition to proximity check (server-sent events)
 
 ### Roadmap
 
 - [ ] Multiplayer game - [.cursor/plans/multiplayer_phase_2a+2b_2f97d51f.plan.md]
 - [ ] Native mobile app - [.cursor/plans/native_mobile_client_with_expo_7312b0da.plan.md] (Designs exist in Stitch)
-- [ ] Crawler for rich, existing game points - [.cursor/plans/content_ingestion_scraper_system_bb341af8.plan.md]
+- [ ] Crawler for rich, existing game points - [.cursor/plans/external_points_curation_system_mvp_aa53cabe.plan.md]
 - [ ] Curated & public games - [.cursor/plans/public_templates_&_curated_games_6356b520.plan.md]
 - [ ] Social features (e.g. friend list, scoreboards)
 - [ ] Rewards for completing games (e.g. badges, personal records, points, achievements, XP, virtual collectibles)
+- [ ] Rich game events - [.cursor/plans/rich_events_design_document_f61e413e.plan.md]
+- [ ] Improved point generation & map display for Finland w/ LIPAS - [.cursor/plans/lipas_finland_trail_integration_9511ca87.plan.md]
 
 ## Future features?
  - Critical line + time to get to the line

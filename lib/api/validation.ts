@@ -137,11 +137,11 @@ export const locationUpdateSchema = z.object({
   player_id: uuidSchema,
   latitude: z.number(),
   longitude: z.number(),
-  altitude: z.number().nullable(),
-  altitude_accuracy: z.number().nullable(),
-  accuracy: z.number(),
-  speed: z.number().nullable(),
-  heading: z.number().nullable(),
+  altitude: z.number().nullish(), // null or undefined
+  altitude_accuracy: z.number().nullish(),
+  accuracy: z.number().optional().default(100), // default to 100m if not provided
+  speed: z.number().nullish(),
+  heading: z.number().nullish(),
 });
 
 export const proximityEventSchema = z.object({

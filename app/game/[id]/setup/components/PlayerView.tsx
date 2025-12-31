@@ -9,12 +9,18 @@ import { Button } from "@/app/components/ui/Button";
 import { Icon } from "@/app/components/ui/Icon";
 import { GlassPanel } from "@/app/components/ui/GlassPanel";
 import { cn } from "@/lib/utils";
+import { StartingPointMap } from "./StartingPointMap";
+import { calculateDistance } from "@/lib/game/proximity-logic";
+import { formatDistanceFromMeters } from "@/lib/utils/distance";
 
 interface PlayerViewProps {
   gameDetails: GameDetails;
   isCreator: boolean;
   player: Player;
 }
+
+// Distance threshold in meters - warn if player is farther than this
+const FAR_DISTANCE_THRESHOLD_METERS = 500;
 
 export function PlayerView({
   gameDetails,
@@ -29,6 +35,48 @@ export function PlayerView({
   const [players, setPlayers] = React.useState<Player[]>(
     gameDetails.players ?? []
   );
+  const [userLocation, setUserLocation] = React.useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [locationLoading, setLocationLoading] = React.useState(true);
+
+  // Get user's current location once on mount
+  React.useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocationLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setLocationLoading(false);
+      },
+      () => {
+        // Silently fail - location is optional for setup view
+        setLocationLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
+
+  // Calculate distance to starting point
+  const distanceToStart = React.useMemo(() => {
+    if (!userLocation || !gameDetails.starting_point) return null;
+    return calculateDistance(
+      userLocation.lat,
+      userLocation.lng,
+      gameDetails.starting_point.lat,
+      gameDetails.starting_point.lng
+    );
+  }, [userLocation, gameDetails.starting_point]);
+
+  const isFarFromStart =
+    distanceToStart !== null && distanceToStart > FAR_DISTANCE_THRESHOLD_METERS;
 
   // Fetch game status periodically
   useInterval(async () => {
@@ -153,8 +201,66 @@ export function PlayerView({
           </div>
         </div>
 
+        {/* Distance Warning Banner */}
+        {isFarFromStart && distanceToStart && (
+          <div className="mb-6 bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-start gap-3">
+            <Icon name="warning" size="md" className="text-amber-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-bold text-amber-400 mb-1">You&apos;re far from the starting point</h3>
+              <p className="text-sm text-amber-300/80">
+                You are approximately <span className="font-bold">{formatDistanceFromMeters(distanceToStart)}</span> away 
+                from the starting location. Consider traveling closer before marking yourself as ready.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1 space-y-6">
+            {/* Starting Point Map */}
+            {gameDetails.starting_point && (
+              <div className="bg-surface-dark-elevated/50 border border-white/5 rounded-2xl p-4 overflow-hidden">
+                <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                  <Icon name="location_on" size="sm" className="text-primary" />
+                  Starting Point
+                </h2>
+                <div className="h-48 rounded-xl overflow-hidden">
+                  <StartingPointMap
+                    startingPoint={gameDetails.starting_point}
+                    playerLocation={userLocation}
+                    maxRadius={gameDetails.max_radius}
+                  />
+                </div>
+                {/* Distance indicator */}
+                <div className="mt-3 pt-3 border-t border-white/5">
+                  {locationLoading ? (
+                    <div className="flex items-center gap-2 text-gray-400 text-sm">
+                      <Icon name="progress_activity" size="sm" className="animate-spin" />
+                      Getting your location...
+                    </div>
+                  ) : distanceToStart !== null ? (
+                    <div className={cn(
+                      "flex items-center gap-2 text-sm",
+                      isFarFromStart ? "text-amber-400" : "text-primary"
+                    )}>
+                      <Icon name={isFarFromStart ? "directions_walk" : "check_circle"} size="sm" />
+                      <span>
+                        {isFarFromStart 
+                          ? `${formatDistanceFromMeters(distanceToStart)} away`
+                          : "You're at the starting area"
+                        }
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-gray-500 text-sm">
+                      <Icon name="location_disabled" size="sm" />
+                      Location unavailable
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="bg-surface-dark-elevated/50 border border-white/5 rounded-2xl p-6">
               <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <Icon name="info" size="sm" className="text-primary" />

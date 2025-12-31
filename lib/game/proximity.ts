@@ -1,8 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import type { ProximityEvent } from "@/lib/api/validation";
-import { LatLng } from "@/utils/map";
-
-const TRIGGER_DISTANCE_METERS = 50; // Adjust based on game requirements
+import {
+  DEFAULT_TRIGGER_DISTANCE_METERS,
+  checkPointProximity,
+  type ProximityPoint,
+} from "./proximity-logic";
 
 /**
  * Check if a player's location is within the trigger distance of any unvisited points
@@ -19,16 +21,20 @@ export async function checkProximity(
   latitude: number,
   longitude: number
 ): Promise<ProximityEvent[]> {
+  // Use regular client for reading (respects RLS for user context)
   const supabase = await createClient();
+  // Use admin client for updates (bypasses RLS)
+  const adminClient = createAdminClient();
   const events: ProximityEvent[] = [];
 
   try {
-    // Get all unvisited points for the game
+    // Get all unvisited points for the game (excluding start points)
     const { data: points, error } = await supabase
       .from("game_points")
       .select("*")
       .eq("game_id", gameId)
-      .eq("status", "unvisited");
+      .eq("status", "unvisited")
+      .neq("type", "start"); // Start points don't trigger proximity
 
     if (error) {
       console.error("Error fetching game points:", error);
@@ -39,25 +45,42 @@ export async function checkProximity(
       return events;
     }
 
-    // Check each point for proximity
+    // Check each point for proximity using pure logic
     for (const point of points) {
-      const playerLocation = new LatLng(latitude, longitude);
-      const pointLocation = new LatLng(point.latitude, point.longitude);
-      const distance = playerLocation.distanceTo(pointLocation);
+      const proximityPoint: ProximityPoint = {
+        id: point.id,
+        latitude: point.latitude,
+        longitude: point.longitude,
+        type: point.type,
+        hint: point.hint,
+      };
+
+      const result = checkPointProximity(
+        latitude,
+        longitude,
+        proximityPoint,
+        DEFAULT_TRIGGER_DISTANCE_METERS
+      );
 
       // If within trigger distance, mark as visited and add to events
-      if (distance <= TRIGGER_DISTANCE_METERS) {
-        // Update point status to visited
-        const { error: updateError } = await supabase
+      if (result.triggered) {
+        // Update point status to visited using ADMIN client to bypass RLS
+        const { data: updateData, error: updateError } = await adminClient
           .from("game_points")
           .update({
             status: "visited",
             updated_at: new Date().toISOString(),
           })
-          .eq("id", point.id);
+          .eq("id", point.id)
+          .select();
 
         if (updateError) {
           console.error("Error updating point status:", updateError);
+          continue;
+        }
+
+        if (!updateData || updateData.length === 0) {
+          console.error("Update returned no data - this should not happen with admin client!");
           continue;
         }
 
@@ -66,12 +89,8 @@ export async function checkProximity(
           point_id: point.id,
           point_type: point.type,
           hint: point.hint,
-          distance: Math.round(distance),
+          distance: Math.round(result.distance),
         });
-
-        // Emit a realtime event for this point being reached
-        // Note: Supabase Realtime will automatically broadcast the update to game_points table
-        // The frontend should subscribe to changes on game_points table filtered by game_id
       }
     }
 
@@ -87,6 +106,21 @@ export async function checkProximity(
  * @returns Trigger distance in meters
  */
 export function getTriggerDistance(): number {
-  return TRIGGER_DISTANCE_METERS;
+  return DEFAULT_TRIGGER_DISTANCE_METERS;
 }
 
+// Re-export pure functions for use elsewhere
+export {
+  calculateDistance,
+  isWithinProximity,
+  checkPointProximity,
+  checkMultiplePointsProximity,
+  getTriggeredPoints,
+  filterTriggerablePoints,
+  getClosestPoint,
+  isValidCoordinate,
+  DEFAULT_TRIGGER_DISTANCE_METERS,
+  type ProximityPoint,
+  type ProximityCheckResult,
+  type ProximityTriggerEvent,
+} from "./proximity-logic";

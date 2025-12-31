@@ -48,24 +48,24 @@ export function GameMasterView({
       hint: "",
     };
 
+    // Helper to sort points: start first, then clues in order, end last
+    const sortPoints = (pts: PointSetup[]) => {
+      const start = pts.find(p => p.type === "start");
+      const end = pts.find(p => p.type === "end");
+      const clues = pts.filter(p => p.type === "clue");
+      return [
+        ...(start ? [start] : []),
+        ...clues, // Preserves insertion order
+        ...(end ? [end] : []),
+      ];
+    };
+
     // Replace existing start/end points or add new point
     if (selectedPointType === "start" || selectedPointType === "end") {
       const updatedPoints = points.filter((p) => p.type !== selectedPointType);
-      setPoints(
-        [...updatedPoints, newPoint].sort((a, b) => {
-          if (a.type === "end") return 1;
-          if (b.type === "end") return -1;
-          return 0;
-        })
-      );
+      setPoints(sortPoints([...updatedPoints, newPoint]));
     } else {
-      setPoints(
-        [...points, newPoint].sort((a, b) => {
-          if (a.type === "end") return 1;
-          if (b.type === "end") return -1;
-          return 0;
-        })
-      );
+      setPoints(sortPoints([...points, newPoint]));
     }
   };
 

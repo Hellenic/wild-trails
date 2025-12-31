@@ -109,20 +109,20 @@ export default function LoginPage() {
                 <Button
                   variant="primary"
                   fullWidth
-                  formAction={signup}
-                  loadingText="Creating account..."
-                  data-testid="signup-button"
-                >
-                  Sign Up
-                </Button>
-                <Button
-                  variant="secondary"
-                  fullWidth
                   formAction={login}
                   loadingText="Logging in..."
                   data-testid="login-button"
                 >
                   Log In
+                </Button>
+                <Button
+                  variant="secondary"
+                  fullWidth
+                  formAction={signup}
+                  loadingText="Creating account..."
+                  data-testid="signup-button"
+                >
+                  Sign Up
                 </Button>
               </div>
             </form>

@@ -59,7 +59,7 @@ export default function GameMap({
         {/* Game points */}
         {restPoints.map((point, index) => (
           <Marker
-            key={point.id}
+            key={`${point.id}-${point.status}`} // Include status in key to force re-render when status changes
             position={new LatLng(point.latitude, point.longitude)}
             icon={getMarkerIcon(point.status, index + 1)}
           />
