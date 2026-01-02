@@ -38,12 +38,14 @@ export const createGameSchema = z.object({
   duration: z.number().int().positive(),
   max_radius: z.number().positive(),
   player_count: z.number().int().positive(),
+  max_players: z.number().int().positive().optional(),
   game_mode: gameModeTypeSchema,
   game_master: gameMasterTypeSchema,
   difficulty: gameDifficultyTypeSchema.optional().default("easy"),
   selected_role: gameRoleTypeSchema.optional(),
   starting_point: startingPointSchema.optional(),
   bounding_box: boundingBoxSchema,
+  generate_game_code: z.boolean().optional().default(false),
 });
 
 export const updateGameStatusSchema = z.object({
@@ -61,6 +63,9 @@ export const gameResponseSchema = z.object({
   duration: z.number(),
   max_radius: z.number(),
   player_count: z.number(),
+  max_players: z.number().nullable(),
+  game_code: z.string().nullable(),
+  is_public: z.boolean().nullable(),
   game_mode: gameModeTypeSchema,
   game_master: gameMasterTypeSchema,
   difficulty: gameDifficultyTypeSchema,
@@ -78,6 +83,7 @@ export const playerStatusTypeSchema = z.enum(["waiting", "ready", "playing", "fi
 
 export const joinGameSchema = z.object({
   role: gameRoleTypeSchema,
+  password: z.string().optional(),
 });
 
 export const updatePlayerStatusSchema = z.object({
