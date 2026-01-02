@@ -4,6 +4,8 @@ import { Button } from "@/app/components/ui/Button";
 import { Input } from "@/app/components/ui/Input";
 import { Icon } from "@/app/components/ui/Icon";
 import { DIFFICULTY_PRESETS, type DifficultyLevel } from "@/lib/game/difficulty-presets";
+import { ROLE_INFO, isRoleValidForGameMode, type GameRole as RoleType } from "@/lib/game/roles";
+import { cn } from "@/lib/utils";
 
 type GameSettingsFormData = {
   duration: number;
@@ -21,6 +23,12 @@ type Props = {
   onBack: () => void;
   onSubmit: () => void;
 };
+
+const PLAYER_COUNT_OPTIONS = [
+  { value: 1, label: "Single Player", description: "Seeker + AI Game Master", icon: "person" },
+  { value: 2, label: "Two Players", description: "Choose your roles", icon: "group" },
+  { value: 3, label: "Three Players", description: "All human players", icon: "groups" },
+];
 
 export function GameSettings({
   pending,
@@ -45,10 +53,67 @@ export function GameSettings({
     });
   };
 
+  // Handle player count change
+  const handlePlayerCountChange = (playerCount: number) => {
+    // Single player: always AI game master, always player_a role
+    // Two player: can choose AI GM (player_a + player_b) or Player GM (player_a + game_master)
+    // Three player: always Player GM, all roles available
+    
+    let gameMasterType: GameMaster;
+    let finalRole: GameRole;
+    
+    if (playerCount === 1) {
+      gameMasterType = "ai";
+      finalRole = "player_a";
+    } else if (playerCount === 2) {
+      // Keep current GM type if valid, default to AI
+      gameMasterType = formData.gameMasterType;
+      // Reset role if switching player counts
+      finalRole = "player_a";
+    } else {
+      // 3 players: always human GM
+      gameMasterType = "player";
+      finalRole = formData.playerRole === "player_b" ? "player_b" : "player_a";
+    }
+    
+    setFormData({
+      ...formData,
+      playerCount,
+      playerRole: finalRole,
+      gameMasterType,
+    });
+  };
+  
+  // Handle game master type change (for 2-player games)
+  const handleGameMasterTypeChange = (newGmType: GameMaster) => {
+    let finalRole = formData.playerRole;
+    
+    if (formData.playerCount === 2) {
+      // If switching to player GM, player_b is not available
+      // If current role is player_b and switching to player GM, reset to player_a
+      if (newGmType === "player" && formData.playerRole === "player_b") {
+        finalRole = "player_a";
+      }
+      // If switching to AI GM, game_master is not available
+      // If current role is game_master and switching to AI GM, reset to player_a
+      if (newGmType === "ai" && formData.playerRole === "game_master") {
+        finalRole = "player_a";
+      }
+    }
+    
+    setFormData({
+      ...formData,
+      gameMasterType: newGmType,
+      playerRole: finalRole,
+    });
+  };
+
   const currentPreset = DIFFICULTY_PRESETS[formData.difficulty];
+  const isMultiplayer = formData.playerCount > 1;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Difficulty Level */}
       <div>
         <label className="block text-sm font-medium text-gray-300 mb-3">
           Difficulty Level
@@ -105,6 +170,7 @@ export function GameSettings({
         </div>
       </div>
 
+      {/* Duration */}
       <div>
         <Input
           type="number"
@@ -125,6 +191,7 @@ export function GameSettings({
         </p>
       </div>
 
+      {/* Max Distance */}
       <div>
         <Input
           type="number"
@@ -145,106 +212,181 @@ export function GameSettings({
         </p>
       </div>
 
-      <div>
-        <label
-          htmlFor="playerCount"
-          className="block text-sm font-medium text-gray-300 mb-2"
-        >
-          Number of Players
-        </label>
-        <select
-          id="playerCount"
-          value={formData.playerCount}
-          onChange={(e) =>
-            setFormData({ ...formData, playerCount: Number(e.target.value) })
-          }
-          className="w-full h-12 rounded-lg border bg-surface-dark-elevated text-white placeholder:text-gray-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent border-white/10 px-4"
-        >
-          <option value={1}>Single Player</option>
-          <option value={2} disabled>
-            Two Players
-          </option>
-          <option value={3} disabled>
-            Three Players
-          </option>
-        </select>
-      </div>
-
+      {/* Number of Players */}
       <div>
         <label className="block text-sm font-medium text-gray-300 mb-3">
-          Game Master
+          Number of Players
         </label>
-        <div className="flex gap-4">
-          <label className="flex-1 cursor-pointer">
-            <input
-              type="radio"
-              value="ai"
-              checked={formData.gameMasterType === "ai"}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  gameMasterType: e.target.value as "player" | "ai",
-                })
-              }
-              className="sr-only peer"
-            />
-            <div className="h-12 flex items-center justify-center rounded-lg border-2 border-white/10 bg-surface-dark-elevated text-white transition-all peer-checked:border-primary peer-checked:bg-primary/10">
-              <Icon name="smart_toy" className="mr-2" />
-              <span className="font-medium">AI</span>
-            </div>
-          </label>
-          <label className="flex-1 cursor-pointer">
-            <input
-              type="radio"
-              value="player"
-              checked={formData.gameMasterType === "player"}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  gameMasterType: e.target.value as "player" | "ai",
-                })
-              }
-              className="sr-only peer"
-            />
-            <div className="h-12 flex items-center justify-center rounded-lg border-2 border-white/10 bg-surface-dark-elevated text-white transition-all peer-checked:border-primary peer-checked:bg-primary/10">
-              <Icon name="person" className="mr-2" />
-              <span className="font-medium">Player</span>
-            </div>
-          </label>
+        <div className="grid grid-cols-3 gap-3">
+          {PLAYER_COUNT_OPTIONS.map((option) => (
+            <label key={option.value} className="cursor-pointer">
+              <input
+                type="radio"
+                name="playerCount"
+                value={option.value}
+                checked={formData.playerCount === option.value}
+                onChange={() => handlePlayerCountChange(option.value)}
+                className="sr-only peer"
+              />
+              <div className={cn(
+                "h-auto p-3 flex flex-col items-center justify-center rounded-lg border-2 transition-all",
+                "border-white/10 bg-surface-dark-elevated text-white",
+                "peer-checked:border-primary peer-checked:bg-primary/10",
+                "hover:border-white/20"
+              )}>
+                <Icon name={option.icon} className="mb-1 text-xl text-primary" />
+                <span className="font-medium text-sm">{option.label}</span>
+                <span className="text-[10px] text-gray-500 mt-0.5 text-center">{option.description}</span>
+              </div>
+            </label>
+          ))}
         </div>
       </div>
 
-      <div>
-        <label
-          htmlFor="playerRole"
-          className="block text-sm font-medium text-gray-300 mb-2"
-        >
-          Your Role
-        </label>
-        <select
-          id="playerRole"
-          value={formData.playerRole || "none"}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              playerRole:
-                e.target.value === "none"
-                  ? null
-                  : (e.target.value as "player_a" | "player_b" | "game_master"),
-            })
-          }
-          className="w-full h-12 rounded-lg border bg-surface-dark-elevated text-white placeholder:text-gray-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent border-white/10 px-4"
-        >
-          <option value="none">None</option>
-          <option value="player_a">Player A (Starting Point)</option>
-          <option value="player_b" disabled>
-            Player B (Command Center)
-          </option>
-          {formData.gameMasterType === "player" && (
-            <option value="game_master">Game Master</option>
+      {/* Game Master (for 2-player games, 3-player is always human) */}
+      {formData.playerCount === 2 && (
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-3">
+            Game Master
+          </label>
+          <div className="flex gap-4">
+            <label className="flex-1 cursor-pointer">
+              <input
+                type="radio"
+                value="ai"
+                checked={formData.gameMasterType === "ai"}
+                onChange={() => handleGameMasterTypeChange("ai")}
+                className="sr-only peer"
+              />
+              <div className="h-12 flex items-center justify-center rounded-lg border-2 border-white/10 bg-surface-dark-elevated text-white transition-all peer-checked:border-primary peer-checked:bg-primary/10">
+                <Icon name="smart_toy" className="mr-2" />
+                <span className="font-medium">AI</span>
+              </div>
+            </label>
+            <label className="flex-1 cursor-pointer">
+              <input
+                type="radio"
+                value="player"
+                checked={formData.gameMasterType === "player"}
+                onChange={() => handleGameMasterTypeChange("player")}
+                className="sr-only peer"
+              />
+              <div className="h-12 flex items-center justify-center rounded-lg border-2 border-white/10 bg-surface-dark-elevated text-white transition-all peer-checked:border-primary peer-checked:bg-primary/10">
+                <Icon name="person" className="mr-2" />
+                <span className="font-medium">Player</span>
+              </div>
+            </label>
+          </div>
+          {formData.gameMasterType === "ai" && (
+            <p className="mt-2 text-xs text-gray-500">
+              Both players can be Seeker and Guide. AI will manage the game.
+            </p>
           )}
-        </select>
-      </div>
+          {formData.gameMasterType === "player" && (
+            <p className="mt-2 text-xs text-gray-500">
+              One player is the Game Master, the other is the Seeker. No Guide role.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* 3-player info (always human GM) */}
+      {formData.playerCount === 3 && (
+        <div className="p-4 rounded-lg bg-surface-dark-elevated border border-white/10">
+          <div className="flex items-start gap-3">
+            <Icon name="groups" className="text-primary shrink-0 mt-0.5" />
+            <div className="text-sm text-gray-300">
+              <p className="font-medium text-white mb-1">Full Team Mode</p>
+              <p className="text-gray-400">
+                All three roles (Seeker, Guide, and Game Master) will be played by humans. No AI assistance.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Single Player Info */}
+      {formData.playerCount === 1 && (
+        <div className="p-4 rounded-lg bg-surface-dark-elevated border border-white/10">
+          <div className="flex items-start gap-3">
+            <Icon name="smart_toy" className="text-primary shrink-0 mt-0.5" />
+            <div className="text-sm text-gray-300">
+              <p className="font-medium text-white mb-1">Solo Adventure</p>
+              <p className="text-gray-400">
+                You&apos;ll play as the Seeker with an AI Game Master guiding you with hints. 
+                Find the hidden goal by exploring waypoints and collecting clues!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Your Role (multiplayer only) */}
+      {isMultiplayer && (
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-3">
+            Your Role
+          </label>
+          <div className="space-y-2">
+            {/* Determine which roles to show based on player count and GM type */}
+            {/* Uses centralized role validation from lib/game/roles.ts */}
+            {(() => {
+              const gameMode = formData.playerCount === 2 ? "two_player" : "multi_player";
+              const allRoles: RoleType[] = ["player_a", "player_b", "game_master"];
+              const rolesToShow = allRoles.filter((role) =>
+                isRoleValidForGameMode(role, gameMode, formData.gameMasterType)
+              );
+              
+              return rolesToShow.map((role) => {
+                const roleInfo = ROLE_INFO[role];
+                
+                return (
+                  <label key={role} className="block cursor-pointer">
+                    <input
+                      type="radio"
+                      name="playerRole"
+                      value={role}
+                      checked={formData.playerRole === role}
+                      onChange={() => setFormData({ ...formData, playerRole: role })}
+                      className="sr-only peer"
+                    />
+                    <div className={cn(
+                      "p-3 rounded-lg border-2 transition-all",
+                      "border-white/10 bg-surface-dark-elevated",
+                      "peer-checked:border-primary peer-checked:bg-primary/10",
+                      "hover:border-white/20"
+                    )}>
+                      <div className="flex items-center gap-3">
+                        <Icon name={roleInfo.icon} className="text-xl text-primary" />
+                        <div>
+                          <span className="font-medium text-white">{roleInfo.name}</span>
+                          <p className="text-xs text-gray-400">{roleInfo.description}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </label>
+                );
+              });
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* Multiplayer Info */}
+      {isMultiplayer && (
+        <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+          <div className="flex items-start gap-3">
+            <Icon name="info" className="text-primary shrink-0 mt-0.5" />
+            <div className="text-sm text-gray-300">
+              <p className="font-medium text-primary mb-1">Multiplayer Game</p>
+              <p className="text-gray-400">
+                After creating the game, you&apos;ll get a game code to share with your friends. 
+                Everyone will meet in the lobby before the game starts.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex justify-between pt-4">
         <Button type="button" onClick={onBack} variant="ghost">

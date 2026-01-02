@@ -11,17 +11,27 @@ interface ProximityEventCallbacks {
   onGoalFound?: (point: GamePoint) => void;
 }
 
+interface ProximityEventOptions extends ProximityEventCallbacks {
+  /**
+   * Whether the hook should be enabled. When false, no subscription is created.
+   * Use this to conditionally enable proximity events based on role permissions.
+   * @default true
+   */
+  enabled?: boolean;
+}
+
 /**
  * Hook to listen for server-side proximity events via Supabase Realtime
  * Subscribes to game_points table updates for a specific game
  * 
  * @param gameId - The game ID to listen for
- * @param callbacks - Callback functions for different point types
+ * @param options - Callback functions and options for the hook
  */
 export function useProximityEvents(
   gameId: string | null | undefined,
-  callbacks: ProximityEventCallbacks
+  options: ProximityEventOptions
 ) {
+  const { enabled = true, ...callbacks } = options;
   // Use ref to store callbacks to avoid re-subscribing on every render
   const callbacksRef = useRef(callbacks);
   
@@ -31,7 +41,8 @@ export function useProximityEvents(
   });
 
   useEffect(() => {
-    if (!gameId) {
+    // Don't subscribe if disabled or no gameId
+    if (!enabled || !gameId) {
       return;
     }
 
@@ -81,5 +92,5 @@ export function useProximityEvents(
         supabase.removeChannel(channel);
       }
     };
-  }, [gameId]); // Only re-subscribe when gameId changes, not callbacks
+  }, [gameId, enabled]); // Re-subscribe when gameId or enabled changes, not callbacks
 }

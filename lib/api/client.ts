@@ -101,6 +101,31 @@ export const gameAPI = {
       body: JSON.stringify(data),
     });
   },
+
+  /**
+   * Start a game (creator only)
+   * Sets game to active and all players to playing
+   */
+  start: async (gameId: string): Promise<{ success: boolean; gameId: string; status: string }> => {
+    return apiRequest(`/api/game/${gameId}/start`, {
+      method: "POST",
+    });
+  },
+
+  /**
+   * End/complete a game
+   * - Creator and Game Master can end any time
+   * - Player A can give up (set gaveUp: true)
+   */
+  end: async (
+    gameId: string,
+    options?: { gaveUp?: boolean }
+  ): Promise<{ success: boolean; game: GameResponse; gave_up: boolean }> => {
+    return apiRequest(`/api/game/${gameId}/end`, {
+      method: "POST",
+      body: JSON.stringify({ gave_up: options?.gaveUp ?? false }),
+    });
+  },
 };
 
 // ============================================================================
@@ -136,6 +161,41 @@ export const playerAPI = {
     return apiRequest(`/api/player/${playerId}/status`, {
       method: "POST",
       body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Set player ready status in lobby
+   */
+  setReady: async (
+    gameId: string,
+    playerId: string,
+    ready: boolean
+  ): Promise<PlayerResponse> => {
+    return apiRequest(`/api/game/${gameId}/player/${playerId}/ready`, {
+      method: "POST",
+      body: JSON.stringify({ ready }),
+    });
+  },
+
+  /**
+   * Kick a player from game (creator only)
+   */
+  kick: async (
+    gameId: string,
+    playerId: string
+  ): Promise<{ success: boolean; message: string }> => {
+    return apiRequest(`/api/game/${gameId}/player/${playerId}`, {
+      method: "DELETE",
+    });
+  },
+
+  /**
+   * Get player details
+   */
+  get: async (gameId: string, playerId: string): Promise<PlayerResponse> => {
+    return apiRequest(`/api/game/${gameId}/player/${playerId}`, {
+      method: "GET",
     });
   },
 };
@@ -178,6 +238,23 @@ export const pointsAPI = {
     return apiRequest(`/api/points/${pointId}/status`, {
       method: "POST",
       body: JSON.stringify(data),
+    });
+  },
+};
+
+// ============================================================================
+// Multiplayer API Client
+// ============================================================================
+
+export const multiplayerAPI = {
+  /**
+   * Get game by code
+   */
+  getByCode: async (
+    code: string
+  ): Promise<{ id: string; name: string; status: string; game_code: string }> => {
+    return apiRequest(`/api/game/by-code/${code}`, {
+      method: "GET",
     });
   },
 };

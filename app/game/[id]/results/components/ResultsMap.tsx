@@ -17,16 +17,22 @@ interface PlayerLocation {
   accuracy: number | null;
 }
 
+interface PlayerPath {
+  playerId: string;
+  color: string;
+  locations: PlayerLocation[];
+}
+
 type ResultsMapProps = {
   bounds: Game["bounding_box"];
   points: GamePoint[];
-  playerPath: PlayerLocation[];
+  playerPaths: PlayerPath[];
 };
 
 export default function ResultsMap({
   bounds,
   points,
-  playerPath,
+  playerPaths,
 }: ResultsMapProps) {
   const startingPoint = points.find((p) => p.type === "start");
   const endingPoint = points.find((p) => p.type === "end");
@@ -38,10 +44,17 @@ export default function ResultsMap({
   const mapArea = toLatLngBounds(bounds);
   const center = mapArea.getCenter();
 
-  // Convert player path to Leaflet LatLng array
-  const pathCoordinates = playerPath
-    .filter((loc) => loc.latitude !== null && loc.longitude !== null)
-    .map((loc) => new LatLng(loc.latitude!, loc.longitude!));
+  // Convert each player's path to Leaflet LatLng arrays
+  const pathsWithCoordinates = playerPaths.map((path) => ({
+    ...path,
+    coordinates: path.locations
+      .filter((loc) => loc.latitude !== null && loc.longitude !== null)
+      .map((loc) => new LatLng(loc.latitude!, loc.longitude!)),
+  }));
+
+  // Get the last known position from all paths for the final marker
+  const allCoordinates = pathsWithCoordinates.flatMap((p) => p.coordinates);
+  const lastPosition = allCoordinates.length > 0 ? allCoordinates[allCoordinates.length - 1] : null;
 
   return (
     <div className="h-full w-full relative overflow-hidden">
@@ -54,14 +67,17 @@ export default function ResultsMap({
       >
         <MapTileLayers />
 
-        {/* Player path polyline */}
-        {pathCoordinates.length > 0 && (
-          <Polyline
-            positions={pathCoordinates}
-            color="#3b82f6"
-            weight={3}
-            opacity={0.7}
-          />
+        {/* Player path polylines - one per player */}
+        {pathsWithCoordinates.map((path) =>
+          path.coordinates.length > 0 ? (
+            <Polyline
+              key={path.playerId}
+              positions={path.coordinates}
+              color={path.color}
+              weight={3}
+              opacity={0.7}
+            />
+          ) : null
         )}
 
         {/* Starting point marker */}
@@ -91,12 +107,15 @@ export default function ResultsMap({
           />
         )}
 
-        {/* Final player position marker */}
-        {pathCoordinates.length > 0 && (
-          <Marker
-            position={pathCoordinates[pathCoordinates.length - 1]}
-            icon={getMarkerIcon("player")}
-          />
+        {/* Final player position markers - one per player */}
+        {pathsWithCoordinates.map((path) =>
+          path.coordinates.length > 0 ? (
+            <Marker
+              key={`final-${path.playerId}`}
+              position={path.coordinates[path.coordinates.length - 1]}
+              icon={getMarkerIcon("player")}
+            />
+          ) : null
         )}
       </MapContainer>
     </div>

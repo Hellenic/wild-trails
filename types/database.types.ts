@@ -69,11 +69,14 @@ export type Database = {
           difficulty: Database["public"]["Enums"]["game_difficulty_type"]
           duration: number
           ended_at: string | null
+          game_code: string | null
           game_master: Database["public"]["Enums"]["game_master_type"]
           game_mode: Database["public"]["Enums"]["game_mode_type"]
           gave_up: boolean | null
           id: string
+          is_public: boolean | null
           last_processing_error: string | null
+          max_players: number | null
           max_radius: number
           name: string
           password: string
@@ -92,11 +95,14 @@ export type Database = {
           difficulty?: Database["public"]["Enums"]["game_difficulty_type"]
           duration: number
           ended_at?: string | null
+          game_code?: string | null
           game_master: Database["public"]["Enums"]["game_master_type"]
           game_mode: Database["public"]["Enums"]["game_mode_type"]
           gave_up?: boolean | null
           id?: string
+          is_public?: boolean | null
           last_processing_error?: string | null
+          max_players?: number | null
           max_radius: number
           name: string
           password: string
@@ -115,11 +121,14 @@ export type Database = {
           difficulty?: Database["public"]["Enums"]["game_difficulty_type"]
           duration?: number
           ended_at?: string | null
+          game_code?: string | null
           game_master?: Database["public"]["Enums"]["game_master_type"]
           game_mode?: Database["public"]["Enums"]["game_mode_type"]
           gave_up?: boolean | null
           id?: string
+          is_public?: boolean | null
           last_processing_error?: string | null
+          max_players?: number | null
           max_radius?: number
           name?: string
           password?: string
@@ -230,7 +239,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_game_code: { Args: never; Returns: string }
+      generate_unique_game_code: { Args: never; Returns: string }
+      is_game_creator: {
+        Args: { check_game_id: string; check_user_id: string }
+        Returns: boolean
+      }
+      is_player_in_game: {
+        Args: { check_game_id: string; check_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       game_difficulty_type: "easy" | "medium" | "hard"

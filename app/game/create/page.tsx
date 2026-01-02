@@ -86,16 +86,25 @@ export default function CreateGame() {
 
     startTransition(async () => {
       try {
+        // Determine game mode based on player count
+        const gameMode = formData.playerCount === 1 
+          ? "single_player" 
+          : formData.playerCount === 2 
+            ? "two_player" 
+            : "multi_player";
+
         const game = await gameAPI.create({
           name: formData.name,
           password: formData.password,
           duration: formData.duration * 60, // Duration, from hours to minutes
           max_radius: formData.maxDistance,
           player_count: formData.playerCount,
-          game_mode: "single_player",
+          max_players: formData.playerCount,
+          game_mode: gameMode,
           selected_role: formData.playerRole || undefined,
           game_master: formData.gameMasterType,
           difficulty: formData.difficulty,
+          generate_game_code: formData.playerCount > 1, // Generate code for multiplayer
           starting_point: formData.startingPoint
             ? {
                 lat: formData.startingPoint.lat,
@@ -105,8 +114,9 @@ export default function CreateGame() {
           bounding_box: formData.mapArea!,  // Already checked above
         });
 
-        // Navigate to game setup page
-        router.push(`/game/${game.id}/setup`);
+        // Navigate to lobby for multiplayer, setup for single player
+        const destination = `/game/${game.id}/setup`;
+        router.push(destination);
       } catch (err: unknown) {
         console.error("Error creating game:", err);
         setError(

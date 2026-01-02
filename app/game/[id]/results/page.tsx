@@ -6,13 +6,15 @@ import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/useUser";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
-import type { Game, GamePoint } from "@/types/game";
+import type { Game, GamePoint, Player } from "@/types/game";
 import { calculateDistance } from "@/app/background/geo-utils";
 import { getJourneyComparison, getNatureFact, getEncouragingMessage } from "@/lib/game/fun-facts";
 import { formatDistance, formatDistanceFromMeters } from "@/lib/utils/distance";
 import { Icon } from "@/app/components/ui/Icon";
 import { GlassPanel } from "@/app/components/ui/GlassPanel";
 import { Button } from "@/app/components/ui/Button";
+import { getRoleInfo, type GameRole } from "@/lib/game/roles";
+import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
 
 // Dynamically import map to avoid SSR issues
@@ -21,10 +23,16 @@ const ResultsMap = dynamic(() => import("./components/ResultsMap"), {
 });
 
 interface PlayerLocation {
+  player_id: string;
   latitude: number | null;
   longitude: number | null;
   timestamp: string;
   accuracy: number | null;
+}
+
+interface PlayerWithStats extends Player {
+  locations: PlayerLocation[];
+  distanceTraveled: number;
 }
 
 export default function ResultsPage() {
@@ -37,9 +45,10 @@ export default function ResultsPage() {
 
   const [game, setGame] = useState<Game | null>(null);
   const [points, setPoints] = useState<GamePoint[]>([]);
-  const [playerPath, setPlayerPath] = useState<PlayerLocation[]>([]);
+  const [players, setPlayers] = useState<PlayerWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isMultiplayer = game?.game_mode !== "single_player";
 
   useEffect(() => {
     if (!userLoading && user && gameId) {
@@ -75,15 +84,49 @@ export default function ResultsPage() {
       if (pointsError) throw pointsError;
       setPoints((pointsData as GamePoint[]) || []);
 
+      // Fetch all players
+      const { data: playersData, error: playersError } = await supabase
+        .from("players")
+        .select("*")
+        .eq("game_id", gameId);
+
+      if (playersError) throw playersError;
+
       // Fetch player location history
       const { data: locationsData, error: locationsError } = await supabase
         .from("player_locations")
-        .select("latitude, longitude, timestamp, accuracy")
+        .select("player_id, latitude, longitude, timestamp, accuracy")
         .eq("game_id", gameId)
         .order("timestamp", { ascending: true });
 
       if (locationsError) throw locationsError;
-      setPlayerPath((locationsData as PlayerLocation[]) || []);
+      
+      const allLocations = (locationsData as PlayerLocation[]) || [];
+
+      // Calculate stats for each player
+      const playersWithStats: PlayerWithStats[] = (playersData || []).map((player) => {
+        const playerLocations = allLocations.filter((loc) => loc.player_id === player.id);
+        let distanceTraveled = 0;
+        
+        for (let i = 1; i < playerLocations.length; i++) {
+          const prev = playerLocations[i - 1];
+          const curr = playerLocations[i];
+          if (prev.latitude && prev.longitude && curr.latitude && curr.longitude) {
+            distanceTraveled += calculateDistance(
+              { lat: prev.latitude, lng: prev.longitude },
+              { lat: curr.latitude, lng: curr.longitude }
+            );
+          }
+        }
+
+        return {
+          ...player,
+          locations: playerLocations,
+          distanceTraveled,
+        };
+      });
+
+      setPlayers(playersWithStats);
     } catch (err) {
       console.error("Error fetching game data:", err);
       setError("Failed to load game results. Please try again.");
@@ -93,7 +136,7 @@ export default function ResultsPage() {
   };
 
   const calculateStats = () => {
-    if (!game || !points.length || !playerPath.length) {
+    if (!game || !points.length || !players.length) {
       return null;
     }
 
@@ -106,23 +149,8 @@ export default function ResultsPage() {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
 
-    // Calculate distance traveled
-    let totalDistance = 0;
-    for (let i = 1; i < playerPath.length; i++) {
-      const prev = playerPath[i - 1];
-      const curr = playerPath[i];
-      if (
-        prev.latitude &&
-        prev.longitude &&
-        curr.latitude &&
-        curr.longitude
-      ) {
-        totalDistance += calculateDistance(
-          { lat: prev.latitude, lng: prev.longitude },
-          { lat: curr.latitude, lng: curr.longitude }
-        );
-      }
-    }
+    // Calculate total distance traveled (sum of individual player distances)
+    const totalDistance = players.reduce((sum, player) => sum + player.distanceTraveled, 0);
 
     // Count visited waypoints
     const visitedWaypoints = points.filter(
@@ -130,9 +158,11 @@ export default function ResultsPage() {
     ).length;
     const totalWaypoints = points.filter((p) => p.type === "clue").length;
 
-    // Calculate final accuracy
+    // Calculate final accuracy (use Seeker/Player A's last location)
     const endPoint = points.find((p) => p.type === "end");
-    const lastLocation = playerPath[playerPath.length - 1];
+    const seekerPlayer = players.find((p) => p.role === "player_a");
+    const seekerLocations = seekerPlayer?.locations || [];
+    const lastLocation = seekerLocations[seekerLocations.length - 1];
     let finalAccuracy = 0;
     if (
       endPoint &&
@@ -286,12 +316,79 @@ export default function ResultsPage() {
             <ResultsMap
               bounds={game.bounding_box}
               points={points}
-              playerPath={playerPath.filter(
-                (loc) => loc.latitude && loc.longitude
-              )}
+              playerPaths={players.map((player) => {
+                const roleInfo = getRoleInfo(player.role as GameRole);
+                return {
+                  playerId: player.id,
+                  color: roleInfo.hexColor || "#3b82f6",
+                  locations: player.locations.filter(
+                    (loc) => loc.latitude && loc.longitude
+                  ),
+                };
+              })}
             />
           </div>
         </GlassPanel>
+
+        {/* Multiplayer Team Stats */}
+        {isMultiplayer && players.length > 1 && (
+          <GlassPanel className="p-6 md:p-8 mb-8">
+            <h3 className="text-xl font-black text-white mb-4 font-display flex items-center gap-2">
+              <Icon name="groups" size="sm" className="text-primary" />
+              Team Performance
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {players.map((player) => {
+                const roleInfo = getRoleInfo(player.role as GameRole);
+                return (
+                  <div
+                    key={player.id}
+                    className={cn(
+                      "p-4 rounded-2xl border border-white/10 bg-surface-dark-elevated",
+                      player.user_id === user?.id && "ring-2 ring-primary/50"
+                    )}
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center",
+                        "bg-surface-dark border-2 border-white/10"
+                      )}>
+                        <Icon name={roleInfo.icon} className={roleInfo.color} />
+                      </div>
+                      <div>
+                        <div className="font-bold text-white flex items-center gap-2">
+                          {roleInfo.shortName}
+                          {player.user_id === user?.id && (
+                            <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                              You
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {roleInfo.name}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Distance</span>
+                        <span className="text-white font-medium">
+                          {formatDistance(player.distanceTraveled, preferences.distance_unit)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Locations</span>
+                        <span className="text-white font-medium">
+                          {player.locations.length} points
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </GlassPanel>
+        )}
 
         {/* Waypoints Summary */}
         <GlassPanel className="p-6 md:p-8 mb-8">
@@ -340,9 +437,15 @@ export default function ResultsPage() {
         </GlassPanel>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
+          {isMultiplayer && (
+            <Button variant="primary" size="lg" fullWidth className="sm:w-auto" disabled title="Coming soon">
+              <Icon name="replay" size="sm" className="mr-2" />
+              Play Again with Team
+            </Button>
+          )}
           <Link href="/game/create">
-            <Button variant="primary" size="lg" fullWidth className="sm:w-auto">
+            <Button variant={isMultiplayer ? "secondary" : "primary"} size="lg" fullWidth className="sm:w-auto">
               <Icon name="add_location" size="sm" className="mr-2" />
               Create New Game
             </Button>

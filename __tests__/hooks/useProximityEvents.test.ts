@@ -203,6 +203,78 @@ describe("useProximityEvents", () => {
     expect(mockSupabase.channel).not.toHaveBeenCalled();
   });
 
+  it("should not subscribe if enabled is false", () => {
+    renderHook(() =>
+      useProximityEvents("game-123", {
+        enabled: false,
+        onClueDiscovered: jest.fn(),
+      })
+    );
+
+    expect(mockSupabase.channel).not.toHaveBeenCalled();
+  });
+
+  it("should subscribe when enabled is explicitly true", () => {
+    renderHook(() =>
+      useProximityEvents("game-123", {
+        enabled: true,
+        onClueDiscovered: jest.fn(),
+      })
+    );
+
+    expect(mockSupabase.channel).toHaveBeenCalledWith("game_points_events_game-123");
+  });
+
+  it("should subscribe when enabled is not provided (defaults to true)", () => {
+    renderHook(() =>
+      useProximityEvents("game-123", {
+        onClueDiscovered: jest.fn(),
+      })
+    );
+
+    expect(mockSupabase.channel).toHaveBeenCalledWith("game_points_events_game-123");
+  });
+
+  it("should cleanup and re-subscribe when enabled changes from false to true", () => {
+    const { rerender } = renderHook(
+      ({ enabled }) =>
+        useProximityEvents("game-123", {
+          enabled,
+          onClueDiscovered: jest.fn(),
+        }),
+      { initialProps: { enabled: false } }
+    );
+
+    // Should not subscribe initially when disabled
+    expect(mockSupabase.channel).not.toHaveBeenCalled();
+
+    // Enable the hook
+    rerender({ enabled: true });
+
+    // Should now subscribe
+    expect(mockSupabase.channel).toHaveBeenCalledWith("game_points_events_game-123");
+  });
+
+  it("should cleanup channel when enabled changes from true to false", () => {
+    const { rerender } = renderHook(
+      ({ enabled }) =>
+        useProximityEvents("game-123", {
+          enabled,
+          onClueDiscovered: jest.fn(),
+        }),
+      { initialProps: { enabled: true } }
+    );
+
+    // Should subscribe initially
+    expect(mockSupabase.channel).toHaveBeenCalledWith("game_points_events_game-123");
+
+    // Disable the hook
+    rerender({ enabled: false });
+
+    // Should cleanup the channel
+    expect(mockSupabase.removeChannel).toHaveBeenCalled();
+  });
+
   it("should cleanup channel on unmount", () => {
     const { unmount } = renderHook(() =>
       useProximityEvents("game-123", {
