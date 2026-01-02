@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireAuth, requireGameAccess, handleApiError } from "@/lib/api/auth";
 import { updateGameStatusSchema } from "@/lib/api/validation";
+import type { GameStatus } from "@/lib/game/constants";
 
 export async function GET(
   request: NextRequest,
@@ -48,7 +49,7 @@ export async function POST(
 
     // Calculate timestamps based on status
     const updates: {
-      status: "setup" | "ready" | "active" | "completed";
+      status: GameStatus;
       started_at?: string;
       ended_at?: string;
     } = {

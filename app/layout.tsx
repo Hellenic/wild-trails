@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Be_Vietnam_Pro, Noto_Sans } from "next/font/google";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { SoundManagerProvider } from "./components/SoundManagerProvider";
+import { ToastProvider } from "./components/ui/Toast";
 import "./globals.css";
 
 const beVietnamPro = Be_Vietnam_Pro({
@@ -41,9 +42,11 @@ export default function RootLayout({
         className={`${beVietnamPro.variable} ${notoSans.variable} font-body antialiased overflow-x-hidden`}
       >
         <ErrorBoundary>
-          <SoundManagerProvider>
-            {children}
-          </SoundManagerProvider>
+          <ToastProvider>
+            <SoundManagerProvider>
+              {children}
+            </SoundManagerProvider>
+          </ToastProvider>
         </ErrorBoundary>
       </body>
     </html>

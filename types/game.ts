@@ -25,7 +25,12 @@ export type GamePoint = Tables<"game_points">;
 
 export type Player = Tables<"players">;
 
-export type GameRole = Game["selected_role"];
+// Enum types derived from database schema (source of truth)
+export type GameRole = Database["public"]["Enums"]["game_role_type"];
 export type GameMode = Database["public"]["Enums"]["game_mode_type"];
 export type GameMaster = Database["public"]["Enums"]["game_master_type"];
 export type GameStatus = Database["public"]["Enums"]["game_status_type"];
+export type GameDifficulty = Database["public"]["Enums"]["game_difficulty_type"];
+export type PlayerStatus = Database["public"]["Enums"]["game_player_status_type"];
+export type PointType = Database["public"]["Enums"]["point_type"];
+export type PointStatus = Database["public"]["Enums"]["point_status_type"];

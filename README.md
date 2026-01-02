@@ -13,8 +13,16 @@ Read the [synopsis](./synopsis.md) for more details.
 
 ## Recent Improvements
 
+- [x] **Multiplayer Support**: Play with friends in 2-3 player modes with role-based gameplay
+  - Player A (Seeker): Navigates to waypoints, receives hints
+  - Player B (Guide): Sees all waypoints and goal, guides the Seeker
+  - Game Master: Oversees all players, can manage game flow
+  - Real-time location sharing between players
+  - Lobby system with game codes for easy joining
+- [x] **Centralized Game Constants**: Type-safe game modes, roles, and statuses derived from database schema
+- [x] **Server-Side API Routes**: Secure player management (ready status, kick, game end) via API
 - [x] **Modern UI Design System**: Complete redesign with glassmorphism effects, vibrant green branding, and polished components
-- [x] **Reusable Component Library**: Button, Input, GlassPanel, Icon, Toast notifications, and Skeleton loaders
+- [x] **Reusable Component Library**: Button, Input, GlassPanel, Icon, Toast, CopyButton, and Skeleton loaders
 - [x] **Enhanced Login/Welcome**: Beautiful hero section with background imagery and glass panel authentication
 - [x] **Improved Navigation**: Icon-based navigation with smooth animations and responsive design
 - [x] **Accessibility-First**: WCAG AA compliant with keyboard navigation and screen reader support
@@ -24,15 +32,15 @@ Read the [synopsis](./synopsis.md) for more details.
 - [x] **Enhanced Fallback Hints**: Mathematical hints with directional landmark information
 - [x] **OSM-Based Point Placement**: Intelligent point generation avoiding water, buildings, and inaccessible areas
 
-## Upcoming features
+## Currently working on...
 
-> Current focus: Single player game polish & testing
-
-- [ ] **Testing & Refinement**: Extensive testing of progressive path generation with various distances and terrains
+- [ ] **Testing & Refinement**: Extensive testing and polishing of...
+    - single player functionality
+    - multiplayer functionality
+    - progressive path generation with various distances and terrains
 
 ### Roadmap
 
-- [ ] Multiplayer game - [.cursor/plans/multiplayer_phase_2a+2b_2f97d51f.plan.md]
 - [ ] Native mobile app - [.cursor/plans/native_mobile_client_with_expo_7312b0da.plan.md] (Designs exist in Stitch)
 - [ ] Crawler for rich, existing game points - [.cursor/plans/external_points_curation_system_mvp_aa53cabe.plan.md]
 - [ ] Curated & public games - [.cursor/plans/public_templates_&_curated_games_6356b520.plan.md]

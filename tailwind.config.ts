@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { ROLE_COLORS } from "./lib/theme/colors";
 
 export default {
   darkMode: "class",
@@ -38,6 +39,8 @@ export default {
         text: {
           subtle: "#9db99d",
         },
+        // Role-specific colors (imported from lib/theme/colors.ts)
+        role: ROLE_COLORS,
         // Legacy forest colors (for gradual migration)
         forest: {
           deep: "#1a2f25",
