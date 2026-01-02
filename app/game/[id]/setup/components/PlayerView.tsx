@@ -35,11 +35,35 @@ export function PlayerView({
   const [players, setPlayers] = React.useState<Player[]>(
     gameDetails.players ?? []
   );
+  const [startingPoint, setStartingPoint] = React.useState<{
+    lat: number;
+    lng: number;
+  } | null>(gameDetails.starting_point ?? null);
   const [userLocation, setUserLocation] = React.useState<{
     lat: number;
     lng: number;
   } | null>(null);
   const [locationLoading, setLocationLoading] = React.useState(true);
+
+  // Fetch starting point from game_points if not available on game record
+  React.useEffect(() => {
+    if (startingPoint) return; // Already have it
+
+    async function fetchStartingPoint() {
+      const { data } = await supabase
+        .from("game_points")
+        .select("latitude, longitude")
+        .eq("game_id", gameDetails.id)
+        .eq("type", "start")
+        .single();
+
+      if (data) {
+        setStartingPoint({ lat: data.latitude, lng: data.longitude });
+      }
+    }
+
+    fetchStartingPoint();
+  }, [gameDetails.id, startingPoint, supabase]);
 
   // Get user's current location once on mount
   React.useEffect(() => {
@@ -66,14 +90,14 @@ export function PlayerView({
 
   // Calculate distance to starting point
   const distanceToStart = React.useMemo(() => {
-    if (!userLocation || !gameDetails.starting_point) return null;
+    if (!userLocation || !startingPoint) return null;
     return calculateDistance(
       userLocation.lat,
       userLocation.lng,
-      gameDetails.starting_point.lat,
-      gameDetails.starting_point.lng
+      startingPoint.lat,
+      startingPoint.lng
     );
-  }, [userLocation, gameDetails.starting_point]);
+  }, [userLocation, startingPoint]);
 
   const isFarFromStart =
     distanceToStart !== null && distanceToStart > FAR_DISTANCE_THRESHOLD_METERS;
@@ -97,6 +121,25 @@ export function PlayerView({
 
     if (game && game.players) {
       setPlayers(game.players);
+    }
+
+    // Update starting point when AI generates it
+    if (game && game.starting_point && !startingPoint) {
+      setStartingPoint(game.starting_point as { lat: number; lng: number });
+    }
+    
+    // Fallback: fetch from game_points if still no starting point
+    if (!startingPoint && game?.status === "ready") {
+      const { data: startPoint } = await supabase
+        .from("game_points")
+        .select("latitude, longitude")
+        .eq("game_id", gameDetails.id)
+        .eq("type", "start")
+        .single();
+
+      if (startPoint) {
+        setStartingPoint({ lat: startPoint.latitude, lng: startPoint.longitude });
+      }
     }
   }, 5000); // Check every 5 seconds
 
@@ -218,7 +261,7 @@ export function PlayerView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1 space-y-6">
             {/* Starting Point Map */}
-            {gameDetails.starting_point && (
+            {startingPoint && (
               <div className="bg-surface-dark-elevated/50 border border-white/5 rounded-2xl p-4 overflow-hidden">
                 <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
                   <Icon name="location_on" size="sm" className="text-primary" />
@@ -226,7 +269,7 @@ export function PlayerView({
                 </h2>
                 <div className="h-48 rounded-xl overflow-hidden">
                   <StartingPointMap
-                    startingPoint={gameDetails.starting_point}
+                    startingPoint={startingPoint}
                     playerLocation={userLocation}
                     maxRadius={gameDetails.max_radius}
                   />

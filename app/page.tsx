@@ -183,7 +183,7 @@ export default function Home() {
                 Master the outdoors. Create your path.
               </p>
               <div className="text-xs text-gray-400 font-mono opacity-60">
-                v0.3.2-debug • Build {new Date().toISOString().split('T')[0]}
+                v0.3.3 • Build {new Date().toISOString().split('T')[0]}
               </div>
             </div>
           </GlassPanel>

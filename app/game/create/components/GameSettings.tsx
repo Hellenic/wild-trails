@@ -3,6 +3,7 @@ import type { GameMaster, GameRole } from "@/types/game";
 import { Button } from "@/app/components/ui/Button";
 import { Input } from "@/app/components/ui/Input";
 import { Icon } from "@/app/components/ui/Icon";
+import { DIFFICULTY_PRESETS, type DifficultyLevel } from "@/lib/game/difficulty-presets";
 
 type GameSettingsFormData = {
   duration: number;
@@ -10,7 +11,7 @@ type GameSettingsFormData = {
   gameMasterType: GameMaster;
   playerRole: GameRole;
   maxDistance: number;
-  difficulty: "easy" | "medium" | "hard";
+  difficulty: DifficultyLevel;
 };
 
 type Props = {
@@ -33,6 +34,19 @@ export function GameSettings({
     onSubmit();
   };
 
+  // Handle difficulty change and auto-fill presets
+  const handleDifficultyChange = (difficulty: DifficultyLevel) => {
+    const preset = DIFFICULTY_PRESETS[difficulty];
+    setFormData({
+      ...formData,
+      difficulty,
+      duration: preset.duration,
+      maxDistance: preset.maxRadius,
+    });
+  };
+
+  const currentPreset = DIFFICULTY_PRESETS[formData.difficulty];
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
@@ -46,18 +60,14 @@ export function GameSettings({
               name="difficulty"
               value="easy"
               checked={formData.difficulty === "easy"}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  difficulty: e.target.value as "easy" | "medium" | "hard",
-                })
-              }
+              onChange={() => handleDifficultyChange("easy")}
               className="sr-only peer"
             />
             <div className="h-auto p-3 flex flex-col items-center justify-center rounded-lg border-2 border-white/10 bg-surface-dark-elevated text-white transition-all peer-checked:border-primary peer-checked:bg-primary/10">
-              <Icon name="hiking" className="mb-1" />
+              <Icon name={DIFFICULTY_PRESETS.easy.icon} className="mb-1 text-xl" />
               <span className="font-medium text-sm">Easy</span>
-              <span className="text-xs text-gray-400 mt-1 text-center">Narrow path, direct route</span>
+              <span className="text-xs text-gray-400 mt-1 text-center">≤{DIFFICULTY_PRESETS.easy.maxRadius} km • ≤{DIFFICULTY_PRESETS.easy.duration} hours</span>
+              <span className="text-[10px] text-gray-500 mt-0.5 text-center">{DIFFICULTY_PRESETS.easy.description}</span>
             </div>
           </label>
           <label className="flex-1 cursor-pointer">
@@ -66,18 +76,14 @@ export function GameSettings({
               name="difficulty"
               value="medium"
               checked={formData.difficulty === "medium"}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  difficulty: e.target.value as "easy" | "medium" | "hard",
-                })
-              }
+              onChange={() => handleDifficultyChange("medium")}
               className="sr-only peer"
             />
             <div className="h-auto p-3 flex flex-col items-center justify-center rounded-lg border-2 border-white/10 bg-surface-dark-elevated text-white transition-all peer-checked:border-primary peer-checked:bg-primary/10">
-              <Icon name="landscape" className="mb-1" />
+              <Icon name={DIFFICULTY_PRESETS.medium.icon} className="mb-1 text-xl" />
               <span className="font-medium text-sm">Medium</span>
-              <span className="text-xs text-gray-400 mt-1 text-center">Wider corridor, some detours</span>
+              <span className="text-xs text-gray-400 mt-1 text-center">≤{DIFFICULTY_PRESETS.medium.maxRadius} km • ≤{DIFFICULTY_PRESETS.medium.duration} hours</span>
+              <span className="text-[10px] text-gray-500 mt-0.5 text-center">{DIFFICULTY_PRESETS.medium.description}</span>
             </div>
           </label>
           <label className="flex-1 cursor-pointer">
@@ -86,18 +92,14 @@ export function GameSettings({
               name="difficulty"
               value="hard"
               checked={formData.difficulty === "hard"}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  difficulty: e.target.value as "easy" | "medium" | "hard",
-                })
-              }
+              onChange={() => handleDifficultyChange("hard")}
               className="sr-only peer"
             />
             <div className="h-auto p-3 flex flex-col items-center justify-center rounded-lg border-2 border-white/10 bg-surface-dark-elevated text-white transition-all peer-checked:border-primary peer-checked:bg-primary/10">
-              <Icon name="terrain" className="mb-1" />
+              <Icon name={DIFFICULTY_PRESETS.hard.icon} className="mb-1 text-xl" />
               <span className="font-medium text-sm">Hard</span>
-              <span className="text-xs text-gray-400 mt-1 text-center">Very wide area, zig-zag path</span>
+              <span className="text-xs text-gray-400 mt-1 text-center">≤{DIFFICULTY_PRESETS.hard.maxRadius} km • {DIFFICULTY_PRESETS.hard.durationRange}</span>
+              <span className="text-[10px] text-gray-500 mt-0.5 text-center">{DIFFICULTY_PRESETS.hard.description}</span>
             </div>
           </label>
         </div>
@@ -117,22 +119,30 @@ export function GameSettings({
           }
           required
         />
+        <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
+          <Icon name="lightbulb" className="text-primary text-sm" />
+          Recommended for {formData.difficulty}: <span className="text-gray-400 font-medium">{currentPreset.durationRange}</span>
+        </p>
       </div>
 
       <div>
         <Input
           type="number"
           id="maxDistance"
-          label="Maximum Distance (km)"
-          min="1"
-          max="500"
-          step="1"
+          label="Maximum Radius (km)"
+          min="0.5"
+          max="20"
+          step="0.5"
           value={formData.maxDistance}
           onChange={(e) =>
             setFormData({ ...formData, maxDistance: Number(e.target.value) })
           }
           required
         />
+        <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
+          <Icon name="lightbulb" className="text-primary text-sm" />
+          Recommended for {formData.difficulty}: <span className="text-gray-400 font-medium">{currentPreset.distanceRange}</span>
+        </p>
       </div>
 
       <div>

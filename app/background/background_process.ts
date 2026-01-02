@@ -58,11 +58,19 @@ export const processCreateGame = async (gameId: string, currentAttempt: number =
     }
     console.log(`[BG Process] Points inserted successfully`);
 
+    // Extract starting point from generated points to store on game record
+    const startPoint = points.find(p => p.type === "start");
+    const startingPoint = startPoint 
+      ? { lat: startPoint.latitude, lng: startPoint.longitude }
+      : null;
+    console.log(`[BG Process] Starting point extracted:`, startingPoint);
+
     console.log(`[BG Process] Updating game status to 'ready'...`);
     const { error: statusUpdateError } = await supabase
       .from("games")
       .update({ 
         status: "ready",
+        starting_point: startingPoint, // Store starting point for setup screen map
         processing_started_at: null, // Clear processing timestamp
         processing_attempts: 0, // Reset attempts on success
         last_processing_error: null // Clear any previous errors

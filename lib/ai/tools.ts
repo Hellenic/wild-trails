@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import type { User } from "@supabase/supabase-js";
+import { DIFFICULTY_PRESETS } from "@/lib/game/difficulty-presets";
 
 /**
  * AI Tool Definitions for Wild Trails Game Creation
@@ -16,6 +17,8 @@ import type { User } from "@supabase/supabase-js";
 const createGameSchema = z.object({
   name: z.string().min(1).describe("The name of the game"),
   password: z.string().min(1).describe("Password to join the game"),
+  difficulty: z.enum(["easy", "medium", "hard"]).default("easy")
+    .describe(`Game difficulty: easy (≤${DIFFICULTY_PRESETS.easy.maxRadius}km, ≤${DIFFICULTY_PRESETS.easy.duration}h), medium (≤${DIFFICULTY_PRESETS.medium.maxRadius}km, ≤${DIFFICULTY_PRESETS.medium.duration}h), hard (≤${DIFFICULTY_PRESETS.hard.maxRadius}km, ${DIFFICULTY_PRESETS.hard.durationRange})`),
   duration: z.number().int().positive().describe("Game duration in minutes"),
   max_radius: z.number().positive().describe("Maximum radius in kilometers from center"),
   player_count: z.number().int().positive().describe("Number of players allowed"),
@@ -52,9 +55,10 @@ export const wildTrailsTools = (user: User) => ({
 This tool should be used after gathering all necessary information from the user:
 - Game name and password
 - Map area (bounding box with northWest and southEast coordinates)
-- Duration in minutes (convert from hours if user specifies hours)
-- Maximum distance/radius in kilometers
-- Number of players
+- Difficulty level: easy (≤${DIFFICULTY_PRESETS.easy.maxRadius}km, ≤${DIFFICULTY_PRESETS.easy.duration}h), medium (≤${DIFFICULTY_PRESETS.medium.maxRadius}km, ≤${DIFFICULTY_PRESETS.medium.duration}h), hard (≤${DIFFICULTY_PRESETS.hard.maxRadius}km, ${DIFFICULTY_PRESETS.hard.durationRange})
+- Duration in minutes (use difficulty presets: easy=${DIFFICULTY_PRESETS.easy.duration * 60}, medium=${DIFFICULTY_PRESETS.medium.duration * 60}, hard=${DIFFICULTY_PRESETS.hard.duration * 60})
+- Maximum distance/radius in kilometers (use difficulty presets: easy=${DIFFICULTY_PRESETS.easy.maxRadius}, medium=${DIFFICULTY_PRESETS.medium.maxRadius}, hard=${DIFFICULTY_PRESETS.hard.maxRadius})
+- Number of players (usually 1)
 - Game master type (ai or player)
 - Optional: starting point coordinates
 - Optional: player role if they want to join immediately
@@ -81,6 +85,7 @@ point generation will start automatically in the background.`,
             status: "setup",
             name: params.name,
             password: params.password,
+            difficulty: params.difficulty || "easy",
             player_count: params.player_count,
             selected_role: params.selected_role || null,
             max_radius: params.max_radius,

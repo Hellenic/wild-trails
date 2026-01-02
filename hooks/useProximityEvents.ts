@@ -39,8 +39,9 @@ export function useProximityEvents(
     let channel: RealtimeChannel | null = null;
     
     // Subscribe to changes on game_points table for this game
+    // Use a unique channel name to avoid conflicts with usePoints hook
     channel = supabase
-      .channel(`game_points_${gameId}`)
+      .channel(`game_points_events_${gameId}`)
       .on(
         "postgres_changes",
         {

@@ -9,6 +9,7 @@ import { ChatGameCreation } from "@/app/components/ChatGameCreation";
 import { LatLng } from "@/utils/map";
 import { gameAPI } from "@/lib/api/client";
 import type { GameDetails, GameMaster, GameRole } from "@/types/game";
+import { DIFFICULTY_PRESETS, type DifficultyLevel } from "@/lib/game/difficulty-presets";
 import { Button } from "@/app/components/ui/Button";
 import { Icon } from "@/app/components/ui/Icon";
 import { GlassPanel } from "@/app/components/ui/GlassPanel";
@@ -24,7 +25,7 @@ type FormData = {
   playerCount: number;
   gameMasterType: GameMaster;
   playerRole: GameRole;
-  difficulty: "easy" | "medium" | "hard";
+  difficulty: DifficultyLevel;
 };
 
 export default function CreateGame() {
@@ -36,11 +37,11 @@ export default function CreateGame() {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     password: "",
-    duration: 1,
+    duration: DIFFICULTY_PRESETS.easy.duration,
     playerCount: 1,
     gameMasterType: "ai",
     playerRole: "player_a",
-    maxDistance: 3,
+    maxDistance: DIFFICULTY_PRESETS.easy.maxRadius,
     difficulty: "easy",
   });
 

@@ -1,20 +1,32 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { playGoalFound, triggerHaptic } from "@/lib/audio/sounds";
 import { Icon } from "@/app/components/ui/Icon";
 import { Button } from "@/app/components/ui/Button";
 import { GlassPanel } from "@/app/components/ui/GlassPanel";
 
 type GoalFoundProps = {
-  onClose: () => void;
+  onClose: () => void | Promise<void>;
   content: string;
 };
 
 export function GoalFoundPopup({ onClose, content }: GoalFoundProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     // Play sound and haptic feedback when popup appears
     playGoalFound().catch(console.error);
     triggerHaptic([200, 100, 200, 100, 400]); // Celebratory pattern
   }, []);
+
+  const handleViewResults = async () => {
+    setIsLoading(true);
+    try {
+      await onClose();
+    } catch (error) {
+      console.error("Error completing game:", error);
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center animate-fade-in px-4">
@@ -58,10 +70,12 @@ export function GoalFoundPopup({ onClose, content }: GoalFoundProps) {
           </div>
           
           <Button
-            onClick={onClose}
+            onClick={handleViewResults}
             variant="primary"
             fullWidth
             size="lg"
+            isLoading={isLoading}
+            loadingText="Loading..."
             className="shadow-xl shadow-primary/20 animate-slide-up animation-delay-800"
           >
             View Results
