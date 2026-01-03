@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { gameAPI } from "@/lib/api/client";
 import { usePlayer } from "@/hooks/usePlayer";
@@ -23,6 +23,10 @@ import { formatDistance, formatDistanceFromMeters } from "@/lib/utils/distance";
 import { Icon } from "@/app/components/ui/Icon";
 import { Button } from "@/app/components/ui/Button";
 import { GlassPanel } from "@/app/components/ui/GlassPanel";
+import { PlayerAView } from "./components/PlayerAView";
+import { PlayerBView } from "./components/PlayerBView";
+import { GameMasterMultiplayerView } from "./components/GameMasterMultiplayerView";
+import type { Player } from "@/types/game";
 
 type Params = {
   id: string;
@@ -31,6 +35,7 @@ type Params = {
 export default function GameScreen() {
   const { id } = useParams<Params>();
   const router = useRouter();
+  const supabase = createClient();
   const { player, loading: playerLoading } = usePlayer(id);
   const { gameDetails, loading: gameDetailsLoading } = useGameDetails(id);
   const { locations } = usePlayerLocation(id);
@@ -41,9 +46,27 @@ export default function GameScreen() {
   const [showGiveUpDialog, setShowGiveUpDialog] = useState(false);
   const [isGivingUp, setIsGivingUp] = useState(false);
   const [collectedHints, setCollectedHints] = useState<Array<{ pointId: string; hint: string; timestamp: string }>>([]);
+  const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const { playerLocation, distanceTravelled, locationError, locationAccuracy, sendLocalNotification } =
     useGameContext(true, id, player?.id);
-  const supabase = createClient();
+
+  // Fetch all players for multiplayer games
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchPlayers = async () => {
+      const { data } = await supabase
+        .from("players")
+        .select("*")
+        .eq("game_id", id);
+      
+      if (data) {
+        setAllPlayers(data as Player[]);
+      }
+    };
+
+    fetchPlayers();
+  }, [id, supabase]);
 
   // Cheats, while developing the application
   const [showOwnLocation, setShowOwnLocation] = useState(false);
@@ -240,13 +263,79 @@ export default function GameScreen() {
     );
   }
 
-  // TODO We should implement the other role screen here
-  if (player.role !== "player_a") {
-    console.warn("Only Player A screen has been implemented yet");
-    console.log("Available locations", locations);
+  // Callback for clue discovered in PlayerAView
+  const handleClueDiscovered = (point: GamePoint) => {
+    playWaypointFound().catch(console.error);
+    triggerHaptic([100, 50, 100]);
+    
+    if (point.hint) {
+      setCollectedHints(prev => [...prev, {
+        pointId: point.id,
+        hint: point.hint!,
+        timestamp: new Date().toISOString()
+      }]);
+    }
+    
+    if (Notification.permission === "granted") {
+      sendLocalNotification("Waypoint discovered!", `Hint: ${point.hint}`);
+    }
+  };
+
+  // Render role-specific view for multiplayer games
+  const isMultiplayer = gameDetails.game_mode !== "single_player";
+
+  if (isMultiplayer) {
+    // Multiplayer: show role-specific views
+    if (player.role === "player_b") {
+      return (
+        <main className="relative h-screen w-full dark:bg-background-dark bg-background-light flex flex-col overflow-hidden">
+          <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+            <div className="absolute inset-0 bg-gradient-to-br from-background-dark via-surface-dark to-background-dark" />
+          </div>
+          <PlayerBView
+            gameDetails={gameDetails}
+            player={player}
+            points={points}
+          />
+        </main>
+      );
+    }
+
+    if (player.role === "game_master") {
+      return (
+        <main className="relative h-screen w-full dark:bg-background-dark bg-background-light flex flex-col overflow-hidden">
+          <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-950/20 via-surface-dark to-background-dark" />
+          </div>
+          <GameMasterMultiplayerView
+            gameDetails={gameDetails}
+            player={player}
+            points={points}
+            allPlayers={allPlayers}
+          />
+        </main>
+      );
+    }
+
+    // Player A in multiplayer
+    return (
+      <main className="relative h-screen w-full dark:bg-background-dark bg-background-light flex flex-col overflow-hidden">
+        <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-background-dark via-surface-dark to-background-dark" />
+        </div>
+        <PlayerAView
+          gameDetails={gameDetails}
+          player={player}
+          points={points}
+          collectedHints={collectedHints}
+          onClueDiscovered={handleClueDiscovered}
+          goalFound={goalFound}
+        />
+      </main>
+    );
   }
 
-  // Calculate estimated distance to goal based on hints
+  // Single player mode - original view
   const goalPoint = points.find(p => p.type === "end");
   let estimatedDistanceToGoal: string | undefined;
   if (playerLocation && goalPoint && collectedHints.length > 0) {
@@ -254,7 +343,7 @@ export default function GameScreen() {
       { lat: playerLocation.lat, lng: playerLocation.lng },
       { lat: goalPoint.latitude, lng: goalPoint.longitude }
     );
-    const errorMargin = Math.max(0.5, distance * 0.2); // 20% error margin, min 500m
+    const errorMargin = Math.max(0.5, distance * 0.2);
     const minDist = formatDistance(distance - errorMargin, preferences.distance_unit);
     const maxDist = formatDistance(distance + errorMargin, preferences.distance_unit);
     estimatedDistanceToGoal = `${minDist} - ${maxDist}`;

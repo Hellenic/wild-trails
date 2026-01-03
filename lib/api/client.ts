@@ -182,3 +182,20 @@ export const pointsAPI = {
   },
 };
 
+// ============================================================================
+// Multiplayer API Client
+// ============================================================================
+
+export const multiplayerAPI = {
+  /**
+   * Get game by code
+   */
+  getByCode: async (
+    code: string
+  ): Promise<{ id: string; name: string; status: string; game_code: string }> => {
+    return apiRequest(`/api/game/by-code/${code}`, {
+      method: "GET",
+    });
+  },
+};
+

@@ -1,10 +1,11 @@
 import React from "react";
 import { useRouter } from "next/navigation";
-import { useInterval } from "@/hooks/useInterval";
 import { createClient } from "@/lib/supabase/client";
-import { gameAPI, playerAPI } from "@/lib/api/client";
+import { gameAPI } from "@/lib/api/client";
 import { useGameContext } from "@/app/game/components/GameContext";
+import { useLobby } from "@/hooks/useLobby";
 import type { GameDetails, Player } from "@/types/game";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { Button } from "@/app/components/ui/Button";
 import { Icon } from "@/app/components/ui/Icon";
 import { GlassPanel } from "@/app/components/ui/GlassPanel";
@@ -12,6 +13,8 @@ import { cn } from "@/lib/utils";
 import { StartingPointMap } from "./StartingPointMap";
 import { calculateDistance } from "@/lib/game/proximity-logic";
 import { formatDistanceFromMeters } from "@/lib/utils/distance";
+import { GameCodeDisplay } from "@/app/game/components/GameCodeDisplay";
+import { ROLE_INFO } from "@/lib/game/roles";
 
 interface PlayerViewProps {
   gameDetails: GameDetails;
@@ -30,11 +33,19 @@ export function PlayerView({
   const supabase = createClient();
   const router = useRouter();
   const { requestPermissions } = useGameContext();
-  const [isGameReady, setIsGameReady] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [players, setPlayers] = React.useState<Player[]>(
-    gameDetails.players ?? []
+  
+  // Use lobby hook for real-time player updates
+  const { 
+    players, 
+    isAllReady, 
+    setPlayerReady, 
+    startGame: lobbyStartGame 
+  } = useLobby(gameDetails.id);
+  
+  const [isGameReady, setIsGameReady] = React.useState(
+    gameDetails.status === "ready" || gameDetails.status === "active"
   );
+  const [isLoading, setIsLoading] = React.useState(false);
   const [startingPoint, setStartingPoint] = React.useState<{
     lat: number;
     lng: number;
@@ -44,6 +55,8 @@ export function PlayerView({
     lng: number;
   } | null>(null);
   const [locationLoading, setLocationLoading] = React.useState(true);
+
+  const isMultiplayer = gameDetails.game_mode !== "single_player";
 
   // Fetch starting point from game_points if not available on game record
   React.useEffect(() => {
@@ -102,46 +115,67 @@ export function PlayerView({
   const isFarFromStart =
     distanceToStart !== null && distanceToStart > FAR_DISTANCE_THRESHOLD_METERS;
 
-  // Fetch game status periodically
-  useInterval(async () => {
-    const { data: game } = await supabase
-      .from("games")
-      .select("*, players(*)")
-      .eq("id", gameDetails.id)
-      .single();
+  // Subscribe to game status changes (real-time)
+  React.useEffect(() => {
+    let channel: RealtimeChannel | null = null;
 
-    if (game && game.status === "ready") {
-      setIsGameReady(true);
-    }
+    const setupSubscription = () => {
+      channel = supabase
+        .channel(`game:${gameDetails.id}:status`)
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "games",
+            filter: `id=eq.${gameDetails.id}`,
+          },
+          async (payload) => {
+            const newGame = payload.new as { 
+              status: string; 
+              starting_point?: { lat: number; lng: number } 
+            };
+            
+            if (newGame.status === "ready") {
+              setIsGameReady(true);
+              
+              // Fetch starting point when game becomes ready
+              if (!startingPoint) {
+                const { data: startPoint } = await supabase
+                  .from("game_points")
+                  .select("latitude, longitude")
+                  .eq("game_id", gameDetails.id)
+                  .eq("type", "start")
+                  .single();
 
-    if (game && game.status === "active") {
-      setIsLoading(false);
-      router.push(`/game/${gameDetails.id}/play`);
-    }
+                if (startPoint) {
+                  setStartingPoint({ lat: startPoint.latitude, lng: startPoint.longitude });
+                }
+              }
+            }
 
-    if (game && game.players) {
-      setPlayers(game.players);
-    }
+            if (newGame.status === "active") {
+              setIsLoading(false);
+              router.push(`/game/${gameDetails.id}/play`);
+            }
 
-    // Update starting point when AI generates it
-    if (game && game.starting_point && !startingPoint) {
-      setStartingPoint(game.starting_point as { lat: number; lng: number });
-    }
-    
-    // Fallback: fetch from game_points if still no starting point
-    if (!startingPoint && game?.status === "ready") {
-      const { data: startPoint } = await supabase
-        .from("game_points")
-        .select("latitude, longitude")
-        .eq("game_id", gameDetails.id)
-        .eq("type", "start")
-        .single();
+            // Update starting point if available
+            if (newGame.starting_point && !startingPoint) {
+              setStartingPoint(newGame.starting_point);
+            }
+          }
+        )
+        .subscribe();
+    };
 
-      if (startPoint) {
-        setStartingPoint({ lat: startPoint.latitude, lng: startPoint.longitude });
+    setupSubscription();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
       }
-    }
-  }, 5000); // Check every 5 seconds
+    };
+  }, [gameDetails.id, router, startingPoint, supabase]);
 
   const handleReadyClick = async () => {
     const granted = await requestPermissions();
@@ -150,16 +184,8 @@ export function PlayerView({
       return;
     }
     
-    // Update player status via API
     try {
-      await playerAPI.updateStatus(player.id, { status: "ready" });
-      
-      setPlayers(
-        players.map((p) => ({
-          ...p,
-          status: p.id === player.id ? "ready" : p.status,
-        }))
-      );
+      await setPlayerReady(player.id, true);
     } catch (error) {
       console.error("Error updating player status:", error);
       alert("Failed to update status. Please try again.");
@@ -169,6 +195,8 @@ export function PlayerView({
   const handleStartGame = async () => {
     setIsLoading(true);
     try {
+      // Update all player statuses to "playing" and transition game to active
+      await lobbyStartGame();
       await gameAPI.updateStatus(gameDetails.id, { status: "active" });
     } catch (error) {
       console.error("Error starting game:", error);
@@ -179,8 +207,11 @@ export function PlayerView({
 
   const currentPlayerReady =
     players.find((p) => p.user_id === player.user_id)?.status === "ready";
-  const allPlayersReady = players.every((player) => player.status === "ready");
-  const canStartGame = isGameReady && allPlayersReady;
+  // Game can only start when:
+  // 1. All players are ready (isAllReady)
+  // 2. Game has waypoints set up (isGameReady = status is "ready" or "active")
+  // This applies to both AI and player-GM games - waypoints must exist first
+  const canStartGame = isGameReady && isAllReady;
 
   return (
     <div className="container mx-auto p-4 md:p-8">
@@ -243,6 +274,17 @@ export function PlayerView({
             )}
           </div>
         </div>
+
+        {/* Game Code Display for Multiplayer */}
+        {isMultiplayer && gameDetails.game_code && (
+          <div className="mb-6">
+            <GameCodeDisplay
+              gameCode={gameDetails.game_code}
+              gameId={gameDetails.id}
+              gameName={gameDetails.name}
+            />
+          </div>
+        )}
 
         {/* Distance Warning Banner */}
         {isFarFromStart && distanceToStart && (
@@ -348,41 +390,52 @@ export function PlayerView({
                     No players joined yet...
                   </div>
                 )}
-                {players.map((p) => (
-                  <div 
-                    key={p.id} 
-                    className={cn(
-                      "p-4 rounded-xl border transition-all flex items-center justify-between",
-                      p.user_id === player.user_id 
-                        ? "bg-primary/10 border-primary/30" 
-                        : "bg-background-dark/40 border-white/5"
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm",
-                        p.status === "ready" ? "bg-primary text-background-dark" : "bg-surface-dark-elevated text-gray-400"
+                {players.map((p) => {
+                  const roleInfo = p.role ? ROLE_INFO[p.role as keyof typeof ROLE_INFO] : null;
+                  return (
+                    <div 
+                      key={p.id} 
+                      className={cn(
+                        "p-4 rounded-xl border transition-all flex items-center justify-between",
+                        p.user_id === player.user_id 
+                          ? "bg-primary/10 border-primary/30" 
+                          : "bg-background-dark/40 border-white/5"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm",
+                          p.status === "ready" ? "bg-primary text-background-dark" : "bg-surface-dark-elevated text-gray-400"
+                        )}>
+                          {p.status === "ready" ? (
+                            <Icon name="check" size="sm" />
+                          ) : roleInfo ? (
+                            <Icon name={roleInfo.icon} size="sm" />
+                          ) : (
+                            p.user_id?.substring(0, 2).toUpperCase() || "??"
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-bold text-white text-sm">
+                            {roleInfo?.shortName || p.role?.replace("_", " ")}
+                            {p.user_id === player.user_id && (
+                              <span className="ml-1.5 text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full uppercase tracking-tighter">You</span>
+                            )}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {roleInfo?.name || "Player"}
+                          </p>
+                        </div>
+                      </div>
+                      <span className={cn(
+                        "text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md",
+                        p.status === "ready" ? "text-primary bg-primary/10" : "text-gray-500 bg-gray-500/10"
                       )}>
-                        {p.status === "ready" ? <Icon name="check" size="sm" /> : (p.user_id?.substring(0, 2).toUpperCase() || "??")}
-                      </div>
-                      <div>
-                        <p className="font-bold text-white text-sm capitalize">
-                          {p.role.replace("_", " ")}
-                          {p.user_id === player.user_id && <span className="ml-1.5 text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full uppercase tracking-tighter">You</span>}
-                        </p>
-                        <p className="text-xs text-gray-500 font-mono truncate max-w-[120px]">
-                          {p.user_id}
-                        </p>
-                      </div>
+                        {p.status === "ready" ? "Ready" : "Waiting"}
+                      </span>
                     </div>
-                    <span className={cn(
-                      "text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md",
-                      p.status === "ready" ? "text-primary bg-primary/10" : "text-gray-500 bg-gray-500/10"
-                    )}>
-                      {p.status === "ready" ? "Ready" : "Waiting"}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
