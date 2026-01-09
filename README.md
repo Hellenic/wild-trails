@@ -1,10 +1,10 @@
 # Wild Trails
 
-Wild Trails is an outdoor adventure game that transforms traditional orienteering into an engaging treasure hunt.
+Wild Trails is a single player and co-op outdoor adventure game that transforms traditional orienteering into an engaging treasure hunt.
 
 Player(s) start from point A and must discover the location of their destination (point B) by visiting optional waypoints that provide hints and puzzles along the way. The game can be played solo with AI assistance, with two players working together, or as a more complex experience where one player creates physical clues and challenges for others to solve in a 24-hour wilderness adventure. It combines elements of orienteering, geocaching, and puzzle-solving while testing players' outdoor navigation and survival skills.
 
-> Keywords: orienteering, geocaching, puzzle-solving, outdoor adventure, survival skills, AI assistance, treasure hunt, human vs. wilderness,
+> Keywords: co-op, orienteering, geocaching, puzzle-solving, outdoor adventure, survival skills, AI assistance, treasure hunt, human vs. wilderness,
 > human vs. nature, survival & adventure, AI, gamification
 
 ## More details

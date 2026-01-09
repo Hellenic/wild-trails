@@ -120,7 +120,22 @@ export function PlayerAView({
 
   const triggeringPoints = points.filter((p) => p.type !== "start");
   const visitedWaypoints = points.filter((p) => p.type === "clue" && p.status === "visited");
+  const unvisitedWaypoints = points.filter((p) => p.type === "clue" && p.status === "unvisited");
   const goalPoint = points.find((p) => p.type === "end");
+
+  // Calculate the 2 closest unvisited waypoints for compass guidance
+  const closestUnvisitedWaypoints = playerLocation
+    ? unvisitedWaypoints
+        .map((p) => ({
+          ...p,
+          distance: calculateDistance(
+            { lat: playerLocation.lat, lng: playerLocation.lng },
+            { lat: p.latitude, lng: p.longitude }
+          ),
+        }))
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, 2)
+    : [];
 
   // Calculate estimated distance to goal
   let estimatedDistanceToGoal: string | undefined;
@@ -137,7 +152,10 @@ export function PlayerAView({
 
   const handleCompleteGame = async () => {
     try {
-      await gameAPI.updateStatus(gameDetails.id, { status: "completed" });
+      // Use gameAPI.end() instead of updateStatus() because the status endpoint
+      // is restricted by RLS to game creator only. The end endpoint properly
+      // handles authorization for all players and uses admin client.
+      await gameAPI.end(gameDetails.id);
       router.push(`/game/${gameDetails.id}/results`);
     } catch (error) {
       console.error("Error completing game:", error);
@@ -279,11 +297,11 @@ export function PlayerAView({
 
         <CompassOverlay
           playerLocation={playerLocation}
-          visitedPoints={visitedWaypoints.map((p, i) => ({
+          targetPoints={closestUnvisitedWaypoints.map((p, i) => ({
             id: p.id,
             latitude: p.latitude,
             longitude: p.longitude,
-            label: `Waypoint ${i + 1}`,
+            label: `${formatDistance(p.distance, preferences.distance_unit)} away`,
           }))}
           goalLocation={showGoal && goalPoint ? { lat: goalPoint.latitude, lng: goalPoint.longitude } : null}
         />

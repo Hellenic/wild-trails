@@ -1,7 +1,8 @@
 "use client";
 import { LatLng } from "@/utils/map";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useCallback, useRef } from "react";
 import { useLocationTracking } from "@/hooks/useLocationTracking";
+import type { ProximityEvent } from "@/lib/api/validation";
 
 interface GameContextType {
   requestPermissions: () => Promise<boolean>;
@@ -13,6 +14,10 @@ interface GameContextType {
   stopLocationTracking: () => void;
   isTracking: boolean;
   sendLocalNotification: (title: string, body: string) => void;
+  /** Latest proximity events from API (more reliable than Realtime on mobile) */
+  latestProximityEvents: ProximityEvent[];
+  /** Clear proximity events after handling them */
+  clearProximityEvents: () => void;
 }
 
 const GameContext = createContext<GameContextType | null>(null);
@@ -40,6 +45,26 @@ export const GameContextProvider: React.FC<{
   const [, setServiceWorkerRegistration] =
     useState<ServiceWorkerRegistration | null>(null);
   const [permissionsGranted, setPermissionsGranted] = useState(false);
+  const [latestProximityEvents, setLatestProximityEvents] = useState<ProximityEvent[]>([]);
+  
+  // Track processed event IDs to avoid duplicates
+  const processedEventsRef = useRef<Set<string>>(new Set());
+
+  const handleProximityEvents = useCallback((events: ProximityEvent[]) => {
+    // Filter out already processed events
+    const newEvents = events.filter(e => !processedEventsRef.current.has(e.point_id));
+    
+    if (newEvents.length > 0) {
+      // Mark as processed
+      newEvents.forEach(e => processedEventsRef.current.add(e.point_id));
+      // Set the new events (replacing previous ones)
+      setLatestProximityEvents(newEvents);
+    }
+  }, []);
+
+  const clearProximityEvents = useCallback(() => {
+    setLatestProximityEvents([]);
+  }, []);
 
   const {
     location: playerLocation,
@@ -49,7 +74,7 @@ export const GameContextProvider: React.FC<{
     startTracking,
     stopTracking,
     isTracking,
-  } = useLocationTracking();
+  } = useLocationTracking({ onProximityEvents: handleProximityEvents });
 
   const sendLocalNotification = (title: string, body: string) => {
     navigator.serviceWorker.ready.then((registration) => {
@@ -132,6 +157,8 @@ export const GameContextProvider: React.FC<{
     stopLocationTracking: stopTracking,
     isTracking,
     sendLocalNotification,
+    latestProximityEvents,
+    clearProximityEvents,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

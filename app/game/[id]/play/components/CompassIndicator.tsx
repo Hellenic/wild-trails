@@ -62,13 +62,14 @@ export function CompassIndicator({
 
 interface CompassOverlayProps {
   playerLocation: { lat: number; lng: number } | null;
-  visitedPoints: Array<{ id: string; latitude: number; longitude: number; label?: string }>;
+  /** Target waypoints to show compass directions for (e.g., closest unvisited) */
+  targetPoints: Array<{ id: string; latitude: number; longitude: number; label?: string }>;
   goalLocation?: { lat: number; lng: number } | null;
 }
 
 export function CompassOverlay({
   playerLocation,
-  visitedPoints,
+  targetPoints,
   goalLocation,
 }: CompassOverlayProps) {
   if (!playerLocation) return null;
@@ -85,13 +86,13 @@ export function CompassOverlay({
         />
       )}
 
-      {/* Show compass to visited points */}
-      {visitedPoints.slice(-2).reverse().map((point, index) => (
+      {/* Show compass to target waypoints (limited to 2) */}
+      {targetPoints.slice(0, 2).map((point) => (
         <CompassIndicator
           key={point.id}
           playerLocation={playerLocation}
           targetLocation={{ lat: point.latitude, lng: point.longitude }}
-          label={point.label || `Waypoint ${visitedPoints.length - index}`}
+          label={point.label}
           variant="waypoint"
         />
       ))}

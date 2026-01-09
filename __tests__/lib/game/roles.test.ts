@@ -38,7 +38,7 @@ describe("Role System", () => {
       const permissions = ROLE_PERMISSIONS.player_b;
       
       expect(permissions.canSeeOwnLocation).toBe(true);
-      expect(permissions.canSeeGoalLocation).toBe(true);
+      expect(permissions.canSeeGoalLocation).toBe(false); // Player B cannot see goal
       expect(permissions.canSeeOtherPlayers).toBe(true);
       expect(permissions.canRequestHints).toBe(false);
       expect(permissions.canSeeHints).toBe(true);
@@ -123,7 +123,7 @@ describe("Role System", () => {
   describe("hasPermission", () => {
     it("should return true when role has permission", () => {
       expect(hasPermission("player_a", "canRequestHints")).toBe(true);
-      expect(hasPermission("player_b", "canSeeGoalLocation")).toBe(true);
+      expect(hasPermission("player_b", "canSeeAllWaypoints")).toBe(true);
       expect(hasPermission("game_master", "canManuallyTriggerHints")).toBe(true);
     });
 
@@ -137,9 +137,10 @@ describe("Role System", () => {
   describe("getRolesWithPermission", () => {
     it("should return roles that can see goal location", () => {
       const roles = getRolesWithPermission("canSeeGoalLocation");
-      expect(roles).toContain("player_b");
+      // Only Game Master can see the goal - Player A discovers it, Player B guides via hints
       expect(roles).toContain("game_master");
       expect(roles).not.toContain("player_a");
+      expect(roles).not.toContain("player_b");
     });
 
     it("should return roles that can request hints", () => {

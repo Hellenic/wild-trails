@@ -175,7 +175,7 @@ export function PlayerBView({
         <GameMap
           bounds={gameDetails.bounding_box}
           playerLocation={playerLocation}
-          showGoal={true} // Player B always sees the goal
+          showGoal={false} // Player B cannot see the goal - must guide using waypoint hints
           points={points}
           otherPlayers={otherPlayerMarkers}
           showAllWaypoints={true} // Player B sees all waypoints

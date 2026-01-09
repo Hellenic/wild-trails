@@ -66,7 +66,7 @@ export const ROLE_PERMISSIONS: Record<GameRole, RolePermissions> = {
   },
   player_b: {
     canSeeOwnLocation: true,
-    canSeeGoalLocation: true,   // Sees goal from start
+    canSeeGoalLocation: false,  // Cannot see goal - must guide using waypoint hints
     canSeeOtherPlayers: true,
     canRequestHints: false,
     canSeeHints: true,          // Receives hints to relay

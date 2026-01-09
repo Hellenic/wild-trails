@@ -2,7 +2,7 @@
 
 Working title: Wild Trails
 
-> Keywords: orienteering, geocaching, puzzle-solving, outdoor adventure, survival skills, AI assistance, treasure hunt, human vs. wilderness,
+> Keywords: co-op, orienteering, geocaching, puzzle-solving, outdoor adventure, survival skills, AI assistance, treasure hunt, human vs. wilderness,
 > human vs. nature, survival & adventure, AI, gamification
 
 Game is basically a more advanced version of orienteering. Each game will consist of a starting point (A) and an ending point (B). At the start of the game, the location of B is unknown. Players will have a certain amount of hours to get to point B, and direct distance between the points A and B should correlate to the amount of hours.
@@ -14,13 +14,16 @@ Players can see the whole map area including point A. Player A will travel to po
 Once player A is close enough to a point, the application will send them a notification or a message. The message can include a direct hint about the B location, like a rough area, distance from nearest lake or other landmark, or a puzzle which has to be solved before getting the direct hint.
 
 Game has multiple roles;
-- Player A, who is the player who starts at the point A and aims to get to the goal which is the point B
-- Game master is the player who will create the map, choose the points A and B, and also create the points in-between, including all the hints and puzzles.
+- **Player A**, who is the player who starts at the point A and aims to get to the goal which is the point B
+  - When Player A is playing solo, or with GM only, they will be able to see the waypoints
+    - Any possible messages, notifications, or tips, will all go to Player A in a game without Player B
+  - When playing with Player B in the game, they will not see the waypoints
+- (Optional) **Game master** is the player who will create the map, choose the points A and B, and also create the points in-between, including all the hints and puzzles.
   - Game master can be automated by the application, and does not have to be an actual player
-- (Optional) Player B, who is the player at point B. When Player B is present, player B is the one who will receive the messages, notifications, and tips. They will have to solve puzzles and glues, to get the information about points in-between and their own location, which they will have to communicate to player A.
+- (Optional) **Player B**, who is the player at point B
+  - When Player B is present, player B is the one who will receive the messages, notifications, and tips
+  - They will have to solve puzzles and glues, to get the information about points in-between and their own location, which they will have to communicate to Player A.
   - Game suggests that player B only would use either short messages, or short calls, not to make the game too easy, but does not limit this in any way at the moment
-
-
 
 This game can be played with multiple players, in a following way
 - Single player

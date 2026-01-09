@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { requireAuth, handleApiError } from "@/lib/api/auth";
 import { z } from "zod";
 
@@ -14,7 +14,8 @@ const endGameSchema = z.object({
  * Authorization:
  * - Game creator can always end the game
  * - Game Master (player with game_master role) can end the game
- * - Player A can "give up" (end with gave_up=true)
+ * - Player A can end the game (completing successfully or giving up)
+ * - Player B cannot end the game
  */
 export async function POST(
   request: NextRequest,
@@ -75,24 +76,23 @@ export async function POST(
     // Authorization logic:
     // - Creator can always end
     // - Game Master can always end
-    // - Player A can give up (end with gave_up=true)
-    // - Other players cannot end the game
-    const canEnd = isCreator || isGameMaster || (isPlayerA && gave_up);
+    // - Player A can end (either completing successfully or giving up)
+    // - Other players (Player B) cannot end the game
+    const canEnd = isCreator || isGameMaster || isPlayerA;
 
     if (!canEnd) {
-      if (isPlayerA && !gave_up) {
-        return NextResponse.json(
-          { error: "As Player A, you can only give up (set gave_up to true)" },
-          { status: 403 }
-        );
-      }
       return NextResponse.json(
         { error: "You do not have permission to end this game" },
         { status: 403 }
       );
     }
 
-    // Update game status
+    // Update game status using admin client
+    // Authorization has already been validated above, so we bypass RLS for the update
+    // This is necessary because the games UPDATE policy only allows the creator,
+    // but we need to allow Game Master and Player A (giving up) to end as well
+    const adminClient = createAdminClient();
+    
     const updateData: {
       status: "completed";
       ended_at: string;
@@ -107,7 +107,7 @@ export async function POST(
       updateData.gave_up = true;
     }
 
-    const { data: updatedGame, error: updateError } = await supabase
+    const { data: updatedGame, error: updateError } = await adminClient
       .from("games")
       .update(updateData)
       .eq("id", gameId)

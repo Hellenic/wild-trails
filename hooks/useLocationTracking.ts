@@ -1,14 +1,24 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { LatLng } from "@/utils/map";
 import { locationAPI } from "@/lib/api/client";
-import type { LocationUpdateInput } from "@/lib/api/validation";
+import type { LocationUpdateInput, ProximityEvent } from "@/lib/api/validation";
 
-async function streamLocation(payload: LocationUpdateInput) {
+export type ProximityEventCallback = (events: ProximityEvent[]) => void;
+
+async function streamLocation(
+  payload: LocationUpdateInput,
+  onProximityEvents?: ProximityEventCallback
+): Promise<ProximityEvent[]> {
   try {
     const response = await locationAPI.update(payload);
+    const events = response.proximity_events || [];
     
-    // Return proximity events if any
-    return response.proximity_events || [];
+    // Call the callback with proximity events if any
+    if (events.length > 0 && onProximityEvents) {
+      onProximityEvents(events);
+    }
+    
+    return events;
   } catch (error) {
     console.error("Failed to store location:", error);
     return [];
@@ -16,7 +26,12 @@ async function streamLocation(payload: LocationUpdateInput) {
 }
 
 
-export function useLocationTracking() {
+interface UseLocationTrackingOptions {
+  onProximityEvents?: ProximityEventCallback;
+}
+
+export function useLocationTracking(options: UseLocationTrackingOptions = {}) {
+  const { onProximityEvents } = options;
   const [location, setLocation] = useState<LatLng | null>(null);
   const [distanceTravelled, setDistanceTravelled] = useState(0);
   const [isTracking, setIsTracking] = useState(false);
@@ -28,6 +43,9 @@ export function useLocationTracking() {
   const retryCountRef = useRef<number>(0);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasGivenUpRef = useRef<boolean>(false); // Flag to stop processing errors after giving up
+  // Store callback in ref to avoid re-creating startTracking on callback changes
+  const onProximityEventsRef = useRef(onProximityEvents);
+  onProximityEventsRef.current = onProximityEvents;
   const maxRetries = 3;
   const baseRetryDelay = 2000; // Start with 2 seconds
 
@@ -99,17 +117,20 @@ export function useLocationTracking() {
             
             if (timeSinceLastUpdate >= 1000) {
               lastUpdateTimeRef.current = now;
-              streamLocation({
-                latitude,
-                longitude,
-                altitude,
-                altitude_accuracy: altitudeAccuracy,
-                accuracy,
-                heading,
-                speed,
-                game_id: gameId,
-                player_id: playerId,
-              }).catch((err) => {
+              streamLocation(
+                {
+                  latitude,
+                  longitude,
+                  altitude,
+                  altitude_accuracy: altitudeAccuracy,
+                  accuracy,
+                  heading,
+                  speed,
+                  game_id: gameId,
+                  player_id: playerId,
+                },
+                onProximityEventsRef.current
+              ).catch((err) => {
                 console.warn(
                   "Error occurred while streaming location to the backend",
                   err

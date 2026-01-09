@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useGameDetails } from "@/hooks/useGame";
@@ -28,11 +28,19 @@ export default function GameScreen() {
   const supabase = createClient();
   const { player, loading: playerLoading } = usePlayer(id);
   const { gameDetails, loading: gameDetailsLoading } = useGameDetails(id);
-  const { points, loading: pointsLoading } = usePoints(id);
+  const { points, loading: pointsLoading, refetch: refetchPoints } = usePoints(id);
   const [goalFound, setGoalFound] = useState<GamePoint | null>(null);
   const [collectedHints, setCollectedHints] = useState<Array<{ pointId: string; hint: string; timestamp: string }>>([]);
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
-  const { sendLocalNotification } = useGameContext(true, id, player?.id);
+  const { 
+    sendLocalNotification, 
+    latestProximityEvents, 
+    clearProximityEvents 
+  } = useGameContext(true, id, player?.id);
+
+  // Track processed point IDs to avoid duplicate notifications
+  // (both API-based and Realtime events may fire for the same point)
+  const processedPointsRef = useRef<Set<string>>(new Set());
 
   // Fetch all players for multiplayer games
   useEffect(() => {
@@ -58,21 +66,34 @@ export default function GameScreen() {
     ? getRolePermissions(playerRole).receivesProximityAlerts 
     : false;
 
-  // Listen for server-side proximity events (only for roles with receivesProximityAlerts permission)
+  // Listen for server-side proximity events via Realtime (backup method)
+  // This provides redundancy in case API-based events are missed
   useProximityEvents(id, {
     enabled: shouldReceiveProximityAlerts,
     onClueDiscovered: (point) => {
+      // Skip if already processed (deduplication with API-based events)
+      if (processedPointsRef.current.has(point.id)) {
+        return;
+      }
+      processedPointsRef.current.add(point.id);
+
       // Play sound and haptic feedback
       playWaypointFound().catch(console.error);
       triggerHaptic([100, 50, 100]);
       
       // Add hint to collection
       if (point.hint) {
-        setCollectedHints(prev => [...prev, {
-          pointId: point.id,
-          hint: point.hint!,
-          timestamp: new Date().toISOString()
-        }]);
+        setCollectedHints(prev => {
+          // Avoid duplicates in state as well
+          if (prev.some(h => h.pointId === point.id)) {
+            return prev;
+          }
+          return [...prev, {
+            pointId: point.id,
+            hint: point.hint!,
+            timestamp: new Date().toISOString()
+          }];
+        });
       }
       
       // Send notification
@@ -81,9 +102,75 @@ export default function GameScreen() {
       }
     },
     onGoalFound: (point) => {
+      // Skip if already processed
+      if (processedPointsRef.current.has(point.id)) {
+        return;
+      }
+      processedPointsRef.current.add(point.id);
       setGoalFound(point);
     },
   });
+
+  // Handle API-based proximity events (more reliable than Realtime on mobile)
+  // This is the PRIMARY method for detecting waypoint discoveries
+  useEffect(() => {
+    if (!shouldReceiveProximityAlerts || latestProximityEvents.length === 0) {
+      return;
+    }
+
+    let hasNewEvents = false;
+
+    // Process each proximity event
+    for (const event of latestProximityEvents) {
+      // Skip if already processed (deduplication with Realtime events)
+      if (processedPointsRef.current.has(event.point_id)) {
+        continue;
+      }
+      processedPointsRef.current.add(event.point_id);
+      hasNewEvents = true;
+
+      // Play sound and haptic feedback
+      playWaypointFound().catch(console.error);
+      triggerHaptic([100, 50, 100]);
+      
+      if (event.point_type === "clue") {
+        // Add hint to collection
+        if (event.hint) {
+          // eslint-disable-next-line
+          setCollectedHints(prev => {
+            // Avoid duplicates in state as well
+            if (prev.some(h => h.pointId === event.point_id)) {
+              return prev;
+            }
+            return [...prev, {
+              pointId: event.point_id,
+              hint: event.hint!,
+              timestamp: new Date().toISOString()
+            }];
+          });
+        }
+        
+        // Send notification
+        if (Notification.permission === "granted") {
+          sendLocalNotification("Waypoint discovered!", `Hint: ${event.hint || "No hint available"}`);
+        }
+      } else if (event.point_type === "end") {
+        // Find the goal point from the points array
+        const goalPoint = points.find(p => p.id === event.point_id);
+        if (goalPoint) {
+          setGoalFound(goalPoint);
+        }
+      }
+    }
+
+    // Only refetch points if we actually processed new events
+    if (hasNewEvents) {
+      refetchPoints();
+    }
+    
+    // Clear events after processing
+    clearProximityEvents();
+  }, [latestProximityEvents, shouldReceiveProximityAlerts, points, sendLocalNotification, refetchPoints, clearProximityEvents]);
 
   if (playerLoading || gameDetailsLoading || pointsLoading) {
     return (
@@ -206,8 +293,12 @@ export default function GameScreen() {
     );
   }
 
-  // Determine game mode
+  // Determine game mode and player composition
   const isMultiplayer = gameDetails.game_mode !== "single_player";
+  
+  // Check if Player B exists in the game
+  // According to synopsis: Player A sees waypoints when solo OR with GM only (no Player B)
+  const hasPlayerB = allPlayers.some(p => p.role === "player_b");
 
   // Player B view (multiplayer only)
   if (player.role === "player_b") {
@@ -263,7 +354,7 @@ export default function GameScreen() {
         points={points}
         collectedHints={collectedHints}
         goalFound={goalFound}
-        showAllWaypoints={!isMultiplayer} // Single-player shows all waypoints
+        showAllWaypoints={!hasPlayerB} // Player A sees waypoints when there's no Player B
       />
     </main>
   );
